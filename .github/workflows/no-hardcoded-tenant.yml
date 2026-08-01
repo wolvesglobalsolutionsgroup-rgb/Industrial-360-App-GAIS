@@ -12,16 +12,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verificar ausencia de fallbacks hardcodeados de tenant
-        run: |
-          PATTERN="semax_pino|PROJ-001|PROJ-DEFAULT|proj-default|proj-main|prointeca-demo|PROJ-CARDON-AMUAY"
-          MATCHES=$(grep -rnE "$PATTERN" src/ --include="*.ts" --include="*.tsx" \
-            | grep -v "__tests__" \
-            | grep -v "FALLBACK_DEMO_PROJECTS" \
-            | grep -v "src/lib/seedDemoData.ts" || true)
-          if [ -n "$MATCHES" ]; then
-            echo "❌ Fallback hardcodeado de tenant detectado (viola AGENTS.md Sección 1):"
-            echo "$MATCHES"
-            exit 1
-          fi
-          echo "✅ Sin fallbacks hardcodeados de tenant en código de producción."
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Ejecutar Auditoría de Tenant y Secretos
+        run: node scripts/auditNoHardcodedTenant.js

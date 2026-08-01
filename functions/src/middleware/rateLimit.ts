@@ -98,7 +98,11 @@ export function rateLimit(options: RateLimitOptions) {
 
       if (!result.allowed) {
         if (result.retryAfterSeconds) {
-          res.set('Retry-After', String(result.retryAfterSeconds));
+          if (typeof res.set === 'function') {
+            res.set('Retry-After', String(result.retryAfterSeconds));
+          } else if (typeof res.setHeader === 'function') {
+            res.setHeader('Retry-After', String(result.retryAfterSeconds));
+          }
         }
         res.status(429).json({
           error: `Demasiadas peticiones: Has excedido el límite de ${maxRequests} peticiones por minuto para '${operation}'.`,

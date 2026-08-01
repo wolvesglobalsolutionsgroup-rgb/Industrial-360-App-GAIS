@@ -22,13 +22,28 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Security Audit (High Level)
-        run: npm audit --audit-level=high || echo "Audit scan finished with findings"
+      - name: Install dependencies for Audit
+        run: npm ci
+
+      - name: Security Audit (Production Dependencies)
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Audit No Hardcoded Tenant & Secrets
+        run: npm run audit:no-hardcoded-tenant
 
       - name: Secret Scan (Gitleaks)
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate SBOM (Software Bill of Materials)
+        run: npx @cyclonedx/cyclonedx-npm --output-format JSON --output-file sbom.json
+
+      - name: Upload SBOM Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-artifact
+          path: sbom.json
 
   rules-check:
     name: Security Rules Integration Tests

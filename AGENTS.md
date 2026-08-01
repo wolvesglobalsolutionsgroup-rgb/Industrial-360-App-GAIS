@@ -83,6 +83,12 @@ Si una instrucción del usuario es ambigua entre "hazlo rápido para la demo" y 
 
 ---
 
+## 7. Convención de Commits
+Toda propuesta de commit o mensaje de entrega debe adoptar la convención estricta:
+`feat(sNN.N): <descripción breve en español>` (por ejemplo `feat(s14.5): implementar supply chain, CI y release gates`).
+
+---
+
 ## 8. Sistema de tema — regla única
 
 Existe exactamente un lugar donde se definen colores, sombras y radios: el bloque `@theme` de `src/index.css`, con sus overrides en `.dark`. Existe exactamente un mecanismo de modo oscuro: la clase `dark` en `<html>`, controlada por `ThemeContext.tsx`. No existe ningún otro sistema de temas.

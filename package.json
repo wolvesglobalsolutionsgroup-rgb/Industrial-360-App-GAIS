@@ -13,6 +13,7 @@
     "test:rules": "firebase emulators:exec --only firestore \"vitest run tests/rules\"",
     "test:storage-rules": "firebase emulators:exec --only storage \"vitest run tests/storage\"",
     "test:all": "npm run test:unit && npm run test:rules && npm run test:storage-rules",
+    "audit:no-hardcoded-tenant": "node scripts/auditNoHardcodedTenant.js",
     "lint": "tsc --noEmit --project tsconfig.json"
   },
   "dependencies": {
@@ -54,12 +55,12 @@
     "react-firebase-hooks": "^5.1.1",
     "react-leaflet": "^5.0.0",
     "react-markdown": "^10.1.0",
-    "react-router-dom": "^7.14.0",
+    "react-router-dom": "^7.18.2",
     "recharts": "^3.8.1",
     "resend": "^6.18.0",
     "tailwind-merge": "^3.5.0",
     "three": "^0.183.2",
-    "tokml": "^0.4.0"
+    "tokml": "0.2.2"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.1",
@@ -78,6 +79,9 @@
   },
   "overrides": {
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "minimist": "^1.2.8",
+    "minimatch": "^9.0.5",
+    "uuid": "^11.1.1"
   }
 }
