@@ -11,3 +11,4 @@ export * from './sihoPtwRepo';
 export * from './apusRepo';
 export * from './workersRepo';
 export * from './expensesRepo';
+export * from './fleetEquipmentRepo';

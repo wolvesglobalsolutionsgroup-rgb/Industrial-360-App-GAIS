@@ -99,6 +99,15 @@ export interface LocalDraft {
   updatedAt: string;
 }
 
+export interface QrTokenCacheItem {
+  id: string; // credentialId
+  token: string;
+  workerId?: string;
+  issuedAt: number;
+  expiresAt: number;
+  cachedAt: number;
+}
+
 export class IndustrialControl360DB extends Dexie {
   outbox!: Table<OutboxItem>;
   pendingReports!: Table<PendingReport>;
@@ -106,6 +115,7 @@ export class IndustrialControl360DB extends Dexie {
   pendingRoutes!: Table<PendingRoute>;
   syncLog!: Table<SyncLogItem>;
   localDrafts!: Table<LocalDraft>;
+  qrTokenCache!: Table<QrTokenCacheItem>;
 
   constructor() {
     super('IndustrialControl360_OfflineDB');
@@ -116,6 +126,15 @@ export class IndustrialControl360DB extends Dexie {
       pendingRoutes: '++id, operationId, tempId, projectId, syncStatus, createdAt',
       syncLog: '++id, operationId, collectionName, recordId, timestamp, status',
       localDrafts: 'id, category, updatedAt'
+    });
+    this.version(3).stores({
+      outbox: '++id, operationId, collectionName, category, syncStatus, timestamp, orgId, projectId',
+      pendingReports: '++id, operationId, tempId, projectId, date, syncStatus, createdAt',
+      pendingValuations: '++id, operationId, tempId, projectId, number, syncStatus, createdAt',
+      pendingRoutes: '++id, operationId, tempId, projectId, syncStatus, createdAt',
+      syncLog: '++id, operationId, collectionName, recordId, timestamp, status',
+      localDrafts: 'id, category, updatedAt',
+      qrTokenCache: 'id, expiresAt, cachedAt'
     });
   }
 }

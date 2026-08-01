@@ -1,5 +1,6 @@
 import { ApuItem as CanonicalApuItem } from '../engineering/apuCalculator';
 export * from '../engineering/workerQrEngine';
+export * from '../engineering/equipmentRateEngine';
 
 export interface BaseEntity {
   id: string;
@@ -180,3 +181,75 @@ export interface AttendanceRecordItem extends BaseEntity {
   syncState?: 'PENDING_OFFLINE' | 'SYNCED' | 'CORRECTED';
   [key: string]: any;
 }
+
+export interface FleetEquipmentItem extends BaseEntity {
+  tag: string;
+  name: string;
+  type: 'Grúa Telescópica' | 'Camión Vacuum' | 'Planta Eléctrica' | 'Compresor de Aire' | 'Motobomba' | 'Retroexcavadora' | string;
+  brandModel: string;
+  currentHorometer: number;
+  lastServiceHorometer: number;
+  nextServiceHorometer: number;
+  maintenanceIntervalHours: number;
+  fuelType: 'Diésel' | 'Gasolina' | 'DIESEL' | 'GASOLINE' | string;
+  dailyConsumptionLiters: number;
+  expectedLitersPerHr: number;
+  status: 'Operativo en Sitio' | 'En Mantenimiento' | 'Fuera de Servicio' | 'Stand-by' | string;
+  certExpiryDate: string;
+  operatorName: string;
+  operatorHourlyRateUsd?: number;
+  acquisitionCostUsd?: number;
+  residualValuePercent?: number;
+  usefulLifeHours?: number;
+  operatingHourlyRateUsd?: number;
+  standbyHourlyRateUsd?: number;
+  idleHourlyRateUsd?: number;
+  [key: string]: any;
+}
+
+export interface HorometerLogEntry extends BaseEntity {
+  equipmentId: string;
+  equipmentTag: string;
+  date: string;
+  previousHorometer: number;
+  newHorometer: number;
+  deltaHours: number;
+  ocrEvidenceUrl?: string;
+  registeredBy: string;
+  source: 'MANUAL' | 'OCR_VISION' | 'IOT';
+  [key: string]: any;
+}
+
+export interface FuelLogEntry extends BaseEntity {
+  equipmentId: string;
+  equipmentTag: string;
+  date: string;
+  horometerAtRefuel: number;
+  litersRefueled: number;
+  fuelUnitPriceUsd: number;
+  operatingHoursSinceLastRefuel: number;
+  actualLitersPerHr: number;
+  expectedLitersPerHr: number;
+  variancePercent: number;
+  alert: boolean;
+  alertLevel: 'NONE' | 'WARNING' | 'CRITICAL';
+  evidenceUrl?: string;
+  registeredBy: string;
+  source: 'MANUAL' | 'DISPENSER_LOG' | 'IOT';
+  [key: string]: any;
+}
+
+export interface EquipmentMaintenanceSchedule extends BaseEntity {
+  equipmentId: string;
+  equipmentTag: string;
+  serviceName: string;
+  maintenanceIntervalHours: number;
+  lastServiceHorometer: number;
+  nextServiceHorometer: number;
+  criticality: 'HIGH' | 'MEDIUM' | 'LOW';
+  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'OVERDUE';
+  assignedTechnician?: string;
+  notes?: string;
+  [key: string]: any;
+}
+

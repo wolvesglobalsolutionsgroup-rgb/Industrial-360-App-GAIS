@@ -31,6 +31,9 @@ export interface ApuEquipment {
   hourlyRateIdleUsd: number;
   hoursActive: number;
   hoursIdle: number;
+  equipmentId?: string;
+  chpUsd?: number;
+  choUsd?: number;
 }
 
 export interface ApuMaterial {
