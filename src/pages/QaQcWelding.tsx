@@ -14,6 +14,10 @@ import { weldJointsRepo } from '../lib/repositories';
 import IsometricViewer from '../components/engineering/IsometricViewer';
 import jsPDF from 'jspdf';
 import { drawQualityHeader, drawPhotoEvidences, drawQualityFooter, cleanPdfText } from '../lib/pdfQualityUtils';
+import { DualHeader } from '../components/common/DualHeader';
+import { DocumentSeal } from '../components/common/DocumentSeal';
+import { DocumentSigner } from '../components/common/DocumentSigner';
+import { OPERATOR_BRAND_PRESETS } from '../lib/brandKitPresets';
 
 export interface WeldJoint {
   id?: string;
@@ -400,6 +404,16 @@ export default function QaQcWelding() {
 
   return (
     <div className="space-y-6 pb-12">
+      {/* Doble Membrete S18 */}
+      <DualHeader
+        contractorBrand={brandKit}
+        operatorBrand={OPERATOR_BRAND_PRESETS.PDVSA}
+        documentTitle="PROTOCOLO DE CONTROL QA/QC Y ENSAYOS NDT (API 1104 / ASME IX)"
+        documentCode={currentProject?.id ? `QAQC-${currentProject.id.substring(0, 6)}` : 'QAQC-GENERIC'}
+        documentDate={new Date().toLocaleDateString('es-VE')}
+        statusBadge="APROBADO"
+      />
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 dark:border-slate-800 pb-4">
         <div>

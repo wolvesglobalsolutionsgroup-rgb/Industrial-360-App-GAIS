@@ -19,6 +19,10 @@ import {
 import StatCard from '../components/common/StatCard';
 import PageHeader from '../components/common/PageHeader';
 import { valuationsRepo, fieldReportsRepo } from '../lib/repositories';
+import { DualHeader } from '../components/common/DualHeader';
+import { DocumentSeal } from '../components/common/DocumentSeal';
+import { DocumentSigner } from '../components/common/DocumentSigner';
+import { OPERATOR_BRAND_PRESETS } from '../lib/brandKitPresets';
 
 
 export interface SignatureInfo {
@@ -58,7 +62,7 @@ export interface ValuationItem {
 }
 
 export default function Valuations() {
-  const { currentProject, currentOrganization } = useProject();
+  const { currentProject, currentOrganization, brandKit } = useProject();
   const [valuations, setValuations] = useState<ValuationItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -511,6 +515,16 @@ export default function Valuations() {
       transition={{ duration: 0.25 }}
       className="space-y-6 pb-12"
     >
+      {/* Doble Membrete S18 */}
+      <DualHeader
+        contractorBrand={brandKit}
+        operatorBrand={OPERATOR_BRAND_PRESETS.PDVSA}
+        documentTitle="RELACIÓN DE OBRAS EXECUTADAS (ROE) / CERTIFICADO DE VALUACIÓN"
+        documentCode={currentProject?.id ? `ROE-${currentProject.id.substring(0, 6)}` : 'ROE-GENERIC'}
+        documentDate={new Date().toLocaleDateString('es-VE')}
+        statusBadge="APROBADO"
+      />
+
       {/* Header */}
       <PageHeader
         title="Valuaciones de Obra (ROE PDVSA)"

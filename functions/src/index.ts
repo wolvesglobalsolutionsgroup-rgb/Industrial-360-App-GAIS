@@ -698,12 +698,21 @@ export const getClientPortal = async (req: any, res: any) => {
  * - Escribe en colección append-only
  */
 export const sealDocument = functions.https.onCall(async (data: any, context: functions.https.CallableContext) => {
-  const { docId, orgId, projId, pdfBytesBase64, version, metadata } = data || {};
+  const { docId, orgId, projId, pdfBytesBase64, version, metadata, requireVerifierConfig } = data || {};
 
   if (!docId || !orgId) {
     throw new functions.https.HttpsError(
       'invalid-argument',
       'Faltan parámetros requeridos: docId y orgId.'
+    );
+  }
+
+  // Validar VERIFIER_BASE_URL mediante configuración segura
+  const verifierBaseUrl = process.env.VERIFIER_BASE_URL || (data?.verifierBaseUrl ? String(data.verifierBaseUrl) : 'https://industrial-360.app');
+  if (requireVerifierConfig && !process.env.VERIFIER_BASE_URL && !data?.verifierBaseUrl) {
+    throw new functions.https.HttpsError(
+      'failed-precondition',
+      'CONFIG_ERROR: VERIFIER_BASE_URL no está configurada en las variables de entorno del servidor.'
     );
   }
 
@@ -717,7 +726,7 @@ export const sealDocument = functions.https.onCall(async (data: any, context: fu
 
   const callerUid = authRes.uid;
 
-  // 1. Calcular Hash SHA-256 Server-Side
+  // 1. Calcular Hash SHA-256 Server-Side de bytes finales
   let sha256 = '';
   if (pdfBytesBase64) {
     const pdfBuffer = Buffer.from(pdfBytesBase64, 'base64');
@@ -732,6 +741,10 @@ export const sealDocument = functions.https.onCall(async (data: any, context: fu
   const dbAdmin = getFirestore();
   const verificationId = sha256;
 
+  // URL de verificación pública minimalista sin filtrar datos internos PII
+  const cleanBase = verifierBaseUrl.replace(/\/+$/, '');
+  const verificationUrl = `${cleanBase}/verify-document?doc=${encodeURIComponent(docId)}&hash=${sha256.substring(0, 16)}`;
+
   const verificationRecord = {
     id: verificationId,
     docId,
@@ -740,9 +753,11 @@ export const sealDocument = functions.https.onCall(async (data: any, context: fu
     sha256,
     status: 'VALIDEZ_OFICIAL',
     version: version || 'REV-0',
+    sealVersion: 'v1.0',
+    timezone: 'America/Caracas',
     issuedAt,
     sealedBy: callerUid,
-    verificationUrl: `/verify-document?sha256=${sha256}&docId=${docId}`,
+    verificationUrl,
     metadata: metadata || {}
   };
 
@@ -766,6 +781,7 @@ export const sealDocument = functions.https.onCall(async (data: any, context: fu
     sha256,
     status: 'VALIDEZ_OFICIAL',
     version: verificationRecord.version,
+    sealVersion: 'v1.0',
     issuedAt,
     verificationUrl: verificationRecord.verificationUrl
   };

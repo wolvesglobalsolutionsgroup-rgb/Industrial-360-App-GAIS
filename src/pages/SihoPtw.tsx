@@ -11,6 +11,11 @@ import { sihoPtwRepo } from '../lib/repositories';
 import { generateRegulatoryCode } from '../lib/regulatoryIdsClient';
 
 import AstForm from '../components/siho/AstForm';
+import { DualHeader } from '../components/common/DualHeader';
+import { DocumentSeal } from '../components/common/DocumentSeal';
+import { DocumentSigner } from '../components/common/DocumentSigner';
+import { OPERATOR_BRAND_PRESETS } from '../lib/brandKitPresets';
+import { DocumentSignerItem } from '../lib/documentPolicy';
 
 interface GasReadings {
   h2s: number; // Max 10 ppm
@@ -75,7 +80,7 @@ const defaultPrecautions = [
 ];
 
 export default function SihoPtw() {
-  const { currentProject } = useProject();
+  const { currentProject, brandKit } = useProject();
   const [activeTab, setActiveTab] = useState<'ptw' | 'ast' | 'charlas'>('ptw');
   const [ptwList, setPtwList] = useState<PTW[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -314,6 +319,16 @@ async function generateSha256Hash(dataString: string): Promise<string> {
 
   return (
     <div className="space-y-6 pb-12">
+      {/* Doble Membrete S18 */}
+      <DualHeader
+        contractorBrand={brandKit}
+        operatorBrand={OPERATOR_BRAND_PRESETS.PDVSA}
+        documentTitle="PERMISOS DE TRABAJO SEGURO (PTS) / MATRIZ SIHO-A"
+        documentCode={currentProject?.id ? `PTS-${currentProject.id.substring(0, 6)}` : 'PTS-GENERIC'}
+        documentDate={new Date().toLocaleDateString('es-VE')}
+        statusBadge="APROBADO"
+      />
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 pb-4">
         <div>
