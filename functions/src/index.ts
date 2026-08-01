@@ -5,7 +5,7 @@ import { getFirestore, FieldValue, FieldPath } from 'firebase-admin/firestore';
 import * as crypto from 'crypto';
 import { handleGeminiProxy } from '../../src/lib/geminiServer';
 import { requireAuth } from './middleware/requireAuth';
-import { rateLimit } from './middleware/rateLimit';
+import { rateLimit, checkRateLimit } from './middleware/rateLimit';
 import { authorizeServerSideRequest } from './middleware/authorizer';
 import { logger } from './logger';
 
@@ -404,17 +404,174 @@ export const createClientPortal = functions.https.onCall(async (data: any, conte
 });
 
 /**
- * Sprint 9 - ACCESO PÚBLICO CONTROLADO
+ * S14.4 - Rotación Criptográfica Atómica de Token del Portal
+ * Invalida token anterior y genera uno nuevo de 32 bytes dentro de una transacción Firestore.
+ * Exige: rol autorizado ('superadmin', 'gerente') en la orgId correspondiente.
+ */
+export const rotateClientPortalToken = functions.https.onCall(async (data: any, context: functions.https.CallableContext) => {
+  const { portalId, orgId, expiresAtOption } = data || {};
+
+  if (!portalId || !orgId) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'Faltan parámetros obligatorios: portalId y orgId.'
+    );
+  }
+
+  // Autorización server-side reusable (S14.2)
+  const authRes = await authorizeServerSideRequest(context.auth, {
+    orgId,
+    allowedRoles: ['superadmin', 'gerente'],
+  });
+
+  const callerUid = authRes.uid;
+  const dbAdmin = getFirestore();
+
+  // 1. Generar nuevo token criptográfico de 32 bytes (64 caracteres hex)
+  const newRawToken = crypto.randomBytes(32).toString('hex');
+  const newTokenHash = crypto.createHash('sha256').update(newRawToken).digest('hex');
+
+  // 2. Calcular nueva Expiración
+  let newExpiresAt: string | null = null;
+  if (expiresAtOption === '30days') {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    newExpiresAt = d.toISOString();
+  } else if (expiresAtOption === 'permanent') {
+    newExpiresAt = null;
+  } else {
+    const d = new Date();
+    d.setDate(d.getDate() + 90);
+    newExpiresAt = d.toISOString();
+  }
+
+  const orgPortalRef = dbAdmin.collection(`organizations/${orgId}/client_portals`).doc(portalId);
+  const globalPortalRef = dbAdmin.collection('client_portals').doc(portalId);
+
+  // C6 - Rotación atómica en runTransaction
+  await dbAdmin.runTransaction(async (transaction) => {
+    const orgSnap = await transaction.get(orgPortalRef);
+    if (!orgSnap.exists) {
+      throw new functions.https.HttpsError(
+        'not-found',
+        `No se encontró el portal con ID '${portalId}' en la organización '${orgId}'.`
+      );
+    }
+
+    const nowIso = new Date().toISOString();
+    const updateData = {
+      tokenHash: newTokenHash,
+      expiresAt: newExpiresAt,
+      isRevoked: false,
+      previousTokenInvalidatedAt: nowIso,
+      updatedAt: nowIso,
+      updatedBy: callerUid,
+    };
+
+    transaction.update(orgPortalRef, updateData);
+    transaction.update(globalPortalRef, updateData);
+
+    const auditRef = dbAdmin.collection(`organizations/${orgId}/audit_logs`).doc();
+    transaction.set(auditRef, {
+      action: 'CLIENT_PORTAL_TOKEN_ROTATED',
+      callerUid,
+      portalId,
+      timestamp: FieldValue.serverTimestamp(),
+    });
+  });
+
+  return {
+    success: true,
+    portalId,
+    rawToken: newRawToken,
+    expiresAt: newExpiresAt,
+    message: 'Token del portal rotado exitosamente. El token en texto plano solo se entrega en esta respuesta.',
+  };
+});
+
+/**
+ * S14.4 - Revocación Inmediata de Acceso a Portal Cliente
+ * Deshabilita el token activo de forma permanente.
+ */
+export const revokeClientPortalToken = functions.https.onCall(async (data: any, context: functions.https.CallableContext) => {
+  const { portalId, orgId, reason } = data || {};
+
+  if (!portalId || !orgId) {
+    throw new functions.https.HttpsError(
+      'invalid-argument',
+      'Faltan parámetros obligatorios: portalId y orgId.'
+    );
+  }
+
+  // Autorización server-side reusable (S14.2)
+  const authRes = await authorizeServerSideRequest(context.auth, {
+    orgId,
+    allowedRoles: ['superadmin', 'gerente'],
+  });
+
+  const callerUid = authRes.uid;
+  const dbAdmin = getFirestore();
+
+  const orgPortalRef = dbAdmin.collection(`organizations/${orgId}/client_portals`).doc(portalId);
+  const globalPortalRef = dbAdmin.collection('client_portals').doc(portalId);
+
+  await dbAdmin.runTransaction(async (transaction) => {
+    const orgSnap = await transaction.get(orgPortalRef);
+    if (!orgSnap.exists) {
+      throw new functions.https.HttpsError(
+        'not-found',
+        `No se encontró el portal con ID '${portalId}' en la organización '${orgId}'.`
+      );
+    }
+
+    const nowIso = new Date().toISOString();
+    const updateData = {
+      isRevoked: true,
+      revokedAt: nowIso,
+      revokedBy: callerUid,
+      revokeReason: reason || 'Revocado por administrador',
+      updatedAt: nowIso,
+    };
+
+    transaction.update(orgPortalRef, updateData);
+    transaction.update(globalPortalRef, updateData);
+
+    const auditRef = dbAdmin.collection(`organizations/${orgId}/audit_logs`).doc();
+    transaction.set(auditRef, {
+      action: 'CLIENT_PORTAL_TOKEN_REVOKED',
+      callerUid,
+      portalId,
+      reason: reason || 'Revocado por administrador',
+      timestamp: FieldValue.serverTimestamp(),
+    });
+  });
+
+  return {
+    success: true,
+    portalId,
+    message: 'Acceso a portal de cliente revocado exitosamente.',
+  };
+});
+
+/**
+ * Sprint 9 / S14.4 - ACCESO PÚBLICO CONTROLADO
  * Function HTTPS: getClientPortal
  * Recibe portalId y token por query/body
- * Compara hash del token recibido con tokenHash guardado
- * Rate limiting por IP
- * Retorna solo widgets/datos publicados
- * Audit log server-side
+ * Compara hash del token recibido con tokenHash guardado usando timingSafeEqual y verificación previa de longitud (C1)
+ * Rate limiting por IP normalizada y portalId (C4)
+ * Retorna DTO sanitizado exponiendo solo widgets/datos publicados (C3)
+ * Audit log server-side sin loguear rawToken (C2)
+ * CORS explícito (C-CORS)
  */
 export const getClientPortal = async (req: any, res: any) => {
-  // CORS
-  res.set('Access-Control-Allow-Origin', '*');
+  // C-CORS: Configuración explícita de dominios autorizados
+  const allowedOrigins = ['https://industrial-360.vercel.app', 'http://localhost:5173', 'http://localhost:3000'];
+  const origin = req.headers?.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.set('Access-Control-Allow-Origin', origin);
+  } else if (!origin) {
+    res.set('Access-Control-Allow-Origin', allowedOrigins[0]);
+  }
   res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
@@ -423,23 +580,29 @@ export const getClientPortal = async (req: any, res: any) => {
     return;
   }
 
-  // Rate limit por IP (30 solicitudes / min por IP)
-  const portalRateLimiter = rateLimit({ operation: 'getClientPortal', maxRequests: 30 });
-  await new Promise<void>((resolve, reject) => {
-    portalRateLimiter(req, res, (err?: any) => {
-      if (err) reject(err);
-      else resolve();
-    });
-  });
-
-  if (res.headersSent) return;
-
   try {
     const portalId = req.query.portalId || req.body?.portalId;
     const token = req.query.token || req.body?.token;
 
     if (!portalId || !token) {
       res.status(400).json({ error: 'Acceso Denegado: Faltan parámetros portalId o token de seguridad.' });
+      return;
+    }
+
+    // C4 - Rate limit con clave compuesta por IP normalizada y portalId (sin req.user)
+    const rawIp = (req.headers['x-forwarded-for'] as string) || req.ip || req.connection?.remoteAddress || '127.0.0.1';
+    const normalizedIp = rawIp.split(',')[0].trim().replace(/^::ffff:/, '');
+    const rateLimitKey = `${normalizedIp}_${portalId}`;
+
+    const rateLimitRes = await checkRateLimit(rateLimitKey, 'getClientPortal', 30, 60000);
+    if (!rateLimitRes.allowed) {
+      if (rateLimitRes.retryAfterSeconds) {
+        res.set('Retry-After', String(rateLimitRes.retryAfterSeconds));
+      }
+      res.status(429).json({
+        error: 'Demasiadas solicitudes. Excedió el límite de tasa permitido por minuto para este portal.',
+        retryAfterSeconds: rateLimitRes.retryAfterSeconds || 60,
+      });
       return;
     }
 
@@ -463,43 +626,61 @@ export const getClientPortal = async (req: any, res: any) => {
       return;
     }
 
-    // Comparar SHA-256 hash del token recibido
-    const computedHash = crypto.createHash('sha256').update(String(token)).digest('hex');
-    const isValidToken = computedHash === portalData.tokenHash || portalData.accessToken === token;
+    // C1 - Comparar SHA-256 hash del token recibido asegurando verificación previa de longitud antes de timingSafeEqual
+    const incomingHash = crypto.createHash('sha256').update(String(token)).digest('hex'); // 64 caracteres hex (32 bytes)
+    const storedHash = portalData.tokenHash; // 64 caracteres hex (32 bytes)
 
-    if (!isValidToken) {
+    if (!storedHash) {
       res.status(401).json({ error: 'Acceso Denegado: Token de seguridad no válido.' });
       return;
     }
 
-    // Registrar Audit Log Server-Side
-    const rawIp = req.headers['x-forwarded-for'] || req.ip || 'unknown';
-    const ip = typeof rawIp === 'string' ? rawIp.split(',')[0].trim() : String(rawIp);
-    const orgId = portalData.orgId || 'semax_pino';
+    const incomingBuf = Buffer.from(incomingHash, 'hex'); // 32 bytes
+    const storedBuf = Buffer.from(storedHash, 'hex');     // 32 bytes
+
+    if (incomingBuf.length !== storedBuf.length) {
+      res.status(401).json({ error: 'Acceso Denegado: Token de seguridad no válido.' });
+      return;
+    }
+
+    if (!crypto.timingSafeEqual(incomingBuf, storedBuf)) {
+      res.status(401).json({ error: 'Acceso Denegado: Token de seguridad no válido.' });
+      return;
+    }
+
+    // C2 - Registrar Audit Log Server-Side (sin incluir rawToken)
+    const orgId = portalData.orgId || 'default_org';
 
     try {
       await dbAdmin.collection(`organizations/${orgId}/client_portal_access_logs`).add({
         portalId,
-        orgId,
-        ip,
+        ip: normalizedIp,
         accessedAt: new Date().toISOString(),
         userAgent: req.headers['user-agent'] || 'unknown',
       });
     } catch (logErr) {
-      logger.warn('Error registrando log de acceso:', logErr);
+      logger.warn('Error registrando log de acceso al portal:', logErr);
     }
 
-    // Retornar solo widgets publicados según visibilityMatrix
+    // C3 - DTO sanitizado explícito en respuesta pública: NUNCA expone orgId, projectId, tokenHash, storagePath, linkedProjectIds o UIDs
+    const rawMatrix = portalData.visibilityMatrix || {};
+    const publishedWidgets: Record<string, boolean> = {};
+    if (rawMatrix && typeof rawMatrix === 'object') {
+      for (const [key, val] of Object.entries(rawMatrix)) {
+        if (val === true) {
+          publishedWidgets[key] = true;
+        }
+      }
+    }
+
     res.status(200).json({
       success: true,
       portal: {
         id: portalData.id,
         name: portalData.name,
         clientName: portalData.clientName,
-        orgId: portalData.orgId,
-        linkedProjectIds: portalData.linkedProjectIds,
-        branding: portalData.branding,
-        visibilityMatrix: portalData.visibilityMatrix,
+        branding: portalData.branding || {},
+        visibilityMatrix: publishedWidgets,
         updatedAt: portalData.updatedAt,
       }
     });
@@ -596,7 +777,14 @@ export const sealDocument = functions.https.onCall(async (data: any, context: fu
  * Retorna { status, version, issuedAt, sha256, docId, metadata }
  */
 export const verifyDocument = async (req: any, res: any) => {
-  res.set('Access-Control-Allow-Origin', '*');
+  // C-CORS: Configuración explícita de dominios autorizados
+  const allowedOrigins = ['https://industrial-360.vercel.app', 'http://localhost:5173', 'http://localhost:3000'];
+  const origin = req.headers?.origin;
+  if (origin && allowedOrigins.includes(origin)) {
+    res.set('Access-Control-Allow-Origin', origin);
+  } else if (!origin) {
+    res.set('Access-Control-Allow-Origin', allowedOrigins[0]);
+  }
   res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
@@ -611,6 +799,23 @@ export const verifyDocument = async (req: any, res: any) => {
 
     if (!sha256 && !docId) {
       res.status(400).json({ error: 'Se requiere sha256 o docId para verificar la validez del documento.' });
+      return;
+    }
+
+    // C5 - Rate limit obligatorio en verifyDocument por IP normalizada y recurso
+    const rawIp = (req.headers['x-forwarded-for'] as string) || req.ip || req.connection?.remoteAddress || '127.0.0.1';
+    const normalizedIp = rawIp.split(',')[0].trim().replace(/^::ffff:/, '');
+    const rateLimitKey = `${normalizedIp}_verify_${sha256 || docId}`;
+
+    const rateLimitRes = await checkRateLimit(rateLimitKey, 'verifyDocument', 30, 60000);
+    if (!rateLimitRes.allowed) {
+      if (rateLimitRes.retryAfterSeconds) {
+        res.set('Retry-After', String(rateLimitRes.retryAfterSeconds));
+      }
+      res.status(429).json({
+        error: 'Demasiadas solicitudes de verificación. Excedió el límite de tasa permitido.',
+        retryAfterSeconds: rateLimitRes.retryAfterSeconds || 60,
+      });
       return;
     }
 
@@ -644,8 +849,6 @@ export const verifyDocument = async (req: any, res: any) => {
       issuedAt: record.issuedAt,
       sha256: record.sha256,
       docId: record.docId,
-      orgId: record.orgId,
-      projId: record.projId,
       verificationUrl: record.verificationUrl,
       metadata: record.metadata || {}
     });

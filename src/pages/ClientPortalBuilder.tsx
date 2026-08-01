@@ -83,6 +83,71 @@ export default function ClientPortalBuilder() {
   const [createdRawToken, setCreatedRawToken] = useState<string | null>(null);
   const [expiresAtOption, setExpiresAtOption] = useState<'permanent' | '30days' | '90days'>('90days');
   const [isRevoked, setIsRevoked] = useState<boolean>(false);
+  const [isRotating, setIsRotating] = useState(false);
+  const [isRevoking, setIsRevoking] = useState(false);
+
+  const handleRotateToken = async () => {
+    if (!selectedPortalId) return;
+    if (!window.confirm('¿Deseas rotar el token de este portal? El token anterior quedará invalidado de forma inmediata.')) return;
+
+    setIsRotating(true);
+    setStatusMessage(null);
+
+    try {
+      const rotateFn = httpsCallable<any, { success: boolean; portalId: string; rawToken: string; expiresAt: string }>(
+        functionsInstance,
+        'rotateClientPortalToken'
+      );
+
+      const result = await rotateFn({
+        portalId: selectedPortalId,
+        orgId,
+        expiresAtOption,
+      });
+
+      if (result.data?.success) {
+        setCreatedRawToken(result.data.rawToken);
+        setIsRevoked(false);
+        setStatusMessage('¡Token rotado exitosamente! El token anterior ha sido invalidado.');
+      }
+    } catch (err: any) {
+      console.error('Error rotando token:', err);
+      setStatusMessage(`Error rotando token: ${err?.message || 'Error del servidor'}`);
+    } finally {
+      setIsRotating(false);
+    }
+  };
+
+  const handleRevokeToken = async () => {
+    if (!selectedPortalId) return;
+    if (!window.confirm('¿Deseas revocar el acceso a este portal? La URL actual dejará de funcionar.')) return;
+
+    setIsRevoking(true);
+    setStatusMessage(null);
+
+    try {
+      const revokeFn = httpsCallable<any, { success: boolean; portalId: string; message: string }>(
+        functionsInstance,
+        'revokeClientPortalToken'
+      );
+
+      const result = await revokeFn({
+        portalId: selectedPortalId,
+        orgId,
+        reason: 'Revocado desde el panel de administración',
+      });
+
+      if (result.data?.success) {
+        setIsRevoked(true);
+        setStatusMessage('Acceso al portal revocado exitosamente.');
+      }
+    } catch (err: any) {
+      console.error('Error revocando portal:', err);
+      setStatusMessage(`Error revocando portal: ${err?.message || 'Error del servidor'}`);
+    } finally {
+      setIsRevoking(false);
+    }
+  };
 
   // Email Invitation State
   const [inviteEmail, setInviteEmail] = useState('');
@@ -489,21 +554,35 @@ export default function ClientPortalBuilder() {
               </motion.div>
             )}
 
-            <div className="pt-2 flex items-center justify-between p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl">
-              <div>
-                <p className="text-xs font-bold text-rose-600 dark:text-rose-400">Estado de Revocación de Acceso</p>
-                <p className="text-[11px] text-ink-soft">Si se activa, la URL compartida quedará deshabilitada inmediatamente.</p>
+            {selectedPortalId && (
+              <div className="pt-2 flex flex-wrap items-center justify-between gap-3 p-3.5 bg-surface-2 border border-line rounded-xl">
+                <div>
+                  <p className="text-xs font-bold text-ink">Gestión de Acceso y Token Activo</p>
+                  <p className="text-[11px] text-ink-soft">Rota el token criptográfico o revoca el portal inmediatamente.</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleRotateToken}
+                    disabled={isRotating}
+                    className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-900 font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    <Key size={14} />
+                    <span>{isRotating ? 'Rotando...' : 'Rotar Token'}</span>
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={handleRevokeToken}
+                    disabled={isRevoking || isRevoked}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      isRevoked ? 'bg-rose-600 text-white opacity-80' : 'bg-rose-500 hover:bg-rose-600 text-white'
+                    }`}
+                  >
+                    {isRevoking ? 'Revocando...' : (isRevoked ? 'Portal Revocado' : 'Revocar Acceso')}
+                  </button>
+                </div>
               </div>
-              <button 
-                type="button"
-                onClick={() => setIsRevoked(!isRevoked)}
-                className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  isRevoked ? 'bg-rose-600 text-white' : 'bg-surface-2 text-ink hover:bg-elevated'
-                }`}
-              >
-                {isRevoked ? 'Acceso Revocado' : 'Acceso Activo'}
-              </button>
-            </div>
+            )}
           </div>
 
           {/* Visibility Matrix */}

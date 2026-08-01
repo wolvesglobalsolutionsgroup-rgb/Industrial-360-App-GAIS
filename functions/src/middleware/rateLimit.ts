@@ -13,37 +13,39 @@ export interface RateLimitResult {
   allowed: boolean;
   currentCount: number;
   limit: number;
+  retryAfterSeconds?: number;
 }
 
 /**
- * Función atómica para verificar y registrar el rate limiting en la colección Firestore /rate_limits/{uid}_{operation}_{windowKey}.
+ * Función atómica para verificar y registrar el rate limiting en la colección Firestore /rate_limits/{keyIdentifier}_{operation}_{windowKey}.
  * Utiliza transacciones de Firestore para garantizar coherencia en concurrencia.
- * 
- * Configuración de límites por defecto recomendados:
- * - callGeminiProxy: 20/min por uid
- * - sendEmail: 5/min por uid
+ * Soporta identificador por UID de usuario o por IP normalizada (+ portalId/resourceId).
  */
 export async function checkRateLimit(
-  uid: string,
+  keyIdentifier: string,
   operation: string,
   maxRequests: number,
   windowMs: number = 60000
 ): Promise<RateLimitResult> {
-  if (!uid) {
-    throw new Error('uid es requerido para verificar rate limit.');
+  if (!keyIdentifier) {
+    throw new Error('keyIdentifier (UID o IP) es requerido para verificar rate limit.');
   }
 
   const windowKey = Math.floor(Date.now() / windowMs);
-  const docId = `${uid}_${operation}_${windowKey}`;
+  const docId = `${keyIdentifier}_${operation}_${windowKey}`;
   const db = getFirestore();
   const docRef = db.collection('rate_limits').doc(docId);
+
+  const calculateRetryAfter = () => {
+    return Math.max(1, Math.ceil(((windowKey + 1) * windowMs - Date.now()) / 1000));
+  };
 
   return db.runTransaction(async (transaction) => {
     const docSnap = await transaction.get(docRef);
 
     if (!docSnap.exists) {
       transaction.set(docRef, {
-        uid,
+        keyIdentifier,
         operation,
         count: 1,
         windowKey,
@@ -58,7 +60,12 @@ export async function checkRateLimit(
     const currentCount = data?.count || 0;
 
     if (currentCount >= maxRequests) {
-      return { allowed: false, currentCount, limit: maxRequests };
+      return { 
+        allowed: false, 
+        currentCount, 
+        limit: maxRequests,
+        retryAfterSeconds: calculateRetryAfter(),
+      };
     }
 
     transaction.update(docRef, {
@@ -90,11 +97,15 @@ export function rateLimit(options: RateLimitOptions) {
       const result = await checkRateLimit(uid, operation, maxRequests, windowMs);
 
       if (!result.allowed) {
+        if (result.retryAfterSeconds) {
+          res.set('Retry-After', String(result.retryAfterSeconds));
+        }
         res.status(429).json({
           error: `Demasiadas peticiones: Has excedido el límite de ${maxRequests} peticiones por minuto para '${operation}'.`,
           operation,
           maxRequests,
           currentCount: result.currentCount,
+          retryAfterSeconds: result.retryAfterSeconds || 60,
         });
         return;
       }
