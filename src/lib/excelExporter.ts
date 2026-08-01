@@ -1,6 +1,6 @@
 import ExcelJS from 'exceljs';
 import { TakeoffItem } from '../components/engineering/QuantityTakeoff';
-import { ApuItem, calculateApuUnitCost } from '../pages/ApuEstimation';
+import { ApuItem, calculateApuUnitCost } from './engineering/apuCalculator';
 
 /**
  * Utility to download ExcelJS Workbook buffer in browser

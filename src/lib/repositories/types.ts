@@ -1,3 +1,5 @@
+import { ApuItem as CanonicalApuItem } from '../engineering/apuCalculator';
+
 export interface BaseEntity {
   id: string;
   orgId: string;
@@ -129,11 +131,11 @@ export interface SihoPtwRecord extends BaseEntity {
   [key: string]: any;
 }
 
-export interface ApuItem extends BaseEntity {
+export interface ApuItem extends BaseEntity, Omit<Partial<CanonicalApuItem>, 'id'> {
   code: string;
-  description: string;
+  description?: string;
   unit: string;
-  unitPrice: number;
+  unitPrice?: number;
   laborCost?: number;
   materialCost?: number;
   equipmentCost?: number;

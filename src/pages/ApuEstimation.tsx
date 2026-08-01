@@ -10,52 +10,16 @@ import { useProject } from '../ProjectContext';
 import QuantityTakeoff from '../components/engineering/QuantityTakeoff';
 import { parseBc3File } from '../lib/parsers/bc3Parser';
 import { exportApuPresupuestoToXlsx } from '../lib/excelExporter';
+import {
+  ApuLabor,
+  ApuEquipment,
+  ApuMaterial,
+  ApuItem,
+  calculateApuUnitCost,
+} from '../lib/engineering/apuCalculator';
 
-export interface ApuLabor {
-  id: string;
-  category: string; // e.g. "Soldador 6G CPTT", "Tubero Specialist", "Supervisor QA/QC"
-  count: number;
-  baseSalaryDailyUsd: number;
-  cpttBonusesUsd: number; // Overtime, travel time, food allowance
-}
-
-export interface ApuEquipment {
-  id: string;
-  name: string; // e.g. "Grúa Sideboom 50 Ton", "Generador Diésel 250 kVA"
-  hourlyRateActiveUsd: number;
-  hourlyRateIdleUsd: number;
-  hoursActive: number;
-  hoursIdle: number;
-}
-
-export interface ApuMaterial {
-  id: string;
-  description: string; // e.g. "Tubería API 5L PSL2 Grade X52 16\" WT 0.375\""
-  unit: string;
-  unitPriceUsd: number;
-  wastePercent: number; // e.g. 5%
-  quantityPerUnit: number;
-}
-
-export interface ApuItem {
-  id?: string;
-  code: string; // WBS code, e.g. "MEC-01-TUB"
-  title: string;
-  unit: string; // "m", "m3", "kg", "pza", "glb"
-  category: string; // "Mecánica", "Civil", "Electricidad", "Instrumentación"
-  fcasPercent: number; // e.g. 425.8% FCAS Petrolero
-  labor: ApuLabor[];
-  equipment: ApuEquipment[];
-  materials: ApuMaterial[];
-  indirectsPercent: number; // e.g. 12%
-  contingencyPercent: number; // e.g. 5%
-  profitPercent: number; // e.g. 15%
-  performancePerDay: number; // e.g. 35 m/día
-  totalDirectCostUsd: number;
-  totalUnitCostUsd: number;
-  notes?: string;
-  createdAt?: any;
-}
+export type { ApuLabor, ApuEquipment, ApuMaterial, ApuItem };
+export { calculateApuUnitCost };
 
 export const INITIAL_APUS: ApuItem[] = [
   {
@@ -113,54 +77,7 @@ export const INITIAL_APUS: ApuItem[] = [
   }
 ];
 
-export function calculateApuUnitCost(item: ApuItem) {
-  if (!item) return { laborDaily: 0, laborPerUnit: 0, equipDaily: 0, equipPerUnit: 0, matPerUnit: 0, laborTotal: 0, equipTotal: 0, matTotal: 0, directCost: 0, indirectTotal: 0, totalUnitCost: 0 };
 
-  const fcasFactor = 1 + (item.fcasPercent / 100);
-
-  // 1. Labor Cost per day
-  const totalLaborDaily = item.labor.reduce((acc, l) => {
-    const dailyBaseWithFcas = (l.baseSalaryDailyUsd * fcasFactor) + l.cpttBonusesUsd;
-    return acc + (dailyBaseWithFcas * l.count);
-  }, 0);
-  const laborPerUnit = item.performancePerDay > 0 ? totalLaborDaily / item.performancePerDay : 0;
-
-  // 2. Equipment Cost per day (8 hours)
-  const totalEquipmentDaily = item.equipment.reduce((acc, e) => {
-    const activeCost = e.hourlyRateActiveUsd * e.hoursActive;
-    const idleCost = e.hourlyRateIdleUsd * e.hoursIdle;
-    return acc + activeCost + idleCost;
-  }, 0);
-  const equipPerUnit = item.performancePerDay > 0 ? totalEquipmentDaily / item.performancePerDay : 0;
-
-  // 3. Materials Cost per Unit
-  const matPerUnit = item.materials.reduce((acc, m) => {
-    const wasteFactor = 1 + (m.wastePercent / 100);
-    return acc + (m.unitPriceUsd * m.quantityPerUnit * wasteFactor);
-  }, 0);
-
-  const directCost = laborPerUnit + equipPerUnit + matPerUnit;
-
-  const indirectsCost = directCost * (item.indirectsPercent / 100);
-  const contingencyCost = directCost * (item.contingencyPercent / 100);
-  const profitCost = (directCost + indirectsCost + contingencyCost) * (item.profitPercent / 100);
-
-  const totalUnitCost = directCost + indirectsCost + contingencyCost + profitCost;
-
-  return {
-    laborDaily: Math.round(totalLaborDaily * 100) / 100,
-    laborPerUnit: Math.round(laborPerUnit * 100) / 100,
-    equipDaily: Math.round(totalEquipmentDaily * 100) / 100,
-    equipPerUnit: Math.round(equipPerUnit * 100) / 100,
-    matPerUnit: Math.round(matPerUnit * 100) / 100,
-    laborTotal: Math.round(laborPerUnit * 100) / 100,
-    equipTotal: Math.round(equipPerUnit * 100) / 100,
-    matTotal: Math.round(matPerUnit * 100) / 100,
-    directCost: Math.round(directCost * 100) / 100,
-    indirectTotal: Math.round((indirectsCost + contingencyCost + profitCost) * 100) / 100,
-    totalUnitCost: Math.round(totalUnitCost * 100) / 100
-  };
-}
 
 export default function ApuEstimation() {
   const { currentProject } = useProject();
