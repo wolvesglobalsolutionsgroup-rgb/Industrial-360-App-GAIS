@@ -84,8 +84,29 @@ Si una instrucción del usuario es ambigua entre "hazlo rápido para la demo" y 
 ---
 
 ## 7. Convención de Commits
-Toda propuesta de commit o mensaje de entrega debe adoptar la convención estricta:
-`feat(sNN.N): <descripción breve en español>` (por ejemplo `feat(s14.5): implementar supply chain, CI y release gates`).
+
+### Comportamiento real de AI Studio (documentado en S19)
+AI Studio genera el mensaje del commit automáticamente en el modal de guardado, con mensajes propios descriptivos del contenido. El agente **no puede sobreescribir** este mensaje desde el informe de entrega — la instrucción `feat(sNN):` en el texto no se propaga al modal de GitHub.
+
+### Convención oficial para commits manuales
+Cuando el commit se realiza manualmente (no via AI Studio), adoptar la convención:
+`feat(sNN): <descripción breve en español>` (por ejemplo `feat(s20): implementar módulo XYZ`).
+
+### Trazabilidad de sprints
+La trazabilidad canónica de cada sprint **no depende del mensaje del commit** — se mantiene en el registro de Auditoría Empírica IC360 con SHA verificado contra `main`. Cada sprint tiene su SHA anclado en el registro auditado. Los mensajes generados por AI Studio son descriptivos y suficientes para git blame; el sprint asociado se consulta en la tabla de estado del proyecto.
+
+### Tabla de SHAs verificados (actualizar en cada sprint)
+| Sprint | SHA | Descripción |
+|---|---|---|
+| Gate 0 | `392b169` | Rutas SPA + Google Auth |
+| S14.3 | `f944ac4` | Outbox e idempotencia server-side |
+| S14.4 | `51dee39` | Portal público y sellos seguros |
+| S14.5 | `476ffcb` | CI, supply chain y release gates |
+| S15 | `52761d7` | Motor APU, Factor K, IGTF |
+| S16 | `168bd75` | QR Rotativo, SIHO-A, HHT |
+| S17 | `251aabc` | CHP, CHO, Flota, Horómetro |
+| S18 | `c77848a` | BrandKit, Doble Membrete, Sellos |
+| S19 | `762faf3` | DocumentViewModel, DOCX, XLSX, PPTX |
 
 ---
 
