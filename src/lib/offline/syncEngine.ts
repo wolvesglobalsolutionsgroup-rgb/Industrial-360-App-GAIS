@@ -1,6 +1,7 @@
 import { collection, addDoc, updateDoc, doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 import { useState, useEffect, useCallback } from 'react';
-import { db } from '../../firebase';
+import { db, functionsInstance } from '../../firebase';
 import { offlineDb, PendingReport, PendingValuation, PendingRoute } from './dexieDb';
 import { 
   queueOutboxOperation, 
@@ -107,6 +108,10 @@ export async function flushOutbox(
 
   try {
     const outboxItems = await getPendingOutboxOperations();
+    const syncOutboxFn = httpsCallable<any, { success: boolean; status: string; result?: any; message?: string }>(
+      functionsInstance,
+      'syncOutboxMutation'
+    );
 
     for (const item of outboxItems) {
       if (!item.id) continue;
@@ -117,123 +122,82 @@ export async function flushOutbox(
         const targetOrgId = item.orgId || activeOrgId;
         const targetProjectId = item.projectId || activeProjectId;
 
-        // 1. Check Idempotency Key in Firestore
-        const idempotencyRef = doc(db, 'idempotency_keys', item.operationId);
-        const idempotencySnap = await getDoc(idempotencyRef);
+        if (!targetOrgId || !targetProjectId) {
+          logger.warn(`[SyncEngine] Omitiendo item ${item.operationId}: faltan orgId/projectId`);
+          await offlineDb.outbox.update(item.id, {
+            syncStatus: 'failed',
+            errorMessage: 'Parámetros obligatorios orgId o projectId ausentes'
+          });
+          failedCount++;
+          continue;
+        }
 
-        if (idempotencySnap.exists()) {
-          logger.info(`[Idempotency Engine] Operación ${item.operationId} ya procesada anteriormente. Omitiendo duplicado.`);
+        const opTypeUpper = item.operationType.toUpperCase() as 'CREATE' | 'UPDATE' | 'DELETE';
+        const entityTypeClean = item.collectionName.split('/').pop() || item.collectionName;
+
+        // Invocación a la Callable Function server-side con transacción atómica e idempotencia
+        const response = await syncOutboxFn({
+          orgId: targetOrgId,
+          projectId: targetProjectId,
+          entityType: entityTypeClean,
+          operationType: opTypeUpper,
+          operationId: item.operationId,
+          entityId: item.docId,
+          payload: item.payload,
+        });
+
+        const resData = response.data;
+
+        if (resData.status === 'duplicate') {
+          logger.info(`[SyncEngine] Operación duplicada confirmada por servidor: ${item.operationId}`);
           await offlineDb.syncLog.add({
             operationId: item.operationId,
             action: item.operationType,
             collectionName: item.collectionName,
-            recordId: item.docId || 'new_doc',
+            recordId: item.docId || 'duplicate_doc',
             timestamp: new Date().toISOString(),
             status: 'idempotent_duplicate',
-            details: 'Operación idempotente ya registrada en el servidor.'
+            details: 'Operación idempotente duplicada confirmada por Cloud Function server-side.'
           });
           await removeOutboxItem(item.id);
           syncedCount++;
-          continue;
-        }
-
-        // 2. Resolve Target Collection Path
-        const targetCollectionPath = item.collectionName.startsWith('organizations/')
-          ? item.collectionName
-          : `organizations/${targetOrgId}/projects/${targetProjectId}/${item.collectionName}`;
-
-        let remoteDocData: Record<string, any> | null = null;
-        let targetDocRef = item.docId ? doc(db, targetCollectionPath, item.docId) : null;
-
-        if (targetDocRef) {
-          const docSnap = await getDoc(targetDocRef);
-          if (docSnap.exists()) {
-            remoteDocData = docSnap.data();
-          }
-        }
-
-        // 3. Evaluate Conflict Policy
-        const conflictResult = evaluateConflictPolicy(
-          item.conflictStrategy,
-          item.payload,
-          remoteDocData,
-          item.operationType
-        );
-
-        if (!conflictResult.canSync) {
-          // BLOCKING conflict!
-          logger.warn(`[SyncEngine] Conflict BLOQUEADO para operación ${item.operationId}: ${conflictResult.reason}`);
+        } else if (resData.status === 'conflict' || resData.success === false) {
+          logger.warn(`[SyncEngine] Conflicto o bloqueo en servidor para ${item.operationId}: ${resData.message}`);
           await offlineDb.outbox.update(item.id, {
             syncStatus: 'conflict_blocked',
-            errorMessage: conflictResult.reason,
-            conflictDetails: conflictResult.reason
+            errorMessage: resData.message || 'Conflicto de versión o regla de negocio detectado en servidor',
+            conflictDetails: resData.message
           });
           await offlineDb.syncLog.add({
             operationId: item.operationId,
             action: item.operationType,
             collectionName: item.collectionName,
-            recordId: item.docId || 'blocked_doc',
+            recordId: item.docId || 'conflict_doc',
             timestamp: new Date().toISOString(),
             status: 'conflict_blocked',
-            details: conflictResult.reason
+            details: resData.message || 'Conflicto en servidor'
           });
           blockedCount++;
-          continue;
+        } else if (resData.success) {
+          logger.info(`[SyncEngine] Operación ${item.operationId} sincronizada exitosamente vía syncOutboxMutation`);
+          await offlineDb.syncLog.add({
+            operationId: item.operationId,
+            action: item.operationType,
+            collectionName: item.collectionName,
+            recordId: item.docId || resData.result?.entityId || 'processed_doc',
+            timestamp: new Date().toISOString(),
+            status: 'success',
+            details: `Operación ${item.operationId} sincronizada exitosamente vía syncOutboxMutation`
+          });
+          await removeOutboxItem(item.id);
+          syncedCount++;
         }
-
-        // 4. Perform Firestore Write Operation
-        const payloadToWrite = cleanUndefinedValues({
-          ...(conflictResult.resolvedPayload || item.payload),
-          _operationId: item.operationId,
-          _syncedAt: serverTimestamp(),
-          _isOfflineRecord: false
-        });
-
-        let createdDocId = item.docId;
-
-        if (item.operationType === 'create') {
-          if (item.docId) {
-            await setDoc(doc(db, targetCollectionPath, item.docId), payloadToWrite, { merge: true });
-          } else {
-            const added = await addDoc(collection(db, targetCollectionPath), payloadToWrite);
-            createdDocId = added.id;
-          }
-        } else if (item.operationType === 'update' && item.docId) {
-          await updateDoc(doc(db, targetCollectionPath, item.docId), payloadToWrite);
-        } else if (item.operationType === 'delete' && item.docId) {
-          await updateDoc(doc(db, targetCollectionPath, item.docId), { _deleted: true, _deletedAt: serverTimestamp() });
-        }
-
-        // 5. Register Idempotency Key in Firestore
-        await setDoc(idempotencyRef, {
-          operationId: item.operationId,
-          collectionName: item.collectionName,
-          docId: createdDocId || null,
-          orgId: targetOrgId,
-          projectId: targetProjectId,
-          processedAt: serverTimestamp(),
-          clientCapturedAt: item.payload._offlineCapturedAt || new Date().toISOString()
-        });
-
-        // 6. Log Success and Clean Local Outbox
-        await offlineDb.syncLog.add({
-          operationId: item.operationId,
-          action: item.operationType,
-          collectionName: item.collectionName,
-          recordId: createdDocId || 'processed_doc',
-          timestamp: new Date().toISOString(),
-          status: 'success',
-          details: `Operación ${item.operationId} sincronizada exitosamente en ${item.collectionName}`
-        });
-
-        await removeOutboxItem(item.id);
-        syncedCount++;
       } catch (err: any) {
-        logger.error(`Error procesando outbox item ${item.operationId}:`, err);
+        logger.error(`Error procesando outbox item ${item.operationId} vía Cloud Function:`, err);
         failedCount++;
         await offlineDb.outbox.update(item.id, {
           syncStatus: 'failed',
-          errorMessage: err?.message || 'Error de comunicación con Firestore',
+          errorMessage: err?.message || 'Error al invocar Cloud Function syncOutboxMutation',
           retries: (item.retries || 0) + 1
         });
       }

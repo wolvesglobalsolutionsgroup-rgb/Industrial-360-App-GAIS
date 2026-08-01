@@ -101,6 +101,14 @@ service cloud.firestore {
         allow create, update: if belongsToOrg(orgId) && isGerente() && request.resource.data.orgId == orgId;
         allow delete: if belongsToOrg(orgId) && isSuperAdmin();
 
+        // Subcolección reservada de Claves de Idempotencia (Server-Side Admin SDK únicamente)
+        match /idempotencyKeys/{keyId} {
+          allow read, write: if false;
+        }
+        match /idempotency_keys/{keyId} {
+          allow read, write: if false;
+        }
+
         // Specific subcollections under project
         match /{collectionName}/{docId} {
           allow read: if belongsToOrg(orgId);

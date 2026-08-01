@@ -327,4 +327,45 @@ describe('Firestore Zero-Trust Security Rules (Sprint IC360-S1-zero-trust)', () 
       'Usuario sí debe poder actualizar campos no sensibles'
     );
   });
+
+  // --------------------------------------------------------------------------
+  // CASO 7: Bloqueo de idempotencyKeys para clientes (Sprint S14.3)
+  // --------------------------------------------------------------------------
+  it('Caso 7: Clientes (incluso autenticados como gerente/superadmin) NO pueden leer ni escribir idempotencyKeys', async () => {
+    const env = getTestEnv();
+    if (!env) return;
+
+    await env.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'organizations/prointeca/projects/proj_1/idempotencyKeys/key_123'), {
+        operationId: 'key_123',
+        orgId: 'prointeca',
+        projectId: 'proj_1',
+      });
+    });
+
+    const adminDb = getAuthedDb('user_gerente_100', {
+      orgId: 'prointeca',
+      role: 'gerente',
+    });
+
+    const keyRef = doc(adminDb, 'organizations/prointeca/projects/proj_1/idempotencyKeys/key_123');
+    const newKeyRef = doc(adminDb, 'organizations/prointeca/projects/proj_1/idempotencyKeys/key_456');
+
+    // 7a. Lectura directa denegada
+    await assertDenied(
+      getDoc(keyRef),
+      'Cliente no debe poder leer directamente idempotencyKeys'
+    );
+
+    // 7b. Escritura directa denegada
+    await assertDenied(
+      setDoc(newKeyRef, {
+        operationId: 'key_456',
+        orgId: 'prointeca',
+        projectId: 'proj_1',
+      }),
+      'Cliente no debe poder escribir directamente en idempotencyKeys'
+    );
+  });
 });
+

@@ -914,4 +914,211 @@ export const revokeQaMembership = functions.https.onCall(
   }
 );
 
+/**
+ * Interface para el payload recibido por la Callable Function syncOutboxMutation
+ */
+export interface OutboxMutationPayload {
+  orgId: string;
+  projectId: string;
+  entityType: string;
+  operationType: 'CREATE' | 'UPDATE' | 'DELETE' | string;
+  operationId: string;
+  entityId?: string;
+  expectedVersion?: number;
+  payload?: Record<string, unknown>;
+}
+
+/**
+ * Callable Cloud Function: syncOutboxMutation (Sprint S14.3)
+ *
+ * Procesa mutaciones offline/outbox de forma transaccional e idempotente server-side:
+ * 1. Autorización server-side mediante authorizeServerSideRequest.
+ * 2. Validación de allow-list de entityType y operationType.
+ * 3. Transacción atómica en Firestore:
+ *    - Verifica la clave de idempotencia en /organizations/{orgId}/projects/{projectId}/idempotencyKeys/{operationId}.
+ *    - Si ya existe, retorna 'duplicate' y el resultado previo sin re-ejecutar.
+ *    - Verifica la versión esperada (expectedVersion) si se provee.
+ *    - Aplica la mutación al documento objetivo.
+ *    - Registra la clave de idempotencia y el log de auditoría dentro de la misma transacción.
+ */
+export const syncOutboxMutation = functions.https.onCall(
+  async (data: OutboxMutationPayload, context: functions.https.CallableContext) => {
+    const orgId = typeof data?.orgId === 'string' ? data.orgId.trim() : '';
+    const projectId = typeof data?.projectId === 'string' ? data.projectId.trim() : '';
+    const entityType = typeof data?.entityType === 'string' ? data.entityType.trim() : '';
+    const rawOpType = typeof data?.operationType === 'string' ? data.operationType.trim().toUpperCase() : '';
+    const operationId = typeof data?.operationId === 'string' ? data.operationId.trim() : '';
+    const entityId = typeof data?.entityId === 'string' ? data.entityId.trim() : undefined;
+    const expectedVersion = typeof data?.expectedVersion === 'number' ? data.expectedVersion : undefined;
+    const payload = (data?.payload && typeof data.payload === 'object' && !Array.isArray(data.payload)) ? data.payload : {};
+
+    // 1. Autorización estricta server-side (auth, tenant, proyecto, membresía y rol autoritativo)
+    const authResult = await authorizeServerSideRequest(context.auth, {
+      orgId,
+      projectId,
+      requireProject: true,
+      allowedRoles: ['superadmin', 'gerente', 'residente', 'inspector', 'campo'],
+    });
+
+    // 2. Validación de parámetros e Idempotency Key (UUID v4 o ID válido >= 8 caracteres)
+    if (!operationId || operationId.length < 8) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        'Parámetro requerido: operationId debe ser un identificador único válido (mínimo 8 caracteres).'
+      );
+    }
+
+    const ALLOWED_OPERATIONS = ['CREATE', 'UPDATE', 'DELETE'];
+    if (!ALLOWED_OPERATIONS.includes(rawOpType)) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        `operationType no permitido: '${rawOpType}'. Valores permitidos: ${ALLOWED_OPERATIONS.join(', ')}.`
+      );
+    }
+    const operationType = rawOpType as 'CREATE' | 'UPDATE' | 'DELETE';
+
+    // Allow-list de entityType
+    const ALLOWED_ENTITY_TYPES = [
+      'ptw', 'siho_ptw', 'welds', 'weld_joints', 'valuations', 'attendance',
+      'inspections', 'dossiers', 'field_reports', 'inventory', 'expenses', 'tasks',
+      'alerts', 'equipment', 'loto', 'moc', 'documents', 'bims'
+    ];
+    const isValidEntityType = ALLOWED_ENTITY_TYPES.includes(entityType.toLowerCase()) || /^[a-zA-Z0-9_-]+$/.test(entityType);
+    if (!entityType || !isValidEntityType) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        `entityType no permitido o inválido: '${entityType}'.`
+      );
+    }
+
+    // Restricciones de rol 'campo' (no puede cerrar/aprobar directamente)
+    if (authResult.role === 'campo') {
+      const status = typeof payload.status === 'string' ? payload.status.toLowerCase() : '';
+      if (['aprobado', 'approved', 'cerrado', 'closed'].includes(status)) {
+        throw new functions.https.HttpsError(
+          'permission-denied',
+          "El rol 'campo' no puede marcar entidades como aprobadas o cerradas."
+        );
+      }
+    }
+
+    const dbAdmin = getFirestore();
+    const targetEntityId = entityId || operationId;
+    const idempotencyRef = dbAdmin.doc(`organizations/${orgId}/projects/${projectId}/idempotencyKeys/${operationId}`);
+    const docRef = dbAdmin.doc(`organizations/${orgId}/projects/${projectId}/${entityType}/${targetEntityId}`);
+
+    // 3. Ejecución transaccional e idempotente
+    return await dbAdmin.runTransaction(async (transaction) => {
+      // A. Consultar clave de idempotencia scoped por tenant y proyecto
+      const idempotencySnap = await transaction.get(idempotencyRef);
+      if (idempotencySnap.exists) {
+        const idData = idempotencySnap.data() || {};
+        logger.info(`[SyncOutbox] Mutación duplicada detectada: operationId=${operationId}, orgId=${orgId}, entityId=${targetEntityId}`);
+        return {
+          success: true,
+          status: 'duplicate',
+          operationId,
+          entityId: targetEntityId,
+          result: idData.result || null,
+          processedAt: idData.processedAt ? (idData.processedAt.toDate ? idData.processedAt.toDate().toISOString() : idData.processedAt) : new Date().toISOString(),
+        };
+      }
+
+      // B. Consultar documento destino para validar versión existente
+      const docSnap = await transaction.get(docRef);
+      const currentVersion = docSnap.exists ? (docSnap.data()?.version || 1) : 0;
+
+      // C. Verificación de conflicto de versión (si expectedVersion está presente)
+      if (expectedVersion !== undefined && docSnap.exists && currentVersion !== expectedVersion) {
+        logger.warn(`[SyncOutbox] Conflicto de versión para operationId=${operationId}: actual=${currentVersion}, esperada=${expectedVersion}`);
+        return {
+          success: false,
+          status: 'conflict',
+          operationId,
+          entityId: targetEntityId,
+          currentVersion,
+          expectedVersion,
+          message: `Conflicto de versión: La versión actual en servidor es ${currentVersion}, pero la mutación esperaba ${expectedVersion}.`,
+        };
+      }
+
+      const nextVersion = docSnap.exists ? currentVersion + 1 : 1;
+      const timestamp = FieldValue.serverTimestamp();
+
+      // D. Aplicar mutación sobre el recurso objetivo
+      if (operationType === 'CREATE') {
+        const docData = {
+          ...payload,
+          id: targetEntityId,
+          orgId,
+          projectId,
+          version: nextVersion,
+          createdAt: docSnap.exists ? (docSnap.data()?.createdAt || timestamp) : timestamp,
+          updatedAt: timestamp,
+          createdBy: docSnap.exists ? (docSnap.data()?.createdBy || authResult.uid) : authResult.uid,
+          updatedBy: authResult.uid,
+        };
+        transaction.set(docRef, docData, { merge: true });
+      } else if (operationType === 'UPDATE') {
+        const updateData = {
+          ...payload,
+          orgId,
+          projectId,
+          version: nextVersion,
+          updatedAt: timestamp,
+          updatedBy: authResult.uid,
+        };
+        transaction.set(docRef, updateData, { merge: true });
+      } else if (operationType === 'DELETE') {
+        transaction.delete(docRef);
+      }
+
+      // E. Registrar Clave de Idempotencia dentro de la transacción
+      const resultPayload = {
+        entityId: targetEntityId,
+        entityType,
+        operationType,
+        version: nextVersion,
+      };
+
+      transaction.set(idempotencyRef, {
+        operationId,
+        orgId,
+        projectId,
+        entityType,
+        operationType,
+        entityId: targetEntityId,
+        uid: authResult.uid,
+        processedAt: timestamp,
+        result: resultPayload,
+      });
+
+      // F. Registrar Log de Auditoría dentro de la misma transacción
+      const auditRef = dbAdmin.collection(`organizations/${orgId}/projects/${projectId}/auditLogs`).doc();
+      transaction.set(auditRef, {
+        action: `OUTBOX_MUTATION_${operationType}`,
+        entityType,
+        entityId: targetEntityId,
+        operationId,
+        uid: authResult.uid,
+        userEmail: authResult.email || null,
+        timestamp,
+        status: 'SUCCESS',
+      });
+
+      logger.info(`[SyncOutbox] Mutación procesada exitosamente: operationId=${operationId}, entityType=${entityType}, operationType=${operationType}, entityId=${targetEntityId}`);
+
+      return {
+        success: true,
+        status: 'applied',
+        operationId,
+        entityId: targetEntityId,
+        version: nextVersion,
+        result: resultPayload,
+      };
+    });
+  }
+);
+
+
 
