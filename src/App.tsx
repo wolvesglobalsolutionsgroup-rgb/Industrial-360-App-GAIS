@@ -34,6 +34,7 @@ const BudgetDetails = lazy(() => import('./pages/BudgetDetails'));
 const PersonnelDetails = lazy(() => import('./pages/PersonnelDetails'));
 const AlertsDetails = lazy(() => import('./pages/AlertsDetails'));
 const FieldReports = lazy(() => import('./pages/FieldReports'));
+const SyncCenter = lazy(() => import('./pages/SyncCenter'));
 const ProjectBrain = lazy(() => import('./pages/ProjectBrain'));
 const Intelligence = lazy(() => import('./pages/Intelligence'));
 const Documents = lazy(() => import('./pages/Documents'));
@@ -131,6 +132,7 @@ function AppContent() {
             } />
 
             {/* Rutas adicionales de operación */}
+            <Route path="sync-center" element={<SyncCenter />} />
             <Route path="field-reports" element={<FieldReports />} />
             <Route path="documents" element={<Documents />} />
             <Route path="logistics" element={<LogisticsMap />} />

@@ -4,7 +4,7 @@ import {
   LayoutDashboard, HardHat, ClipboardList, Package, Receipt, 
   MessageSquare, Mic, Box, LogOut, Calculator, Settings as SettingsIcon,
   CircleDollarSign, Clock, PackageSearch, ShieldCheck, FileArchive, 
-  Database, Plug, Network, BrainCircuit, Briefcase, X, MapPin, Truck, ArrowLeftRight, Globe
+  Database, Plug, Network, BrainCircuit, Briefcase, X, MapPin, Truck, ArrowLeftRight, Globe, RefreshCw
 } from 'lucide-react';
 import { logout, useAppAuthState } from '../firebase';
 import { useProject } from '../ProjectContext';
@@ -14,6 +14,7 @@ import TopContextBar from './TopContextBar';
 const coreOperativoItems = [
   { path: '/', label: 'Dashboard Ejecutivo', icon: LayoutDashboard },
   { path: '/projects', label: 'Gestión de Proyectos', icon: HardHat },
+  { path: '/sync-center', label: 'Centro de Sincronización', icon: RefreshCw },
   { path: '/tasks', label: 'Control de Partidas', icon: ClipboardList },
   { path: '/field-reports', label: 'Reportes de Campo', icon: ClipboardList },
   { path: '/modulos/flota', label: 'Flota & Equipos Críticos', icon: Truck },

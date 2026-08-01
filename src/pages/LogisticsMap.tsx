@@ -50,6 +50,8 @@ export default function LogisticsMap() {
     pendingRoutesCount: 0,
     outboxPendingCount: 0,
     blockedCount: 0,
+    failedCount: 0,
+    deniedCount: 0,
     totalPending: 0,
     isSyncing: false
   });

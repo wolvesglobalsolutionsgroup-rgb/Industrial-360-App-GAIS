@@ -39,10 +39,13 @@ export function determineConflictStrategy(
     normCategory === 'ptw' ||
     normCategory === 'qa_qc' ||
     normCategory === 'valuation' ||
+    normCategory === 'attendance' ||
     normCollection.includes('ptw') ||
     normCollection.includes('loto') ||
     normCollection.includes('valuations') ||
+    normCollection.includes('attendance') ||
     normCollection.includes('civil_tests') ||
+    normCollection.includes('welds') ||
     normCollection.includes('weld_joints') ||
     normCollection.includes('environmental_aspects') ||
     normCollection.includes('instrument_loops')

@@ -1,5 +1,14 @@
 import Dexie, { Table } from 'dexie';
 
+export type OutboxSyncStatus = 
+  | 'pending' 
+  | 'syncing' 
+  | 'synced' 
+  | 'duplicate' 
+  | 'conflict_blocked' 
+  | 'failed' 
+  | 'denied';
+
 export interface OutboxItem {
   id?: number;
   operationId: string; // UUID v4
@@ -9,13 +18,16 @@ export interface OutboxItem {
   payload: Record<string, any>;
   orgId: string;
   projectId: string;
-  category: 'report' | 'valuation' | 'ptw' | 'qa_qc' | 'evidence' | 'route' | 'general';
+  category: 'report' | 'valuation' | 'ptw' | 'qa_qc' | 'evidence' | 'route' | 'general' | string;
   conflictStrategy: 'APPEND_ONLY' | 'FIELD_VISIBLE' | 'BLOCKING';
   timestamp: number;
   retries: number;
-  syncStatus: 'pending' | 'syncing' | 'failed' | 'conflict_blocked';
+  syncStatus: OutboxSyncStatus;
   errorMessage?: string;
   conflictDetails?: string;
+  lastAttemptAt?: string;
+  nextAttemptAt?: string;
+  remoteSnapshot?: Record<string, any>;
 }
 
 export interface PendingReport {
@@ -38,7 +50,7 @@ export interface PendingReport {
   correlatedTaskName?: string;
   inspectorName?: string;
   createdAt: string;
-  syncStatus: 'pending' | 'syncing' | 'failed' | 'conflict_blocked';
+  syncStatus: OutboxSyncStatus;
   errorMessage?: string;
 }
 
@@ -61,7 +73,7 @@ export interface PendingValuation {
   photos: string[];
   ownerId: string;
   createdAt: string;
-  syncStatus: 'pending' | 'syncing' | 'failed' | 'conflict_blocked';
+  syncStatus: OutboxSyncStatus;
   errorMessage?: string;
 }
 
@@ -76,7 +88,7 @@ export interface PendingRoute {
   startTime: number;
   endTime: number;
   createdAt: string;
-  syncStatus: 'pending' | 'syncing' | 'failed' | 'conflict_blocked';
+  syncStatus: OutboxSyncStatus;
   errorMessage?: string;
 }
 
@@ -87,8 +99,12 @@ export interface SyncLogItem {
   collectionName: string;
   recordId: string;
   timestamp: string;
-  status: 'success' | 'failed' | 'idempotent_duplicate' | 'conflict_blocked';
+  status: 'success' | 'failed' | 'idempotent_duplicate' | 'conflict_blocked' | 'denied';
   details?: string;
+  orgId?: string;
+  projectId?: string;
+  category?: string;
+  sanitizedReason?: string;
 }
 
 export interface LocalDraft {

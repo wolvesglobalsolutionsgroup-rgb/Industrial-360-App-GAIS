@@ -2,7 +2,7 @@ import { collection, addDoc, updateDoc, doc, getDoc, setDoc, serverTimestamp } f
 import { httpsCallable } from 'firebase/functions';
 import { useState, useEffect, useCallback } from 'react';
 import { db, functionsInstance } from '../../firebase';
-import { offlineDb, PendingReport, PendingValuation, PendingRoute } from './dexieDb';
+import { offlineDb, PendingReport, PendingValuation, PendingRoute, OutboxSyncStatus, OutboxItem, SyncLogItem } from './dexieDb';
 import { 
   queueOutboxOperation, 
   getPendingOutboxOperations, 
@@ -14,6 +14,8 @@ import {
 import { evaluateConflictPolicy, determineConflictStrategy } from './conflictPolicy';
 import { logger } from '../logger';
 
+export const RETENTION_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 días de retención para idempotencia y logs
+
 export interface SyncStats {
   isOnline: boolean;
   pendingReportsCount: number;
@@ -23,6 +25,8 @@ export interface SyncStats {
   totalPending: number;
   isSyncing: boolean;
   blockedCount: number;
+  failedCount: number;
+  deniedCount: number;
 }
 
 type SyncStatusCallback = (stats: SyncStats) => void;
@@ -33,12 +37,42 @@ export function isBrowserOnline(): boolean {
   return typeof navigator !== 'undefined' ? navigator.onLine : true;
 }
 
+export function sanitizeErrorMessage(message?: string): string {
+  if (!message) return 'Error desconocido durante la transmisión.';
+  const str = String(message);
+
+  if (str.includes('permission-denied') || str.includes('PERMISSION_DENIED')) {
+    return 'Acceso denegado por políticas de seguridad o rol insuficiente para esta entidad.';
+  }
+  if (str.includes('unauthenticated') || str.includes('UNAUTHENTICATED')) {
+    return 'Sesión no autenticada en servidor. Por favor inicie sesión nuevamente.';
+  }
+  if (str.includes('invalid-argument') || str.includes('INVALID_ARGUMENT')) {
+    return 'Estructura o tipo de parámetros no permitido en el payload enviado.';
+  }
+  if (str.includes('quota-exceeded') || str.includes('RESOURCE_EXHAUSTED')) {
+    return 'Límite de cuota o tasa de peticiones excedida en el proyecto de Firestore.';
+  }
+  if (str.includes('Failed to fetch') || str.includes('NetworkError') || str.includes('offline')) {
+    return 'Sin conectividad de red. La operación se mantiene en cola para auto-reintento.';
+  }
+
+  return str
+    .replace(/bearer\s+[a-zA-Z0-9\-_.]+/gi, 'Bearer [MASCARADO]')
+    .replace(/apiKey=[a-zA-Z0-9\-_.]+/gi, 'apiKey=[OCULTO]')
+    .replace(/\bat\s+.*:\d+:\d+/g, '')
+    .substring(0, 300)
+    .trim();
+}
+
 export async function getSyncStats(): Promise<SyncStats> {
   const pendingReportsCount = await offlineDb.pendingReports.where('syncStatus').equals('pending').count();
   const pendingValuationsCount = await offlineDb.pendingValuations.where('syncStatus').equals('pending').count();
   const pendingRoutesCount = await offlineDb.pendingRoutes.where('syncStatus').equals('pending').count();
   const outboxPending = await offlineDb.outbox.where('syncStatus').equals('pending').count();
   const blockedCount = await offlineDb.outbox.where('syncStatus').equals('conflict_blocked').count();
+  const failedCount = await offlineDb.outbox.where('syncStatus').equals('failed').count();
+  const deniedCount = await offlineDb.outbox.where('syncStatus').equals('denied').count();
 
   const totalPending = pendingReportsCount + pendingValuationsCount + pendingRoutesCount + outboxPending;
 
@@ -50,7 +84,9 @@ export async function getSyncStats(): Promise<SyncStats> {
     outboxPendingCount: outboxPending,
     totalPending,
     isSyncing: isSyncingActive,
-    blockedCount
+    blockedCount,
+    failedCount,
+    deniedCount
   };
 }
 
@@ -89,14 +125,15 @@ async function notifySubscribers() {
 }
 
 /**
- * Flush Outbox queue to Firestore with operationId Idempotency Check & Conflict Policies
+ * Flush Outbox queue to Firestore with operationId Idempotency Check & Backoff con Jitter
  */
 export async function flushOutbox(
   activeOrgId: string = '',
-  activeProjectId: string = ''
-): Promise<{ synced: number; failed: number; blocked: number; successCount: number; failCount: number }> {
+  activeProjectId: string = '',
+  forceManual: boolean = false
+): Promise<{ synced: number; failed: number; blocked: number; denied: number; successCount: number; failCount: number }> {
   if (!isBrowserOnline() || isSyncingActive) {
-    return { synced: 0, failed: 0, blocked: 0, successCount: 0, failCount: 0 };
+    return { synced: 0, failed: 0, blocked: 0, denied: 0, successCount: 0, failCount: 0 };
   }
 
   isSyncingActive = true;
@@ -105,6 +142,7 @@ export async function flushOutbox(
   let syncedCount = 0;
   let failedCount = 0;
   let blockedCount = 0;
+  let deniedCount = 0;
 
   try {
     const outboxItems = await getPendingOutboxOperations();
@@ -113,11 +151,25 @@ export async function flushOutbox(
       'syncOutboxMutation'
     );
 
+    const nowTime = Date.now();
+
     for (const item of outboxItems) {
       if (!item.id) continue;
 
+      // Resiliencia: si el item está en 'failed' y tiene 'nextAttemptAt' en el futuro, omitir en auto-flush salvo fuerza manual
+      if (!forceManual && item.nextAttemptAt) {
+        const nextTime = new Date(item.nextAttemptAt).getTime();
+        if (nowTime < nextTime) {
+          logger.info(`[SyncEngine] Omitiendo item ${item.operationId} por backoff activo hasta ${item.nextAttemptAt}`);
+          continue;
+        }
+      }
+
       try {
-        await offlineDb.outbox.update(item.id, { syncStatus: 'syncing' });
+        await offlineDb.outbox.update(item.id, { 
+          syncStatus: 'syncing',
+          lastAttemptAt: new Date().toISOString()
+        });
 
         const targetOrgId = item.orgId || activeOrgId;
         const targetProjectId = item.projectId || activeProjectId;
@@ -126,7 +178,7 @@ export async function flushOutbox(
           logger.warn(`[SyncEngine] Omitiendo item ${item.operationId}: faltan orgId/projectId`);
           await offlineDb.outbox.update(item.id, {
             syncStatus: 'failed',
-            errorMessage: 'Parámetros obligatorios orgId o projectId ausentes'
+            errorMessage: sanitizeErrorMessage('Parámetros obligatorios orgId o projectId ausentes')
           });
           failedCount++;
           continue;
@@ -135,7 +187,7 @@ export async function flushOutbox(
         const opTypeUpper = item.operationType.toUpperCase() as 'CREATE' | 'UPDATE' | 'DELETE';
         const entityTypeClean = item.collectionName.split('/').pop() || item.collectionName;
 
-        // Invocación a la Callable Function server-side con transacción atómica e idempotencia
+        // Invocación a Callable Function server-side con transacción atómica e idempotencia
         const response = await syncOutboxFn({
           orgId: targetOrgId,
           projectId: targetProjectId,
@@ -157,15 +209,20 @@ export async function flushOutbox(
             recordId: item.docId || 'duplicate_doc',
             timestamp: new Date().toISOString(),
             status: 'idempotent_duplicate',
-            details: 'Operación idempotente duplicada confirmada por Cloud Function server-side.'
+            details: 'Operación idempotente duplicada confirmada por Cloud Function server-side.',
+            orgId: targetOrgId,
+            projectId: targetProjectId,
+            category: item.category,
+            sanitizedReason: 'Operación idempotente procesada previamente.'
           });
           await removeOutboxItem(item.id);
           syncedCount++;
         } else if (resData.status === 'conflict' || resData.success === false) {
           logger.warn(`[SyncEngine] Conflicto o bloqueo en servidor para ${item.operationId}: ${resData.message}`);
+          const cleanReason = sanitizeErrorMessage(resData.message);
           await offlineDb.outbox.update(item.id, {
             syncStatus: 'conflict_blocked',
-            errorMessage: resData.message || 'Conflicto de versión o regla de negocio detectado en servidor',
+            errorMessage: cleanReason,
             conflictDetails: resData.message
           });
           await offlineDb.syncLog.add({
@@ -175,7 +232,11 @@ export async function flushOutbox(
             recordId: item.docId || 'conflict_doc',
             timestamp: new Date().toISOString(),
             status: 'conflict_blocked',
-            details: resData.message || 'Conflicto en servidor'
+            details: resData.message || 'Conflicto en servidor',
+            orgId: targetOrgId,
+            projectId: targetProjectId,
+            category: item.category,
+            sanitizedReason: cleanReason
           });
           blockedCount++;
         } else if (resData.success) {
@@ -187,31 +248,58 @@ export async function flushOutbox(
             recordId: item.docId || resData.result?.entityId || 'processed_doc',
             timestamp: new Date().toISOString(),
             status: 'success',
-            details: `Operación ${item.operationId} sincronizada exitosamente vía syncOutboxMutation`
+            details: `Operación ${item.operationId} sincronizada exitosamente vía syncOutboxMutation`,
+            orgId: targetOrgId,
+            projectId: targetProjectId,
+            category: item.category,
+            sanitizedReason: 'Sincronizado con éxito.'
           });
           await removeOutboxItem(item.id);
           syncedCount++;
         }
       } catch (err: any) {
         logger.error(`Error procesando outbox item ${item.operationId} vía Cloud Function:`, err);
-        failedCount++;
+        const retries = (item.retries || 0) + 1;
+        
+        // Backoff exponencial con jitter: Math.min(300000, 2000 * 2^retries + Math.random() * 1000)
+        const baseDelay = 2000;
+        const jitter = Math.random() * 1000;
+        const nextDelayMs = Math.min(300000, baseDelay * Math.pow(2, Math.min(retries, 6)) + jitter);
+        const nextAttemptAt = new Date(Date.now() + nextDelayMs).toISOString();
+
+        const errMsg = err?.message || String(err);
+        const isPermission = errMsg.includes('permission-denied') || errMsg.includes('unauthenticated') || errMsg.includes('PERMISSION_DENIED');
+        const finalStatus: OutboxSyncStatus = isPermission ? 'denied' : 'failed';
+        const cleanReason = sanitizeErrorMessage(errMsg);
+
         await offlineDb.outbox.update(item.id, {
-          syncStatus: 'failed',
-          errorMessage: err?.message || 'Error al invocar Cloud Function syncOutboxMutation',
-          retries: (item.retries || 0) + 1
+          syncStatus: finalStatus,
+          errorMessage: cleanReason,
+          retries,
+          lastAttemptAt: new Date().toISOString(),
+          nextAttemptAt
         });
+
+        if (isPermission) {
+          deniedCount++;
+        } else {
+          failedCount++;
+        }
       }
     }
 
-    // 7. Flush legacy typed tables (reports, valuations, routes)
+    // 7. Sincronizar tablas legacy de Dexie
     await syncLegacyDexieTables(activeOrgId, activeProjectId);
+
+    // 8. Mantenimiento automático de retención TTL de logs
+    await cleanupExpiredSyncLogs();
 
   } finally {
     isSyncingActive = false;
     await notifySubscribers();
   }
 
-  return { synced: syncedCount, failed: failedCount, blocked: blockedCount, successCount: syncedCount, failCount: failedCount };
+  return { synced: syncedCount, failed: failedCount, blocked: blockedCount, denied: deniedCount, successCount: syncedCount, failCount: failedCount };
 }
 
 async function syncLegacyDexieTables(activeOrgId: string, activeProjectId: string) {
@@ -222,7 +310,6 @@ async function syncLegacyDexieTables(activeOrgId: string, activeProjectId: strin
     try {
       await offlineDb.pendingReports.update(item.id, { syncStatus: 'syncing' });
       const { id, tempId, syncStatus, errorMessage, operationId, ...cleanData } = item;
-      const opId = operationId || generateOperationId();
 
       await queueOutboxOperation({
         collectionName: 'field_reports',
@@ -235,7 +322,7 @@ async function syncLegacyDexieTables(activeOrgId: string, activeProjectId: strin
 
       await offlineDb.pendingReports.delete(item.id);
     } catch (err: any) {
-      await offlineDb.pendingReports.update(item.id, { syncStatus: 'failed', errorMessage: err?.message });
+      await offlineDb.pendingReports.update(item.id, { syncStatus: 'failed', errorMessage: sanitizeErrorMessage(err?.message) });
     }
   }
 
@@ -259,7 +346,7 @@ async function syncLegacyDexieTables(activeOrgId: string, activeProjectId: strin
 
       await offlineDb.pendingValuations.delete(item.id);
     } catch (err: any) {
-      await offlineDb.pendingValuations.update(item.id, { syncStatus: 'failed', errorMessage: err?.message });
+      await offlineDb.pendingValuations.update(item.id, { syncStatus: 'failed', errorMessage: sanitizeErrorMessage(err?.message) });
     }
   }
 
@@ -282,9 +369,249 @@ async function syncLegacyDexieTables(activeOrgId: string, activeProjectId: strin
 
       await offlineDb.pendingRoutes.delete(item.id);
     } catch (err: any) {
-      await offlineDb.pendingRoutes.update(item.id, { syncStatus: 'failed', errorMessage: err?.message });
+      await offlineDb.pendingRoutes.update(item.id, { syncStatus: 'failed', errorMessage: sanitizeErrorMessage(err?.message) });
     }
   }
+}
+
+/**
+ * Eliminación de registros de sincronización antiguos (>30 días) según política TTL de retención
+ */
+export async function cleanupExpiredSyncLogs(): Promise<number> {
+  try {
+    const cutoffDate = new Date(Date.now() - RETENTION_TTL_MS).toISOString();
+    const oldLogs = await offlineDb.syncLog.where('timestamp').below(cutoffDate).toArray();
+    const idsToRemove = oldLogs.map(l => l.id).filter((id): id is number => typeof id === 'number');
+
+    if (idsToRemove.length > 0) {
+      await offlineDb.syncLog.bulkDelete(idsToRemove);
+      logger.info(`[SyncEngine] Purga de retención TTL: eliminados ${idsToRemove.length} registros antiguos (>30 días).`);
+    }
+    return idsToRemove.length;
+  } catch (err) {
+    logger.warn('[SyncEngine] Error ejecutando purga TTL de syncLog:', err);
+    return 0;
+  }
+}
+
+export interface SyncCenterOperation {
+  id: string;
+  operationId: string;
+  entidad: string;
+  operationType: 'create' | 'update' | 'delete';
+  docId?: string;
+  momento: string;
+  ultimoIntento?: string;
+  retries: number;
+  status: 'pending' | 'syncing' | 'synced' | 'duplicate' | 'conflict-blocked' | 'failed' | 'denied';
+  motivoSanitizado: string;
+  payload?: Record<string, any>;
+  conflictStrategy: 'APPEND_ONLY' | 'FIELD_VISIBLE' | 'BLOCKING';
+  orgId: string;
+  projectId: string;
+  remoteSnapshot?: Record<string, any>;
+  canManualResolve: boolean;
+  isOutboxItem: boolean;
+  outboxDbId?: number;
+}
+
+/**
+ * Consulta unificada para el Sync Center: combina ítems activos de Outbox e historial de SyncLogs.
+ */
+export async function getSyncCenterOperations(
+  filterOrgId?: string,
+  filterProjectId?: string
+): Promise<SyncCenterOperation[]> {
+  const activeOutbox = await offlineDb.outbox.toArray();
+  const historicalLogs = await offlineDb.syncLog.toArray();
+
+  const operations: SyncCenterOperation[] = [];
+
+  // 1. Mapear cola outbox activa
+  for (const item of activeOutbox) {
+    if (filterOrgId && item.orgId && item.orgId !== filterOrgId) continue;
+    if (filterProjectId && item.projectId && item.projectId !== filterProjectId) continue;
+
+    let uiStatus: SyncCenterOperation['status'] = 'pending';
+    if (item.syncStatus === 'syncing') uiStatus = 'syncing';
+    else if (item.syncStatus === 'conflict_blocked') uiStatus = 'conflict-blocked';
+    else if (item.syncStatus === 'failed') uiStatus = 'failed';
+    else if (item.syncStatus === 'denied') uiStatus = 'denied';
+
+    const strategy = item.conflictStrategy || determineConflictStrategy(item.collectionName, item.category);
+
+    operations.push({
+      id: `outbox_${item.id || item.operationId}`,
+      operationId: item.operationId,
+      entidad: item.collectionName,
+      operationType: item.operationType,
+      docId: item.docId,
+      momento: new Date(item.timestamp).toISOString(),
+      ultimoIntento: item.lastAttemptAt || new Date(item.timestamp).toISOString(),
+      retries: item.retries || 0,
+      status: uiStatus,
+      motivoSanitizado: sanitizeErrorMessage(item.errorMessage || item.conflictDetails),
+      payload: item.payload,
+      conflictStrategy: strategy,
+      orgId: item.orgId,
+      projectId: item.projectId,
+      remoteSnapshot: item.remoteSnapshot,
+      canManualResolve: strategy !== 'BLOCKING' || uiStatus === 'conflict-blocked' || uiStatus === 'failed',
+      isOutboxItem: true,
+      outboxDbId: item.id
+    });
+  }
+
+  // 2. Mapear historial completado (synced, duplicate) desde syncLog
+  for (const log of historicalLogs) {
+    if (filterOrgId && log.orgId && log.orgId !== filterOrgId) continue;
+    if (filterProjectId && log.projectId && log.projectId !== filterProjectId) continue;
+
+    // Evitar duplicar en UI si ya está en outbox activo
+    if (operations.some(op => op.operationId === log.operationId)) continue;
+
+    let uiStatus: SyncCenterOperation['status'] = 'synced';
+    if (log.status === 'idempotent_duplicate') uiStatus = 'duplicate';
+    else if (log.status === 'conflict_blocked') uiStatus = 'conflict-blocked';
+    else if (log.status === 'denied') uiStatus = 'denied';
+    else if (log.status === 'failed') uiStatus = 'failed';
+
+    operations.push({
+      id: `synclog_${log.id || log.operationId}`,
+      operationId: log.operationId,
+      entidad: log.collectionName,
+      operationType: log.action,
+      docId: log.recordId,
+      momento: log.timestamp,
+      ultimoIntento: log.timestamp,
+      retries: 0,
+      status: uiStatus,
+      motivoSanitizado: sanitizeErrorMessage(log.sanitizedReason || log.details),
+      conflictStrategy: determineConflictStrategy(log.collectionName, log.category),
+      orgId: log.orgId || '',
+      projectId: log.projectId || '',
+      canManualResolve: false,
+      isOutboxItem: false
+    });
+  }
+
+  // Ordenar descendente por momento (más reciente primero)
+  return operations.sort((a, b) => new Date(b.momento).getTime() - new Date(a.momento).getTime());
+}
+
+/**
+ * Reintento manual individual de una operación
+ */
+export async function retryOperation(operationId: string, activeOrgId: string = '', activeProjectId: string = ''): Promise<boolean> {
+  const items = await offlineDb.outbox.where('operationId').equals(operationId).toArray();
+  if (items.length === 0) return false;
+
+  for (const item of items) {
+    if (!item.id) continue;
+    await offlineDb.outbox.update(item.id, {
+      syncStatus: 'pending',
+      errorMessage: undefined,
+      nextAttemptAt: undefined,
+      retries: 0
+    });
+  }
+
+  await flushOutbox(activeOrgId, activeProjectId, true);
+  return true;
+}
+
+/**
+ * Resolver Conflicto — Mantener Local (sobreescribir versión remota)
+ */
+export async function resolveConflictKeepLocal(operationId: string, activeOrgId: string = '', activeProjectId: string = ''): Promise<boolean> {
+  const items = await offlineDb.outbox.where('operationId').equals(operationId).toArray();
+  if (items.length === 0) return false;
+
+  for (const item of items) {
+    if (!item.id) continue;
+    await offlineDb.outbox.update(item.id, {
+      payload: { ...item.payload, _forceLocalOverride: true, _resolvedAt: new Date().toISOString() },
+      syncStatus: 'pending',
+      errorMessage: undefined,
+      nextAttemptAt: undefined,
+      retries: 0
+    });
+  }
+
+  await flushOutbox(activeOrgId, activeProjectId, true);
+  return true;
+}
+
+/**
+ * Resolver Conflicto — Mantener Servidor (descartar item local)
+ */
+export async function resolveConflictKeepRemote(operationId: string): Promise<boolean> {
+  const items = await offlineDb.outbox.where('operationId').equals(operationId).toArray();
+  if (items.length === 0) return false;
+
+  for (const item of items) {
+    if (!item.id) continue;
+    await offlineDb.syncLog.add({
+      operationId: item.operationId,
+      action: item.operationType,
+      collectionName: item.collectionName,
+      recordId: item.docId || 'remote_kept',
+      timestamp: new Date().toISOString(),
+      status: 'success',
+      details: 'Conflicto resuelto manualmente conservando versión del servidor.',
+      orgId: item.orgId,
+      projectId: item.projectId,
+      sanitizedReason: 'Resuelto a favor del servidor.'
+    });
+    await removeOutboxItem(item.id);
+  }
+
+  await notifySubscribers();
+  return true;
+}
+
+/**
+ * Resolver Conflicto — Combinar Manualmente
+ */
+export async function resolveConflictMerge(
+  operationId: string, 
+  mergedPayload: Record<string, any>, 
+  activeOrgId: string = '', 
+  activeProjectId: string = ''
+): Promise<boolean> {
+  const items = await offlineDb.outbox.where('operationId').equals(operationId).toArray();
+  if (items.length === 0) return false;
+
+  for (const item of items) {
+    if (!item.id) continue;
+    await offlineDb.outbox.update(item.id, {
+      payload: { ...mergedPayload, _mergedAt: new Date().toISOString() },
+      syncStatus: 'pending',
+      errorMessage: undefined,
+      nextAttemptAt: undefined,
+      retries: 0
+    });
+  }
+
+  await flushOutbox(activeOrgId, activeProjectId, true);
+  return true;
+}
+
+/**
+ * Descartar / eliminar operación de la cola
+ */
+export async function discardOperation(operationId: string): Promise<boolean> {
+  const items = await offlineDb.outbox.where('operationId').equals(operationId).toArray();
+  if (items.length === 0) return false;
+
+  for (const item of items) {
+    if (item.id) {
+      await removeOutboxItem(item.id);
+    }
+  }
+
+  await notifySubscribers();
+  return true;
 }
 
 // Backward Compatibility API for queueing
@@ -421,30 +748,34 @@ export async function saveRouteOffline(routeData: Omit<PendingRoute, 'id' | 'tem
 
 /**
  * Custom React Hook: useOfflineStatus
- * Provides reactive status of network, outbox queue count, blocked items, and manual flush trigger.
+ * Provee estado reactivo de red, conteo de cola, bloqueados, fallidos y método de disparo.
  */
 export function useOfflineStatus() {
   const [isOnline, setIsOnline] = useState<boolean>(isBrowserOnline());
   const [pendingOps, setPendingOps] = useState<any[]>([]);
   const [isSyncing, setIsSyncing] = useState<boolean>(false);
   const [blockedCount, setBlockedCount] = useState<number>(0);
-  const [lastSyncResult, setLastSyncResult] = useState<{ synced: number; failed: number; blocked: number } | null>(null);
+  const [failedCount, setFailedCount] = useState<number>(0);
+  const [deniedCount, setDeniedCount] = useState<number>(0);
+  const [lastSyncResult, setLastSyncResult] = useState<{ synced: number; failed: number; blocked: number; denied: number } | null>(null);
 
   const refreshPendingQueue = useCallback(async () => {
     const pending = await getPendingOfflineOperations();
     const stats = await getSyncStats();
     setPendingOps(pending);
     setBlockedCount(stats.blockedCount);
+    setFailedCount(stats.failedCount);
+    setDeniedCount(stats.deniedCount);
   }, []);
 
-  const triggerSync = useCallback(async () => {
+  const triggerSync = useCallback(async (activeOrgId: string = '', activeProjectId: string = '') => {
     if (!isBrowserOnline() || isSyncing) return;
     setIsSyncing(true);
     try {
-      const res = await flushOutbox();
+      const res = await flushOutbox(activeOrgId, activeProjectId, true);
       setLastSyncResult(res);
       await refreshPendingQueue();
-      if (res.failed === 0 && res.blocked === 0) {
+      if (res.failed === 0 && res.blocked === 0 && res.denied === 0) {
         await clearLocalDrafts();
       }
     } catch (err) {
@@ -489,6 +820,8 @@ export function useOfflineStatus() {
     isOnline,
     pendingCount: pendingOps.length,
     blockedCount,
+    failedCount,
+    deniedCount,
     pendingOps,
     isSyncing,
     lastSyncResult,
@@ -498,16 +831,30 @@ export function useOfflineStatus() {
 }
 
 /**
- * Setup global auto-sync listeners
+ * Setup global auto-sync listeners & resiliencia (incluyendo iOS Safari y SW Sync)
  */
 export function initOfflineAutoSync() {
   if (typeof window === 'undefined') return;
 
-  window.addEventListener('online', () => {
-    logger.info('[IC360 PWA] Reconexión detectada. Procesando cola outbox...');
+  const handleReconnect = () => {
+    logger.info('[IC360 PWA] Evento de reconexión/visibilidad detectado. Procesando cola outbox...');
     flushOutbox().catch(err => logger.error('Error flushing outbox on reconnect:', err));
+  };
+
+  // 1. Listeners de reconexión estándar
+  window.addEventListener('online', handleReconnect);
+  window.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && isBrowserOnline()) {
+      handleReconnect();
+    }
+  });
+  window.addEventListener('focus', () => {
+    if (isBrowserOnline()) {
+      handleReconnect();
+    }
   });
 
+  // 2. Service Worker Message Listener
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.addEventListener('message', (event) => {
       if (event.data && event.data.type === 'IC360_TRIGGER_SYNC') {
@@ -515,5 +862,17 @@ export function initOfflineAutoSync() {
         flushOutbox().catch(err => logger.error('Error flushing outbox on SW message:', err));
       }
     });
+
+    // 3. Registrar Background Sync Tag si es soportado por el navegador
+    navigator.serviceWorker.ready.then((reg: any) => {
+      if (reg && 'sync' in reg) {
+        reg.sync.register('sync-offline-queue').catch((err: any) => {
+          logger.warn('[SyncEngine] Background Sync registration fallback:', err);
+        });
+      }
+    }).catch(() => {
+      // Background Sync no soportado (ej. iOS Safari), se usa fallback de eventos arriba
+    });
   }
 }
+

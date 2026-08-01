@@ -415,11 +415,15 @@ export default function TopContextBar({
 
         {/* Offline / Background Sync Indicator */}
         <div className="flex items-center gap-2">
-          <div className={`flex items-center gap-2 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-colors ${
-            isOnline 
-              ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300' 
-              : 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-300 animate-pulse'
-          }`}>
+          <Link
+            to="/sync-center"
+            className={`flex items-center gap-2 px-2.5 py-1 rounded-xl text-xs font-semibold border transition-colors cursor-pointer ${
+              isOnline 
+                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50' 
+                : 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-300 animate-pulse hover:bg-amber-100 dark:hover:bg-amber-900/50'
+            }`}
+            title="Abrir Centro de Sincronización"
+          >
             {isOnline ? (
               <>
                 <Wifi size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -436,19 +440,16 @@ export default function TopContextBar({
                 {pendingQueueCount}
               </span>
             )}
-          </div>
+          </Link>
 
-          {pendingQueueCount > 0 && (
-            <button
-              onClick={handleManualSync}
-              disabled={isSyncing}
-              title="Sincronizar datos pendientes"
-              className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl transition-colors disabled:opacity-50"
-            >
-              <RefreshCw size={13} className={isSyncing ? 'animate-spin' : ''} />
-              <span className="hidden md:inline">Sincronizar</span>
-            </button>
-          )}
+          <Link
+            to="/sync-center"
+            title="Abrir Centro de Sincronización"
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl transition-colors cursor-pointer"
+          >
+            <RefreshCw size={13} className={isSyncing ? 'animate-spin text-brand-500' : ''} />
+            <span className="hidden md:inline">Sync Center</span>
+          </Link>
         </div>
       </div>
     </header>
