@@ -123,5 +123,25 @@ const firestore_1 = require("firebase-admin/firestore");
         (0, vitest_1.expect)(res.projectId).toBe('proj_1');
         (0, vitest_1.expect)(res.role).toBe('gerente');
     });
+    (0, vitest_1.it)('11. Rechaza a usuario que aduce claim superadmin pero NO posee membership en la org objetivo', async () => {
+        const authContext = { uid: 'usr_fake_superadmin', token: { role: 'superadmin', orgId: 'orgA' } };
+        const dbMock = (0, firestore_1.getFirestore)();
+        // Membership doc does not exist
+        dbMock.doc.mockReturnValueOnce({
+            get: vitest_1.vi.fn().mockResolvedValue({ exists: false }),
+        });
+        await (0, vitest_1.expect)((0, authorizer_1.authorizeServerSideRequest)(authContext, { orgId: 'orgA' })).rejects.toThrow("El usuario 'usr_fake_superadmin' no posee registro de membresía");
+    });
+    (0, vitest_1.it)('12. Rechaza si la membresía de tenant intenta otorgar platformAdmin', async () => {
+        const authContext = { uid: 'usr_platform_attempt', token: { role: 'campo', orgId: 'orgA' } };
+        const dbMock = (0, firestore_1.getFirestore)();
+        dbMock.doc.mockReturnValueOnce({
+            get: vitest_1.vi.fn().mockResolvedValue({
+                exists: true,
+                data: () => ({ status: 'active', role: 'platformAdmin', orgId: 'orgA' }),
+            }),
+        });
+        await (0, vitest_1.expect)((0, authorizer_1.authorizeServerSideRequest)(authContext, { orgId: 'orgA' })).rejects.toThrow("El rol 'platformAdmin' no puede ser concedido por una membresía de organización");
+    });
 });
 //# sourceMappingURL=authorizer.test.js.map

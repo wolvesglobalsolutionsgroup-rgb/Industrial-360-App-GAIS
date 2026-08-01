@@ -170,4 +170,34 @@ describe('Server-Side Authorizer (authorizeServerSideRequest)', () => {
     expect(res.projectId).toBe('proj_1');
     expect(res.role).toBe('gerente');
   });
+
+  it('11. Rechaza a usuario que aduce claim superadmin pero NO posee membership en la org objetivo', async () => {
+    const authContext: any = { uid: 'usr_fake_superadmin', token: { role: 'superadmin', orgId: 'orgA' } };
+    const dbMock = getFirestore() as any;
+
+    // Membership doc does not exist
+    dbMock.doc.mockReturnValueOnce({
+      get: vi.fn().mockResolvedValue({ exists: false }),
+    });
+
+    await expect(
+      authorizeServerSideRequest(authContext, { orgId: 'orgA' })
+    ).rejects.toThrow("El usuario 'usr_fake_superadmin' no posee registro de membresía");
+  });
+
+  it('12. Rechaza si la membresía de tenant intenta otorgar platformAdmin', async () => {
+    const authContext: any = { uid: 'usr_platform_attempt', token: { role: 'campo', orgId: 'orgA' } };
+    const dbMock = getFirestore() as any;
+
+    dbMock.doc.mockReturnValueOnce({
+      get: vi.fn().mockResolvedValue({
+        exists: true,
+        data: () => ({ status: 'active', role: 'platformAdmin', orgId: 'orgA' }),
+      }),
+    });
+
+    await expect(
+      authorizeServerSideRequest(authContext, { orgId: 'orgA' })
+    ).rejects.toThrow("El rol 'platformAdmin' no puede ser concedido por una membresía de organización");
+  });
 });

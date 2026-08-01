@@ -55,6 +55,7 @@ const LotoIsolation = lazy(() => import('./pages/LotoIsolation'));
 const PlatformOwnerConsole = lazy(() => import('./pages/PlatformOwnerConsole'));
 const InstrumentationControl = lazy(() => import('./pages/InstrumentationControl'));
 const CivilEngineeringRegistry = lazy(() => import('./pages/CivilEngineeringRegistry'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 function AppContent() {
   const [user, loading] = useAppAuthState();
@@ -76,7 +77,7 @@ function AppContent() {
             <Route path="/landing" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/portal/:portalId" element={<ClientPortalView />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
       </ErrorBoundary>
@@ -217,8 +218,9 @@ function AppContent() {
 
             <Route path="alerts-details" element={<AlertsDetails />} />
             <Route path="modulos/:id" element={<ModulePlaceholder />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<NotFound />} />
           </Route>
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
       </ErrorBoundary>

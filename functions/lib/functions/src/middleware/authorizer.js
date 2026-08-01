@@ -24,7 +24,6 @@ async function authorizeServerSideRequest(authContext, options) {
     const decodedToken = 'token' in authContext && authContext.token
         ? authContext.token
         : authContext;
-    const tokenRole = decodedToken.role || '';
     const tokenOrgId = decodedToken.orgId || '';
     const email = decodedToken.email;
     const { orgId, projectId, allowedRoles, requireProject, routeOrgId, routeProjectId } = options;
@@ -47,35 +46,28 @@ async function authorizeServerSideRequest(authContext, options) {
     if (routeProjectId && cleanProjectId && routeProjectId.trim() !== cleanProjectId) {
         throw new https_1.HttpsError('permission-denied', `Inconsistencia de seguridad: projectId en ruta ('${routeProjectId}') no coincide con el cuerpo ('${cleanProjectId}').`);
     }
-    const isSuperadminClaim = tokenRole === 'superadmin';
-    if (tokenOrgId && !isSuperadminClaim && tokenOrgId !== cleanOrgId) {
+    if (tokenOrgId && tokenOrgId !== cleanOrgId) {
         throw new https_1.HttpsError('permission-denied', `Acceso denegado: El usuario pertenece a la organización '${tokenOrgId}', pero solicitó operar en '${cleanOrgId}'.`);
     }
     // 4. Consultar membership activa autoritativa
     const dbAdmin = (0, firestore_1.getFirestore)();
     const membershipRef = dbAdmin.doc(`organizations/${cleanOrgId}/memberships/${uid}`);
     const membershipSnap = await membershipRef.get();
-    let effectiveRole = tokenRole;
-    let membershipStatus = 'active';
     if (!membershipSnap.exists) {
-        if (isSuperadminClaim) {
-            effectiveRole = 'superadmin';
-            membershipStatus = 'active';
-        }
-        else {
-            throw new https_1.HttpsError('permission-denied', `Membresía no encontrada: El usuario '${uid}' no posee registro de membresía en '/organizations/${cleanOrgId}/memberships/${uid}'.`);
-        }
+        throw new https_1.HttpsError('permission-denied', `Membresía no encontrada: El usuario '${uid}' no posee registro de membresía en '/organizations/${cleanOrgId}/memberships/${uid}'.`);
     }
-    else {
-        const membershipData = membershipSnap.data() || {};
-        const status = membershipData.status || 'active';
-        const activeStatuses = ['approved', 'aprobado', 'active'];
-        if (!activeStatuses.includes(status.toLowerCase())) {
-            throw new https_1.HttpsError('permission-denied', `Membresía inactiva: El estado de su membresía en '${cleanOrgId}' es '${status}'.`);
-        }
-        effectiveRole = membershipData.role || tokenRole || 'campo';
-        membershipStatus = status;
+    const membershipData = membershipSnap.data() || {};
+    const status = membershipData.status || 'active';
+    const activeStatuses = ['approved', 'aprobado', 'active'];
+    if (!activeStatuses.includes(status.toLowerCase())) {
+        throw new https_1.HttpsError('permission-denied', `Membresía inactiva: El estado de su membresía en '${cleanOrgId}' es '${status}'.`);
     }
+    const membershipRole = membershipData.role || 'campo';
+    if (membershipRole === 'platformAdmin') {
+        throw new https_1.HttpsError('permission-denied', "Acceso denegado: El rol 'platformAdmin' no puede ser concedido por una membresía de organización.");
+    }
+    const effectiveRole = membershipRole;
+    const membershipStatus = status;
     // 5. Validar roles permitidos
     if (allowedRoles && allowedRoles.length > 0) {
         const isAllowed = allowedRoles.includes(effectiveRole) || effectiveRole === 'superadmin';

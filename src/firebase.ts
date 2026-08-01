@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { 
-  getAuth, GoogleAuthProvider, signInWithPopup, signOut,
+  getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, signOut,
   signInWithEmailAndPassword,
   signInAnonymously, onAuthStateChanged
 } from 'firebase/auth';
@@ -19,6 +19,21 @@ export const functionsInstance = getFunctions(app);
 
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
+
+// Manejo de resultado de redirección para entornos donde las ventanas emergentes estén bloqueadas o restringidas
+if (typeof window !== 'undefined') {
+  getRedirectResult(auth)
+    .then(async (userCredential) => {
+      if (userCredential?.user) {
+        await ensureUserClaimsAndRefreshToken(userCredential.user);
+      }
+    })
+    .catch((err) => {
+      if (err?.code !== 'auth/operation-not-supported-in-this-environment') {
+        logger.warn('Error al procesar getRedirectResult de Google Auth:', err?.message || err);
+      }
+    });
+}
 
 /**
  * Invoca la Cloud Function 'ensureOwnClaims' para sincronizar Custom Claims
@@ -104,10 +119,29 @@ export const loginWithGoogle = async () => {
     if (userCredential.user) {
       await ensureUserClaimsAndRefreshToken(userCredential.user);
     }
+    return userCredential.user;
   } catch (error: any) {
-    logger.warn("Error signing in with Google", error);
+    logger.warn("Error signing in with Google via popup:", error?.code || error?.message || error);
+    
+    // Si la ventana emergente es bloqueada por el navegador o entorno iframe, intentar signInWithRedirect
+    if (
+      error?.code === 'auth/popup-blocked' ||
+      error?.code === 'auth/cancelled-popup-request' ||
+      error?.code === 'auth/internal-error'
+    ) {
+      logger.info("Intentando signInWithRedirect como fallback para Google Auth...");
+      try {
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      } catch (redirectErr) {
+        logger.error("Error signing in with Google via redirect:", redirectErr);
+        throw redirectErr;
+      }
+    }
+
     if (DEMO_AUTH_ENABLED) {
       setLocalUser(DEMO_USER_DEFAULT);
+      return DEMO_USER_DEFAULT;
     } else {
       throw error;
     }

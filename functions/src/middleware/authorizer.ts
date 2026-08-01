@@ -66,7 +66,6 @@ export async function authorizeServerSideRequest(
     ? (authContext.token as DecodedIdToken)
     : (authContext as DecodedIdToken);
 
-  const tokenRole = (decodedToken.role as string) || '';
   const tokenOrgId = (decodedToken.orgId as string) || '';
   const email = decodedToken.email;
 
@@ -109,8 +108,7 @@ export async function authorizeServerSideRequest(
     );
   }
 
-  const isSuperadminClaim = tokenRole === 'superadmin';
-  if (tokenOrgId && !isSuperadminClaim && tokenOrgId !== cleanOrgId) {
+  if (tokenOrgId && tokenOrgId !== cleanOrgId) {
     throw new HttpsError(
       'permission-denied',
       `Acceso denegado: El usuario pertenece a la organización '${tokenOrgId}', pero solicitó operar en '${cleanOrgId}'.`
@@ -122,34 +120,34 @@ export async function authorizeServerSideRequest(
   const membershipRef = dbAdmin.doc(`organizations/${cleanOrgId}/memberships/${uid}`);
   const membershipSnap = await membershipRef.get();
 
-  let effectiveRole = tokenRole;
-  let membershipStatus = 'active';
-
   if (!membershipSnap.exists) {
-    if (isSuperadminClaim) {
-      effectiveRole = 'superadmin';
-      membershipStatus = 'active';
-    } else {
-      throw new HttpsError(
-        'permission-denied',
-        `Membresía no encontrada: El usuario '${uid}' no posee registro de membresía en '/organizations/${cleanOrgId}/memberships/${uid}'.`
-      );
-    }
-  } else {
-    const membershipData = membershipSnap.data() || {};
-    const status = (membershipData.status as string) || 'active';
-    const activeStatuses = ['approved', 'aprobado', 'active'];
-
-    if (!activeStatuses.includes(status.toLowerCase())) {
-      throw new HttpsError(
-        'permission-denied',
-        `Membresía inactiva: El estado de su membresía en '${cleanOrgId}' es '${status}'.`
-      );
-    }
-
-    effectiveRole = (membershipData.role as string) || tokenRole || 'campo';
-    membershipStatus = status;
+    throw new HttpsError(
+      'permission-denied',
+      `Membresía no encontrada: El usuario '${uid}' no posee registro de membresía en '/organizations/${cleanOrgId}/memberships/${uid}'.`
+    );
   }
+
+  const membershipData = membershipSnap.data() || {};
+  const status = (membershipData.status as string) || 'active';
+  const activeStatuses = ['approved', 'aprobado', 'active'];
+
+  if (!activeStatuses.includes(status.toLowerCase())) {
+    throw new HttpsError(
+      'permission-denied',
+      `Membresía inactiva: El estado de su membresía en '${cleanOrgId}' es '${status}'.`
+    );
+  }
+
+  const membershipRole = (membershipData.role as string) || 'campo';
+  if (membershipRole === 'platformAdmin') {
+    throw new HttpsError(
+      'permission-denied',
+      "Acceso denegado: El rol 'platformAdmin' no puede ser concedido por una membresía de organización."
+    );
+  }
+
+  const effectiveRole = membershipRole;
+  const membershipStatus = status;
 
   // 5. Validar roles permitidos
   if (allowedRoles && allowedRoles.length > 0) {

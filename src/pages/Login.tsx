@@ -46,7 +46,22 @@ export default function Login() {
     try {
       await loginWithGoogle();
     } catch (err: any) {
-      setError('Error al conectar con Google Auth');
+      const code = err?.code || '';
+      const rawMsg = err?.message || '';
+      if (code === 'auth/unauthorized-domain') {
+        const currentDomain = typeof window !== 'undefined' ? window.location.hostname : 'este dominio';
+        setError(`El dominio '${currentDomain}' no está autorizado en Firebase Console. Por favor agrégalo en Firebase Console -> Authentication -> Settings -> Authorized Domains.`);
+      } else if (code === 'auth/operation-not-allowed') {
+        setError('El proveedor Google Sign-In no está activado en Firebase Console. Habilítalo en Authentication -> Sign-in method -> Google.');
+      } else if (code === 'auth/popup-blocked') {
+        setError('El navegador bloqueó la ventana emergente. Por favor habilita ventanas emergentes para este sitio.');
+      } else if (code === 'auth/popup-closed-by-user') {
+        setError('La ventana de inicio de sesión de Google fue cerrada antes de completar el proceso.');
+      } else if (code === 'auth/configuration-not-found' || code === 'auth/invalid-api-key') {
+        setError('Error de configuración en las credenciales de Firebase Auth.');
+      } else {
+        setError(rawMsg || 'Error al conectar con Google Auth');
+      }
     } finally {
       setLoading(false);
     }
