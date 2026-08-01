@@ -1,4 +1,5 @@
 import { ApuItem as CanonicalApuItem } from '../engineering/apuCalculator';
+export * from '../engineering/workerQrEngine';
 
 export interface BaseEntity {
   id: string;
@@ -149,8 +150,33 @@ export interface WorkerItem extends BaseEntity {
   position?: string;
   company?: string;
   status?: string;
+  credentialId?: string;
   qrCode?: string;
   medicalExpiry?: string;
   safetyTrainingExpiry?: string;
+  wpqCertExpiry?: string;
+  fitStatus?: 'Apto' | 'Apto con Restricciones' | 'No Apto' | 'Vencido';
+  welderStamp?: string;
+  bloodType?: string;
+  allergies?: string;
+  totalHhtAccumulated?: number;
+  [key: string]: any;
+}
+
+export interface AttendanceRecordItem extends BaseEntity {
+  idempotencyKey: string;
+  workerId: string;
+  workerName: string;
+  nationalId: string;
+  role?: string;
+  contractor?: string;
+  checkInTime: string;
+  checkOutTime?: string;
+  hoursWorked?: number;
+  gateLocation: string;
+  accessStatus: 'Verde - Autorizado' | 'Rojo - Denegado';
+  denialReason?: string;
+  date: string;
+  syncState?: 'PENDING_OFFLINE' | 'SYNCED' | 'CORRECTED';
   [key: string]: any;
 }
