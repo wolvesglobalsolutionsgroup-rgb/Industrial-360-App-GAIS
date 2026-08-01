@@ -12,6 +12,7 @@ import { PageSkeleton } from './components/ui/PageSkeleton';
 import { CommandPalette } from './components/CommandPalette';
 import { ProjectProvider } from './ProjectContext';
 import { ThemeProvider } from './theme/ThemeContext';
+import { DisplayEnvironmentProvider } from './theme/DisplayEnvironmentContext';
 import ErrorBoundary from './components/ErrorBoundary';
 
 // Lazy loaded page components
@@ -232,7 +233,9 @@ export default function App() {
   return (
     <Router>
       <ThemeProvider>
-        <AppContent />
+        <DisplayEnvironmentProvider>
+          <AppContent />
+        </DisplayEnvironmentProvider>
       </ThemeProvider>
     </Router>
   );

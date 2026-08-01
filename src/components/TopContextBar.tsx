@@ -3,13 +3,14 @@ import { Link } from 'react-router-dom';
 import { 
   Building, HardHat, ChevronDown, Wifi, WifiOff, RefreshCw, 
   UserCheck, Bell, Palette, Check, Sparkles, CheckCircle2, AlertTriangle, ShieldCheck,
-  Sun, Moon, PanelLeftClose, PanelLeftOpen
+  Sun, Moon, PanelLeftClose, PanelLeftOpen, Tv, Monitor, SunMedium
 } from 'lucide-react';
 import { useProject, CORPORATE_PORTFOLIO_PROJECT, UserRole } from '../ProjectContext';
 import { ROLE_LABELS } from './ProtectedRoute';
 import { getPendingOfflineOperations, flushOfflineQueue } from '../lib/offline/syncEngine';
 import { useTheme } from '../theme/ThemeContext';
 import { THEME_PRESETS, ThemePresetId } from '../theme/themePresets';
+import { useDisplayEnvironment, DisplayEnvironment } from '../theme/DisplayEnvironmentContext';
 
 export default function TopContextBar({ 
   isSidebarOpen, 
@@ -37,6 +38,14 @@ export default function TopContextBar({
     toggleMode,
     activeTheme 
   } = useTheme();
+
+  const {
+    displayEnvironment,
+    setDisplayEnvironment,
+    isCommandWall,
+    burnInMitigation,
+    toggleBurnInMitigation
+  } = useDisplayEnvironment();
 
   const [isProjectMenuOpen, setIsProjectMenuOpen] = useState(false);
   const [isRoleMenuOpen, setIsRoleMenuOpen] = useState(false);
@@ -188,8 +197,43 @@ export default function TopContextBar({
         </div>
       </div>
 
-      {/* Right Controls: Light/Dark Toggle, Theme Selector, Notifications, Online/Offline Sync */}
+      {/* Right Controls: Display Environment, Light/Dark Toggle, Theme Selector, Notifications, Online/Offline Sync */}
       <div className="flex items-center gap-2 sm:gap-3">
+        {/* S20 Display Environment Selector */}
+        <div className="relative flex items-center gap-1 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-2 py-1 text-xs font-semibold text-gray-800 dark:text-slate-200 shadow-2xs">
+          <label htmlFor="display-env-select" className="sr-only">Entorno de Pantalla</label>
+          {displayEnvironment === 'command-wall' && <Tv size={15} className="text-sky-400 shrink-0" />}
+          {displayEnvironment === 'workstation' && <Monitor size={15} className="text-emerald-500 shrink-0" />}
+          {displayEnvironment === 'field-sunlight' && <SunMedium size={15} className="text-amber-500 shrink-0" />}
+
+          <select
+            id="display-env-select"
+            aria-label="Entorno de Pantalla"
+            value={displayEnvironment}
+            onChange={(e) => setDisplayEnvironment(e.target.value as DisplayEnvironment)}
+            className="bg-transparent text-xs font-bold text-gray-800 dark:text-slate-100 outline-none cursor-pointer focus:ring-2 focus:ring-emerald-500 rounded px-1 py-0.5"
+          >
+            <option value="workstation" className="bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100">Workstation 💻</option>
+            <option value="command-wall" className="bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100">Command Wall 📺</option>
+            <option value="field-sunlight" className="bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100">Campo al Sol ☀️</option>
+          </select>
+
+          {isCommandWall && (
+            <button
+              onClick={toggleBurnInMitigation}
+              className={`ml-1 text-[10px] font-bold px-1.5 py-0.5 rounded border transition-colors cursor-pointer ${
+                burnInMitigation
+                  ? 'bg-sky-500/20 text-sky-300 border-sky-400/40'
+                  : 'bg-slate-700/50 text-slate-400 border-slate-600/30 hover:text-slate-200'
+              }`}
+              title="Mitigación de Burn-In OLED (Pixel-Shift ±2px)"
+              aria-label="Mitigación Burn-In OLED"
+            >
+              {burnInMitigation ? 'Burn-In: ON' : 'Burn-In: OFF'}
+            </button>
+          )}
+        </div>
+
         {/* Quick Light / Dark Mode Toggle Button */}
         <button
           onClick={toggleMode}

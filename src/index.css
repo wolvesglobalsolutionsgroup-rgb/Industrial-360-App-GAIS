@@ -168,3 +168,82 @@ body::before {
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--color-line); border-radius: 999px; border: 2px solid transparent; background-clip: content-box; }
+
+/* ===== S20 — DISPLAY ENVIRONMENTS ===== */
+
+/* 1. WORKSTATION (Desktop High Density Default) */
+[data-display-env="workstation"] {
+  --display-touch-target: 2.25rem;
+  --display-font-scale: 1.0;
+  --display-contrast-boost: 1.0;
+}
+
+/* 2. COMMAND WALL (OLED 3840x2160 High-Density Matrix) */
+[data-display-env="command-wall"] {
+  --color-bg: #020408;
+  --color-surface: #060b13;
+  --color-surface-2: #0b1220;
+  --color-elevated: #121d30;
+  --color-ink: #f8fafc;
+  --color-ink-soft: #94a3b8;
+  --color-line: #1e293b;
+  --display-touch-target: 2.75rem;
+  --display-font-scale: 1.15;
+  --display-contrast-boost: 1.15;
+}
+
+@keyframes pixel-shift {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(1px, 0); }
+  50%  { transform: translate(1px, 1px); }
+  75%  { transform: translate(0, 1px); }
+  100% { transform: translate(0, 0); }
+}
+
+[data-burn-in-mitigation="true"] .card,
+[data-burn-in-mitigation="true"] header,
+[data-burn-in-mitigation="true"] nav {
+  animation: pixel-shift 120s infinite ease-in-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-burn-in-mitigation="true"] .card,
+  [data-burn-in-mitigation="true"] header,
+  [data-burn-in-mitigation="true"] nav {
+    animation: none !important;
+  }
+}
+
+/* 3. FIELD SUNLIGHT (Alto Contraste / Guantes Campo) */
+[data-display-env="field-sunlight"] {
+  --color-bg: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-2: #f8fafc;
+  --color-elevated: #f1f5f9;
+  --color-ink: #000000;
+  --color-ink-soft: #0f172a;
+  --color-ink-faint: #334155;
+  --color-line: #000000;
+  --color-interactive: #000000;
+  --display-touch-target: 4rem; /* ≥64px para guantes de campo (C5) */
+  --display-font-scale: 1.25;
+  --display-contrast-boost: 1.4;
+}
+
+[data-display-env="field-sunlight"] button,
+[data-display-env="field-sunlight"] input,
+[data-display-env="field-sunlight"] select {
+  min-height: var(--display-touch-target, 4rem);
+  font-weight: 800 !important;
+}
+
+@media (prefers-contrast: more) {
+  [data-display-env="field-sunlight"] {
+    --display-contrast-boost: 1.6;
+    --color-line: #000000;
+  }
+  [data-display-env="field-sunlight"] .card {
+    border-width: 2px !important;
+  }
+}
+
