@@ -1339,5 +1339,92 @@ export const syncOutboxMutation = functions.https.onCall(
   }
 );
 
+/**
+ * S22 — Gestión de FinOps y Estado del Plan por Autoridad de Plataforma (platformAdmin).
+ * C3 — Step-up MFA: Verifica auth_time reciente en el servidor (< 300 segundos).
+ * C6 — Actualiza el estado del plan respetando el ciclo de vida.
+ */
+export const updatePlatformTenantLifecycle = functions.https.onCall(
+  async (data: any, context: functions.https.CallableContext) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError(
+        'unauthenticated',
+        'El usuario debe estar autenticado.'
+      );
+    }
+
+    const isPlatformAdmin = context.auth.token?.platformAdmin === true;
+    if (!isPlatformAdmin) {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'Acceso denegado: Se requiere autoridad de plataforma (platformAdmin === true).'
+      );
+    }
+
+    // C3: Verificación de Step-up MFA Server-side
+    const authTime = context.auth.token?.auth_time;
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const MAX_MFA_AGE_SECONDS = 300; // 5 minutos
+
+    if (!authTime || typeof authTime !== 'number' || nowSeconds - authTime > MAX_MFA_AGE_SECONDS) {
+      throw new functions.https.HttpsError(
+        'permission-denied',
+        'Acceso denegado: Se requiere re-autenticación reciente / step-up MFA (auth_time excedido 300s).'
+      );
+    }
+
+    const targetOrgId = typeof data?.targetOrgId === 'string' ? data.targetOrgId.trim() : '';
+    const newStatus = typeof data?.status === 'string' ? data.status.trim() : '';
+    const reason = typeof data?.reason === 'string' ? data.reason.trim() : '';
+
+    const VALID_STATUSES = ['ACTIVE', 'GRACE_PERIOD', 'READ_ONLY', 'SUSPENDED'];
+    if (!targetOrgId || !VALID_STATUSES.includes(newStatus) || !reason) {
+      throw new functions.https.HttpsError(
+        'invalid-argument',
+        `Parámetros requeridos: targetOrgId, status (${VALID_STATUSES.join(', ')}), reason.`
+      );
+    }
+
+    const dbAdmin = getFirestore();
+    const orgRef = dbAdmin.doc(`organizations/${targetOrgId}`);
+    const orgSnap = await orgRef.get();
+
+    if (!orgSnap.exists) {
+      throw new functions.https.HttpsError('not-found', `Organización '${targetOrgId}' no encontrada.`);
+    }
+
+    const callerUid = context.auth.uid;
+    const timestamp = FieldValue.serverTimestamp();
+
+    const batch = dbAdmin.batch();
+    batch.set(orgRef, { planStatus: newStatus, updatedAt: timestamp, updatedBy: callerUid }, { merge: true });
+
+    const auditRef = dbAdmin.collection(`organizations/${targetOrgId}/audit_logs`).doc();
+    batch.set(auditRef, {
+      action: 'PLATFORM_TENANT_LIFECYCLE_UPDATED',
+      callerUid,
+      targetOrgId,
+      newStatus,
+      reason,
+      timestamp,
+      status: 'SUCCESS',
+    });
+
+    await batch.commit();
+
+    logger.info(
+      `[PlatformFinOps] Estado de plan actualizado: targetOrgId=${targetOrgId}, status=${newStatus}, actor=${callerUid}`
+    );
+
+    return {
+      success: true,
+      targetOrgId,
+      newStatus,
+      message: `Estado de plan para '${targetOrgId}' actualizado a '${newStatus}'.`,
+    };
+  }
+);
+
+
 
 

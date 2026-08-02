@@ -150,30 +150,34 @@ export default function Tasks() {
       : query(collectionGroup(db, 'tasks'), where('orgId', '==', orgId));
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const tsks = snapshot.docs.map(docSnap => {
-        const d = docSnap.data();
-        return {
-          id: docSnap.id,
-          projectId: d.projectId || currentProject.id,
-          wbsCode: d.wbsCode || d.code || 'WBS-1.0',
-          title: d.title || d.name || 'Partida sin nombre',
-          description: d.description || '',
-          specialty: d.specialty || d.especialidad || 'Mecánica',
-          unit: d.unit || 'm',
-          plannedQuantity: Number(d.plannedQuantity || 100),
-          executedQuantity: Number(d.executedQuantity || 0),
-          unitCost: Number(d.unitCost || 120),
-          status: (d.status as any) || 'planificada',
-          priority: (d.priority as any) || 'medium',
-          crewName: d.crewName || 'Cuadrilla Alfa',
-          frontName: d.frontName || d.frente || 'Frente 1',
-          ptwRequired: Boolean(d.ptwRequired || d.hasActivePtw),
-          restrictionNotes: d.restrictionNotes || d.blockedReason || '',
-          subtasks: d.subtasks || [],
-          startDate: d.startDate,
-          dueDate: d.dueDate || d.endDate,
-        } as TaskItem;
+      const taskMap = new Map<string, TaskItem>();
+      snapshot.docs.forEach(docSnap => {
+        if (!taskMap.has(docSnap.id)) {
+          const d = docSnap.data();
+          taskMap.set(docSnap.id, {
+            id: docSnap.id,
+            projectId: d.projectId || currentProject.id,
+            wbsCode: d.wbsCode || d.code || 'WBS-1.0',
+            title: d.title || d.name || 'Partida sin nombre',
+            description: d.description || '',
+            specialty: d.specialty || d.especialidad || 'Mecánica',
+            unit: d.unit || 'm',
+            plannedQuantity: Number(d.plannedQuantity || 100),
+            executedQuantity: Number(d.executedQuantity || 0),
+            unitCost: Number(d.unitCost || 120),
+            status: (d.status as any) || 'planificada',
+            priority: (d.priority as any) || 'medium',
+            crewName: d.crewName || 'Cuadrilla Alfa',
+            frontName: d.frontName || d.frente || 'Frente 1',
+            ptwRequired: Boolean(d.ptwRequired || d.hasActivePtw),
+            restrictionNotes: d.restrictionNotes || d.blockedReason || '',
+            subtasks: d.subtasks || [],
+            startDate: d.startDate,
+            dueDate: d.dueDate || d.endDate,
+          } as TaskItem);
+        }
       });
+      const tsks = Array.from(taskMap.values());
 
       if (tsks.length === 0) {
         if (DEMO_AUTH_ENABLED) {

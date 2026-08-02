@@ -323,8 +323,7 @@ export async function seedProintecaPilot(force = true): Promise<PilotSeedResult>
 
     for (const t of pilotTasks) {
       await setDoc(doc(db, 'organizations', orgId, 'projects', projectId, 'tasks', t.id), t, { merge: true });
-      await setDoc(doc(db, 'tasks', t.id), t, { merge: true });
-      docsCount += 2;
+      docsCount += 1;
     }
 
     // 6. PTW / Permiso de Trabajo Seguro y ART (SIHO-A)

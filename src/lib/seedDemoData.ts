@@ -364,7 +364,6 @@ export async function seedDemoData(force = false): Promise<{ success: boolean; m
       for (const t of tasks) {
         const docData = { ...t, orgId };
         await setDoc(doc(db, 'organizations', orgId, 'projects', t.projectId, 'tasks', t.id), docData, { merge: true });
-        await setDoc(doc(db, 'tasks', t.id), docData, { merge: true });
       }
     }
 

@@ -86,8 +86,13 @@ export default function HotTapSchemes() {
       : query(collectionGroup(db, 'hot_tap_interventions'), where('orgId', '==', orgId));
 
     const unsub = onSnapshot(q, (snap) => {
-      const items = snap.docs.map(doc => ({ id: doc.id, ...doc.data() } as HotTapIntervention));
-      setInterventions(items);
+      const map = new Map<string, HotTapIntervention>();
+      snap.docs.forEach(doc => {
+        if (!map.has(doc.id)) {
+          map.set(doc.id, { id: doc.id, ...doc.data() } as HotTapIntervention);
+        }
+      });
+      setInterventions(Array.from(map.values()));
       setLoading(false);
     }, (err) => {
       console.warn("Error fetching hot tap interventions:", err);

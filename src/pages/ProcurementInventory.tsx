@@ -310,7 +310,7 @@ const getDemoDispatches = (targetOrgId: string, targetProjId: string): MaterialD
   INITIAL_DEMO_DISPATCHES.map(item => ({ ...item, orgId: targetOrgId, projectId: targetProjId }));
 
 export default function ProcurementInventory() {
-  const { currentOrganization, currentProject } = useProject();
+  const { currentOrganization, currentProject, projects } = useProject();
   const { orgId, projectId: projId } = useRequiredProject();
 
   const [activeTab, setActiveTab] = useState<'rfq' | 'po' | 'inventory' | 'traceability'>('inventory');
@@ -379,7 +379,13 @@ export default function ProcurementInventory() {
     // 1. RFQs
     const rfqQ = query(collectionGroup(db, 'procurement'), where('orgId', '==', orgId));
     const unsubRfq = onSnapshot(rfqQ, (snap) => {
-      const all = snap.docs.map(d => ({ id: d.id, ...d.data() } as MaterialRFQ));
+      const map = new Map<string, MaterialRFQ>();
+      snap.docs.forEach(d => {
+        if (!map.has(d.id)) {
+          map.set(d.id, { id: d.id, ...d.data() } as MaterialRFQ);
+        }
+      });
+      const all = Array.from(map.values());
       const filtered = projId === 'all' ? all : all.filter(r => r.projectId === projId);
       setRfqs(filtered.length > 0 ? filtered : getDemoRfqs(orgId, projId));
     }, (err) => {
@@ -390,7 +396,13 @@ export default function ProcurementInventory() {
     // 2. Inventory / Materials
     const invQ = query(collectionGroup(db, 'inventory'), where('orgId', '==', orgId));
     const unsubInv = onSnapshot(invQ, (snap) => {
-      const all = snap.docs.map(d => ({ id: d.id, ...d.data() } as InventoryItemMTR));
+      const map = new Map<string, InventoryItemMTR>();
+      snap.docs.forEach(d => {
+        if (!map.has(d.id)) {
+          map.set(d.id, { id: d.id, ...d.data() } as InventoryItemMTR);
+        }
+      });
+      const all = Array.from(map.values());
       const filtered = projId === 'all' ? all : all.filter(i => i.projectId === projId);
       setInventoryItems(filtered.length > 0 ? filtered : getDemoInventory(orgId, projId));
     }, (err) => {
@@ -408,12 +420,20 @@ export default function ProcurementInventory() {
     };
   }, [orgId, projId]);
 
-  // Handle RFQ creation
+  const getSafeProjectId = () => {
+    if (projId && projId !== 'all') return projId;
+    if (currentProject?.id && currentProject.id !== 'all') return currentProject.id;
+    const realP = projects.find(p => p.id !== 'all');
+    return realP ? realP.id : 'PROJ-CARDON-AMUAY';
+  };
+
+  // Handle RFQ Creation
   const handleCreateRfq = async (e: React.FormEvent) => {
     e.preventDefault();
+    const targetProjId = getSafeProjectId();
     const item: MaterialRFQ = {
       rfqCode: `RFQ-2026-00${rfqs.length + 1}`,
-      projectId: projId === 'all' ? (currentProject?.id || projId) : projId,
+      projectId: targetProjId,
       orgId,
       wbsCode: newRfq.wbsCode,
       itemDescription: newRfq.itemDescription,
@@ -449,10 +469,11 @@ export default function ProcurementInventory() {
   // Handle PO Creation
   const handleCreatePo = (e: React.FormEvent) => {
     e.preventDefault();
+    const targetProjId = getSafeProjectId();
     const po: PurchaseOrder = {
       id: `po-${Date.now()}`,
       poCode: `OC-2026-0${pos.length + 90}`,
-      projectId: projId === 'all' ? (currentProject?.id || projId) : projId,
+      projectId: targetProjId,
       orgId,
       rfqId: newPo.rfqId,
       supplierName: newPo.supplierName,
@@ -475,7 +496,7 @@ export default function ProcurementInventory() {
   // Handle Inventory Receipt (with Mandatory Heat Number MTR)
   const handleCreateReceipt = async (e: React.FormEvent) => {
     e.preventDefault();
-    const targetProject = projId === 'all' ? (currentProject?.id || projId) : projId;
+    const targetProject = getSafeProjectId();
     const invItem: InventoryItemMTR = {
       itemCode: newReceipt.itemCode,
       projectId: targetProject,
@@ -534,7 +555,7 @@ export default function ProcurementInventory() {
     const disp: MaterialDispatch = {
       id: `disp-${Date.now()}`,
       dispatchCode: `DESP-2026-0${dispatches.length + 17}`,
-      projectId: projId === 'all' ? (currentProject?.id || projId) : projId,
+      projectId: getSafeProjectId(),
       orgId,
       inventoryItemId: item.id || '',
       heatNumber: item.heatNumber,

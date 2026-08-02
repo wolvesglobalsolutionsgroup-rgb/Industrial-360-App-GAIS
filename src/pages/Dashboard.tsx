@@ -60,8 +60,13 @@ export default function Dashboard() {
         : query(collectionGroup(db, 'tasks'), where('orgId', '==', orgId));
 
       const unsubTasks = onSnapshot(tasksQ, (snap) => {
-        const raw = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setTasks(raw);
+        const uniqueMap = new Map<string, any>();
+        snap.docs.forEach(d => {
+          if (!uniqueMap.has(d.id)) {
+            uniqueMap.set(d.id, { id: d.id, ...d.data() });
+          }
+        });
+        setTasks(Array.from(uniqueMap.values()));
         setIsLoadingData(false);
         clearTimeout(timer);
       }, (err) => {
@@ -76,8 +81,13 @@ export default function Dashboard() {
         : query(collectionGroup(db, 'expenses'), where('orgId', '==', orgId));
 
       const unsubExpenses = onSnapshot(expensesQ, (snap) => {
-        const raw = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setExpenses(raw);
+        const uniqueMap = new Map<string, any>();
+        snap.docs.forEach(d => {
+          if (!uniqueMap.has(d.id)) {
+            uniqueMap.set(d.id, { id: d.id, ...d.data() });
+          }
+        });
+        setExpenses(Array.from(uniqueMap.values()));
       }, (err) => handleFirestoreError(err, OperationType.GET, expensesPath || 'expenses'));
 
       const valsPath = isSingle ? `organizations/${orgId}/projects/${projId}/valuations` : null;
@@ -86,8 +96,13 @@ export default function Dashboard() {
         : query(collectionGroup(db, 'valuations'), where('orgId', '==', orgId));
 
       const unsubValuations = onSnapshot(valsQ, (snap) => {
-        const raw = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setValuations(raw);
+        const uniqueMap = new Map<string, any>();
+        snap.docs.forEach(d => {
+          if (!uniqueMap.has(d.id)) {
+            uniqueMap.set(d.id, { id: d.id, ...d.data() });
+          }
+        });
+        setValuations(Array.from(uniqueMap.values()));
       }, (err) => handleFirestoreError(err, OperationType.GET, valsPath || 'valuations'));
 
       const ptwPath = isSingle ? `organizations/${orgId}/projects/${projId}/siho_ptw` : null;
@@ -96,8 +111,13 @@ export default function Dashboard() {
         : query(collectionGroup(db, 'siho_ptw'), where('orgId', '==', orgId));
 
       const unsubPtw = onSnapshot(ptwQ, (snap) => {
-        const raw = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setPtwList(raw);
+        const uniqueMap = new Map<string, any>();
+        snap.docs.forEach(d => {
+          if (!uniqueMap.has(d.id)) {
+            uniqueMap.set(d.id, { id: d.id, ...d.data() });
+          }
+        });
+        setPtwList(Array.from(uniqueMap.values()));
       }, (err) => handleFirestoreError(err, OperationType.GET, ptwPath || 'siho_ptw'));
 
       const weldsPath = isSingle ? `organizations/${orgId}/projects/${projId}/weld_joints` : null;
@@ -106,8 +126,13 @@ export default function Dashboard() {
         : query(collectionGroup(db, 'weld_joints'), where('orgId', '==', orgId));
 
       const unsubWelds = onSnapshot(weldsQ, (snap) => {
-        const raw = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        setWeldJoints(raw);
+        const uniqueMap = new Map<string, any>();
+        snap.docs.forEach(d => {
+          if (!uniqueMap.has(d.id)) {
+            uniqueMap.set(d.id, { id: d.id, ...d.data() });
+          }
+        });
+        setWeldJoints(Array.from(uniqueMap.values()));
       }, (err) => handleFirestoreError(err, OperationType.GET, weldsPath || 'weld_joints'));
 
       return () => {

@@ -124,6 +124,18 @@ export interface QrTokenCacheItem {
   cachedAt: number;
 }
 
+export interface AuditCacheItem {
+  id: string;
+  timestamp: string;
+  orgId: string;
+  projectId?: string;
+  action: string;
+  actor: string;
+  details: Record<string, any>;
+  synced: number; // 0 = local only, 1 = synced to cloud
+  expiresAt: number; // TTL timestamp in ms (retención local 7 días por defecto)
+}
+
 export class IndustrialControl360DB extends Dexie {
   outbox!: Table<OutboxItem>;
   pendingReports!: Table<PendingReport>;
@@ -132,6 +144,7 @@ export class IndustrialControl360DB extends Dexie {
   syncLog!: Table<SyncLogItem>;
   localDrafts!: Table<LocalDraft>;
   qrTokenCache!: Table<QrTokenCacheItem>;
+  auditCache!: Table<AuditCacheItem>;
 
   constructor() {
     super('IndustrialControl360_OfflineDB');
@@ -151,6 +164,18 @@ export class IndustrialControl360DB extends Dexie {
       syncLog: '++id, operationId, collectionName, recordId, timestamp, status',
       localDrafts: 'id, category, updatedAt',
       qrTokenCache: 'id, expiresAt, cachedAt'
+    });
+    // version(4): tabla auditCache — retención local 7 días (TTL)
+    // Los eventos de auditoría offline se retienen localmente por 7 días y se purgan/sincronizan
+    this.version(4).stores({
+      outbox: '++id, operationId, collectionName, category, syncStatus, timestamp, orgId, projectId',
+      pendingReports: '++id, operationId, tempId, projectId, date, syncStatus, createdAt',
+      pendingValuations: '++id, operationId, tempId, projectId, number, syncStatus, createdAt',
+      pendingRoutes: '++id, operationId, tempId, projectId, syncStatus, createdAt',
+      syncLog: '++id, operationId, collectionName, recordId, timestamp, status',
+      localDrafts: 'id, category, updatedAt',
+      qrTokenCache: 'id, expiresAt, cachedAt',
+      auditCache: 'id, timestamp, orgId, synced, expiresAt'
     });
   }
 }
