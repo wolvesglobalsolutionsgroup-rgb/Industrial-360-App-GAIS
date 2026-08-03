@@ -111,9 +111,11 @@ service cloud.firestore {
 
         // Specific subcollections under project
         match /{collectionName}/{docId} {
-          allow read: if belongsToOrg(orgId);
+          allow read: if belongsToOrg(orgId)
+            && !(collectionName in ['idempotencyKeys', 'idempotency_keys']);
 
           allow create: if belongsToOrg(orgId)
+            && !(collectionName in ['idempotencyKeys', 'idempotency_keys'])
             && isWritableRole()
             && request.resource.data.orgId == orgId
             && request.resource.data.projectId == projectId
@@ -125,6 +127,7 @@ service cloud.firestore {
             );
 
           allow update: if belongsToOrg(orgId)
+            && !(collectionName in ['idempotencyKeys', 'idempotency_keys'])
             && isWritableRole()
             && request.resource.data.orgId == resource.data.orgId
             && request.resource.data.projectId == resource.data.projectId
@@ -140,6 +143,7 @@ service cloud.firestore {
             );
 
           allow delete: if belongsToOrg(orgId)
+            && !(collectionName in ['idempotencyKeys', 'idempotency_keys'])
             && isGerente()
             && tokenRole() != 'campo';
         }
