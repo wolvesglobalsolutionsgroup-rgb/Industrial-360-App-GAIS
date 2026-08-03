@@ -32,6 +32,11 @@ export default defineConfig({
     hmr: false,
   },
   build: {
+    reportCompressedSize: false,
+    chunkSizeWarningLimit: 1600,
+    sourcemap: false,
+    target: 'esnext',
+    minify: false,
     rollupOptions: {
       output: {
         manualChunks(id) {

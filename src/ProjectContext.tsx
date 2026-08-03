@@ -69,61 +69,11 @@ export const CORPORATE_PORTFOLIO_PROJECT: Project = {
   description: 'Consolidado ejecutivo, operativo y financiero de todos los proyectos de la organización',
   status: 'Activo',
   ownerId: 'org',
-  orgId: 'default_org'
-};
-
-export const FALLBACK_DEMO_PROJECTS: Project[] = [
-  {
-    id: 'PROJ-CARDON-AMUAY',
-    name: 'IPC Reemplazo y Reparación Propanoducto 6" Cardón - Amuay',
-    description: 'Obra integrada de reemplazo de tramos y reparación de anomalías ILI (D001, D002, D003) con camisas Tipo B y prueba hidrostática a 2126 PSI MAOP (17.0 km).',
-    budget: 1850000,
-    advancePercent: 65,
-    status: 'en_campo',
-    ownerId: 'demo_admin',
-    orgId: 'prointeca'
-  },
-  {
-    id: 'PROJ-JUSEPIN',
-    name: 'IPC Reemplazo Oleoducto 16" Jusepín - San Mateo',
-    description: 'Reemplazo de 12.5 km de tubería API 5L Gr. X52 Sch 40, incluyendo cruces especiales y pruebas hidrostáticas.',
-    budget: 1450000,
-    advancePercent: 48,
-    status: 'en_campo',
-    ownerId: 'demo_admin',
-    orgId: 'default_org'
-  },
-  {
-    id: 'PROJ-002',
-    name: 'Mantenimiento Mayor Tren K-101 Planta Compresora San Joaquín',
-    description: 'Overhaul completo de turbocompresor K-101 y cambio de válvulas de recirculación.',
-    budget: 820000,
-    advancePercent: 22,
-    status: 'en_campo',
-    ownerId: 'demo_admin',
-    orgId: 'default_org'
-  },
-  {
-    id: 'PROJ-003',
-    name: 'Adecuación Estación de Flujo Bare-1 Faja Petrolífera del Orinoco',
-    description: 'Sustitución de colectores de producción de crudo pesado e instalación de separadores multifásicos.',
-    budget: 2100000,
-    advancePercent: 85,
-    status: 'en_campo',
-    ownerId: 'demo_admin',
-    orgId: 'default_org'
-  }
-];
-
-export const DEFAULT_ORGANIZATION: Organization = {
-  id: 'default_org',
-  name: 'CONTRATISTA OPERATIVA C.A.',
-  taxId: 'RIF J-00000000-0',
-  description: 'Servicios de Ingeniería, Mantenimiento e Infraestructura Industrial'
+  orgId: ''
 };
 
 interface ProjectContextType {
-  currentOrganization: Organization;
+  currentOrganization: Organization | null;
   setCurrentOrganization: (org: Organization) => void;
   projects: Project[];
   currentProject: Project | null;
@@ -147,19 +97,19 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
       : 'campo'
   );
 
-  const [currentOrganization, setCurrentOrganization] = useState<Organization>(() => {
+  const [currentOrganization, setCurrentOrganization] = useState<Organization | null>(() => {
     const saved = localStorage.getItem('ic360_organization');
     if (saved) {
-      try { return JSON.parse(saved); } catch { return DEFAULT_ORGANIZATION; }
+      try { return JSON.parse(saved); } catch { return null; }
     }
-    return DEFAULT_ORGANIZATION;
+    return claimOrgId ? { id: claimOrgId, name: claimOrgId } : null;
   });
 
   useEffect(() => {
-    if (claimOrgId && claimOrgId !== currentOrganization.id) {
-      setCurrentOrganization(prev => ({ ...prev, id: claimOrgId }));
+    if (claimOrgId && (!currentOrganization || claimOrgId !== currentOrganization.id)) {
+      setCurrentOrganization(prev => ({ id: claimOrgId, name: prev?.name || claimOrgId, taxId: prev?.taxId, environment: prev?.environment }));
     }
-  }, [claimOrgId, currentOrganization.id]);
+  }, [claimOrgId]);
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProject] = useState<Project | null>(CORPORATE_PORTFOLIO_PROJECT);
@@ -190,20 +140,18 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
   // Fetch brandKit and org metadata from Firestore
   useEffect(() => {
     const fetchOrgMetadata = async () => {
+      if (!currentOrganization?.id) return;
       try {
-        let snap = await getDoc(doc(db, 'organizations', currentOrganization.id));
-        if (!snap.exists()) {
-          snap = await getDoc(doc(db, 'organizations', 'default'));
-        }
+        const snap = await getDoc(doc(db, 'organizations', currentOrganization.id));
         if (snap.exists()) {
           const rawData = snap.data();
           const env = (rawData?.environment === 'qa' ? 'qa' : 'production') as 'qa' | 'production';
-          setCurrentOrganization(prev => ({
+          setCurrentOrganization(prev => prev ? ({
             ...prev,
             environment: env,
             name: rawData?.name || prev.name,
             taxId: rawData?.taxId || prev.taxId,
-          }));
+          }) : null);
 
           const brandData = rawData as BrandKit;
           const merged = { ...defaultBrandKit, ...brandData };
@@ -211,44 +159,26 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem('ic360_brandKit', JSON.stringify(merged));
         }
       } catch (err) {
-        console.warn('Using local fallback for brandKit/org:', err);
+        console.warn('Could not fetch brandKit/org metadata from Firestore:', err);
       }
     };
     fetchOrgMetadata();
-  }, [currentOrganization.id]);
-
-  const hasAttemptedSeedRef = useRef(false);
+  }, [currentOrganization?.id]);
 
   useEffect(() => {
+    if (!currentOrganization?.id) {
+      setProjects([]);
+      setIsLoading(false);
+      return;
+    }
+
     // Escuchar proyectos de la organización actual
     const projectsPath = `organizations/${currentOrganization.id}/projects`;
     const q = query(collection(db, projectsPath));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       if (snapshot.empty) {
-        if (DEMO_AUTH_ENABLED) {
-          if (!hasAttemptedSeedRef.current) {
-            hasAttemptedSeedRef.current = true;
-            seedDemoData(true)
-              .then((res) => {
-                if (!res.success) {
-                  console.warn('Seeding unpermitted or failed, using local fallback demo projects');
-                  setProjects(FALLBACK_DEMO_PROJECTS);
-                }
-              })
-              .catch(() => {
-                setProjects(FALLBACK_DEMO_PROJECTS);
-              })
-              .finally(() => {
-                setIsLoading(false);
-              });
-          } else {
-            setProjects(FALLBACK_DEMO_PROJECTS);
-            setIsLoading(false);
-          }
-        } else {
-          setProjects([]);
-          setIsLoading(false);
-        }
+        setProjects([]);
+        setIsLoading(false);
         return;
       }
 
@@ -274,14 +204,14 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
       if (error?.code !== 'permission-denied') {
         handleFirestoreError(error, OperationType.GET, 'projects');
       } else {
-        console.warn('Firestore permission denied for projects collection. Using local demo fallback.');
-        setProjects(FALLBACK_DEMO_PROJECTS);
+        console.warn('Firestore permission denied for projects collection.');
       }
+      setProjects([]);
       setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [currentOrganization.id]);
+  }, [currentOrganization?.id]);
 
   const handleSetCurrentProject = (project: Project | null) => {
     setCurrentProject(project);
@@ -302,11 +232,13 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
     const newKit = { ...brandKit, ...updated };
     setBrandKitState(newKit);
     localStorage.setItem('ic360_brandKit', JSON.stringify(newKit));
-    try {
-      await setDoc(doc(db, 'organizations', currentOrganization.id), newKit, { merge: true });
-      await setDoc(doc(db, 'settings', 'brandKit'), newKit, { merge: true });
-    } catch (err) {
-      console.warn('Could not save brandKit to Firestore:', err);
+    if (currentOrganization?.id) {
+      try {
+        await setDoc(doc(db, 'organizations', currentOrganization.id), newKit, { merge: true });
+        await setDoc(doc(db, 'settings', 'brandKit'), newKit, { merge: true });
+      } catch (err) {
+        console.warn('Could not save brandKit to Firestore:', err);
+      }
     }
   };
 

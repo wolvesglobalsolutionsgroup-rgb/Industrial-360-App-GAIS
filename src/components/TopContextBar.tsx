@@ -111,7 +111,7 @@ export default function TopContextBar({
           {/* Active Org Badge */}
           <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200">
             <Building size={14} className="text-emerald-600 shrink-0" />
-            <span className="truncate max-w-[150px]">{currentOrganization.name}</span>
+            <span className="truncate max-w-[150px]">{currentOrganization?.name || 'Organización'}</span>
           </div>
 
           {/* Project Selector Button */}

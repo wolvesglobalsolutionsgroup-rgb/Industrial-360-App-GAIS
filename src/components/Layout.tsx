@@ -150,10 +150,10 @@ export default function Layout() {
               {isSidebarOpen && (
                 <div className="overflow-hidden">
                   <h1 className="text-xs font-bold tracking-tight text-gray-900 dark:text-slate-100 truncate font-display">
-                    {currentOrganization.name}
+                    {currentOrganization?.name || 'Industrial Control 360'}
                   </h1>
                   <p className="text-[10px] text-brand-accent font-bold uppercase tracking-widest truncate">
-                    {currentOrganization.taxId || 'CONTRATISTA REGISTRADA'}
+                    {currentOrganization?.taxId || 'CONTRATISTA REGISTRADA'}
                   </p>
                 </div>
               )}

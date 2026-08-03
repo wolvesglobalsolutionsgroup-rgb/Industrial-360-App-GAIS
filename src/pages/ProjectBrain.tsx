@@ -155,9 +155,9 @@ export default function ProjectBrain() {
       Tu objetivo es ayudar a simplificar el control de avance, planificación, presupuesto, y gestión documental.
       
       CONTEXTO ESPECÍFICO DEL PROYECTO ACTUAL:
-      - NotebookLM ID Conectado: ${projectConfig?.notebookId || 'Ninguno'}
-      - Normativa Principal: ${projectConfig?.activeStandard || 'PDVSA A-211'}
-      - Instrucciones Especiales: ${projectConfig?.customInstructions || 'Ninguna'}
+      - NotebookLM ID Conectado: ${projectConfig?.notebookId || ''}
+      - Normativa Principal: ${projectConfig?.activeStandard || ''}
+      - Instrucciones Especiales: ${projectConfig?.customInstructions || ''}
       
       CONOCIMIENTO TÉCNICO Y NORMATIVO:
       - Norma PDVSA A-211 (Revisión JUL.96): Especificaciones para concreto estructural (dosificación, mezclado, vaciado, Slump Test, temperatura, curado).

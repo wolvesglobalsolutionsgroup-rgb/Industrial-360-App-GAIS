@@ -73,7 +73,7 @@ export const Topbar: React.FC<TopbarProps> = ({ onToggleMobileMenu, onToggleModu
         {/* Active Organization Badge */}
         <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-surface-2 border border-line rounded-xl text-xs font-bold text-ink">
           <Building size={14} className="text-brand-600 dark:text-brand-300 shrink-0" />
-          <span className="truncate max-w-[150px]">{currentOrganization.name}</span>
+          <span className="truncate max-w-[150px]">{currentOrganization?.name || 'Organización'}</span>
         </div>
 
         {/* Project Selector Button */}
