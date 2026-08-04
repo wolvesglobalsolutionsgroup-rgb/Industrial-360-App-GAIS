@@ -18,7 +18,7 @@ interface CommandItem {
 }
 
 const COMMAND_ITEMS: CommandItem[] = [
-  { id: 'dash', title: 'Dashboard Principal', category: 'Navegación', path: '/dashboard', icon: LayoutDashboard },
+  { id: 'dash', title: 'Dashboard Principal', category: 'Navegación', path: '/', icon: LayoutDashboard },
   { id: 'proj', title: 'Proyectos & Obras', category: 'Gestión', path: '/projects', icon: FolderKanban },
   { id: 'tasks', title: 'Control de Tareas Kanban', category: 'Gestión', path: '/tasks', icon: CheckSquare },
   { id: 'expenses', title: 'Costos & Compras (Opex/Capex)', category: 'Finanzas', path: '/expenses', icon: DollarSign, allowedRoles: ['superadmin', 'gerente', 'supervisor'] },
@@ -26,8 +26,8 @@ const COMMAND_ITEMS: CommandItem[] = [
   { id: 'field', title: 'Partes Diarios de Campo', category: 'Operaciones', path: '/field-reports', icon: MapPin },
   { id: 'logistics', title: 'Mapa Logístico GPS & Rutas', category: 'Operaciones', path: '/logistics', icon: MapPin },
   { id: 'ptw', title: 'Permisos de Trabajo SIHO (PTW)', category: 'Seguridad', path: '/siho-ptw', icon: ShieldAlert },
-  { id: 'welding', title: 'Control QA/QC Soldadura (Juntas)', category: 'Calidad', path: '/qaqc-welding', icon: Flame },
-  { id: 'ili', title: 'Integridad & Corrida de Porcinos ILI', category: 'Calidad', path: '/integrity-ili', icon: ShieldAlert },
+  { id: 'welding', title: 'Control QA/QC Soldadura (Juntas)', category: 'Calidad', path: '/qa-qc-welding', icon: Flame },
+  { id: 'ili', title: 'Integridad & Corrida de Porcinos ILI', category: 'Calidad', path: '/modulos/ili-pigging', icon: ShieldAlert },
   { id: 'tools', title: 'Calculadoras de Ingeniería (ASME/API)', category: 'Ingeniería', path: '/tools', icon: Wrench },
   { id: 'hot-tap', title: 'Hot Tap & Stopple (PAMS)', category: 'Ingeniería', path: '/hot-tap', icon: Flame },
   { id: 'docs', title: 'Gestión Documental', category: 'Documentos', path: '/documents', icon: FileArchive },

@@ -219,6 +219,9 @@ function AppContent() {
             <Route path="civil" element={<Navigate to="/civil-engineering" replace />} />
 
             <Route path="alerts-details" element={<AlertsDetails />} />
+            <Route path="dashboard" element={<Navigate to="/" replace />} />
+            <Route path="qaqc-welding" element={<Navigate to="/qa-qc-welding" replace />} />
+            <Route path="integrity-ili" element={<Navigate to="/modulos/ili-pigging" replace />} />
             <Route path="modulos/:id" element={<Navigate to="/" replace />} />
             <Route path="*" element={<NotFound />} />
           </Route>
