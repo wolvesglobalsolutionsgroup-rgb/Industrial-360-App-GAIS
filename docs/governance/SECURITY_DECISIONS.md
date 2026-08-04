@@ -33,3 +33,6 @@
 
 ### D-SEC-03: Manejo de Secretos y Claves de API
 - **Decisión:** Las claves secretas residen únicamente en variables de entorno del servidor. Está estrictamente prohibido pasar secretos mediante `vite.config.ts` `define` o prefijos `VITE_`.
+
+### D-SEC-04: Integridad de Indicadores de Tablero y Eliminación de Mocks (A1)
+- **Decisión:** El Dashboard sólo presenta métricas reales derivadas de consultas filtradas por `orgId`. Si no existen datos o el usuario carece de `orgId`, se muestra un estado honesto de no disponible/vacío ("Sin dato") sin simular ni interpolar números o series de tiempo.

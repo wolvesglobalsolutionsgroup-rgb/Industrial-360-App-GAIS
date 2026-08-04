@@ -60,6 +60,7 @@ export interface Project {
   ownerId: string;
   advancePercent?: number;
   budget?: number;
+  hhtCount?: number;
   orgId?: string;
 }
 

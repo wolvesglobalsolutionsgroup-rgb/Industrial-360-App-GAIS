@@ -47,7 +47,6 @@ export default function Dashboard() {
 
     const orgId = currentOrganization?.id;
     if (!orgId) {
-      setErrorState("Sin organización autorizada seleccionada.");
       setIsLoadingData(false);
       return;
     }
@@ -173,28 +172,29 @@ export default function Dashboard() {
     }
   }, [currentProject, currentOrganization]);
 
-  // COMPUTED METRICS
+  // COMPUTED METRICS (Traceable & Tenant-isolated)
   const totalPlannedVal = tasks.reduce((sum, t) => sum + (Number(t.plannedQuantity || 0) * Number(t.unitCost || 0)), 0);
   const totalExecutedVal = tasks.reduce((sum, t) => sum + (Number(t.executedQuantity || 0) * Number(t.unitCost || 0)), 0);
   
   const physicalProgress = totalPlannedVal > 0 
     ? Math.min(100, Number(((totalExecutedVal / totalPlannedVal) * 100).toFixed(1)))
-    : (tasks.length > 0 ? Number(((tasks.filter(t => t.executedQuantity >= t.plannedQuantity).length / tasks.length) * 100).toFixed(1)) : null);
+    : (tasks.length > 0 ? Number(((tasks.filter(t => Number(t.executedQuantity || 0) >= Number(t.plannedQuantity || 0)).length / tasks.length) * 100).toFixed(1)) : null);
 
   const totalGastadoExpenses = expenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
   const totalValuationsVal = valuations.reduce((sum, v) => sum + Number(v.grossAmount || 0), 0);
   const totalBudgetCost = totalPlannedVal > 0 ? totalPlannedVal : null;
   const currentSpent = totalGastadoExpenses > 0 ? totalGastadoExpenses : (totalValuationsVal > 0 ? totalValuationsVal : null);
 
-  const incidentPtw = ptwList.find(p => p.status === 'bloqueado' || (p.description && p.description.toLowerCase().includes('incidente')));
-  const lastIncidentDate = incidentPtw?.validFrom ? new Date(incidentPtw.validFrom) : null;
-  const daysSinceIncident = lastIncidentDate ? Math.max(1, Math.floor((Date.now() - lastIncidentDate.getTime()) / (1000 * 60 * 60 * 24))) : null;
-  const hhtTotal = daysSinceIncident ? daysSinceIncident * 42 * 8 : null;
+  // Traceable HHT Calculation: strictly from project field or accumulated PTW/worker hours
+  const totalPtwHht = ptwList.reduce((sum, p) => sum + Number(p.hht || p.hoursWorked || (p.workersCount ? p.workersCount * 8 : 0)), 0);
+  const hhtTotal = (typeof currentProject?.hhtCount === 'number' && currentProject.hhtCount > 0)
+    ? currentProject.hhtCount
+    : (totalPtwHht > 0 ? totalPtwHht : null);
 
   const inspectedJoints = weldJoints.filter(j => j.ndtStatus && j.ndtStatus !== 'Pendiente');
   const rejectedJoints = weldJoints.filter(j => j.ndtStatus === 'Rechazado' || j.ndtStatus === 'Rechazada' || j.vtStatus === 'Rechazado');
   const weldRejectRate = inspectedJoints.length > 0
-    ? ((rejectedJoints.length / inspectedJoints.length) * 100).toFixed(1)
+    ? Number(((rejectedJoints.length / inspectedJoints.length) * 100).toFixed(1))
     : null;
 
   // Real S-Curve data mapped from Firestore wbs_snapshots
@@ -204,9 +204,9 @@ export default function Dashboard() {
     real: Number(s.actualProgress ?? s.real ?? 0),
   }));
 
-  const ptwHot = ptwList.filter(p => p.type === 'hot' || p.permitType === 'caliente' || p.title?.toLowerCase().includes('caliente')).length;
-  const ptwCold = ptwList.filter(p => p.type === 'cold' || p.permitType === 'frio' || p.title?.toLowerCase().includes('frio')).length;
-  const ptwIas = ptwList.filter(p => p.type === 'ias' || p.status === 'revision').length;
+  const ptwHot = ptwList.filter(p => p.type === 'hot' || p.type === 'caliente' || p.permitType === 'caliente' || p.title?.toLowerCase().includes('caliente')).length;
+  const ptwCold = ptwList.filter(p => p.type === 'cold' || p.type === 'frio' || p.permitType === 'frio' || p.title?.toLowerCase().includes('frio')).length;
+  const ptwIas = ptwList.filter(p => p.type === 'ias' || p.status === 'en_revision' || p.status === 'revision').length;
 
   const isQaEnvironment = currentOrganization?.environment === 'qa' || currentOrganization?.id === 'ic360-qa-pilot' || import.meta.env.VITE_ENVIRONMENT === 'qa';
 
@@ -250,6 +250,22 @@ export default function Dashboard() {
       setIsExporting(false);
     }
   };
+
+  if (!currentOrganization?.id) {
+    return (
+      <div className="p-6">
+        <Card className="border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/30">
+          <CardContent className="flex flex-col items-center text-center py-10 space-y-3">
+            <Building className="text-amber-500 w-12 h-12" />
+            <h2 className="text-lg font-extrabold text-ink">Sin Organización Autorizada Seleccionada</h2>
+            <p className="text-xs text-ink-soft max-w-md">
+              No se detectó un tenant u organización activa para el usuario. Por favor seleccione una organización autorizada para visualizar los indicadores de obra.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (errorState) {
     return (
@@ -386,11 +402,11 @@ export default function Dashboard() {
               </CardHeader>
 
               <CardContent className="h-72">
-                {progressData.length === 0 ? (
+                {progressData.length < 2 ? (
                   <EmptyState
                     icon={<TrendingUp size={28} />}
-                    title="Sin historial para Curva S"
-                    description="No hay registros de avance WBS o snapshots históricos para generar la Curva S."
+                    title="Datos insuficientes para Curva S"
+                    description="Se requieren al menos 2 snapshots de avance WBS registrados para trazar la Curva S."
                   />
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
