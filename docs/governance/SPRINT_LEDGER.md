@@ -1,0 +1,53 @@
+# Ledger de Trazabilidad y Auditoría — Industrial Control 360 (IC360)
+
+## 1. Propósito y Regla de Fuente Única de Verdad
+
+Este documento constituye la **fuente única de verdad** para el seguimiento, trazabilidad, evidencia de auditoría y decisiones de cierre de todos los sprints, remediaciones de hallazgos (F-01..F-08), cambios de infraestructura y decisiones de seguridad del repositorio **Industrial Control 360**.
+
+### Reglas Fundamentales:
+1. **Ninguna función o remediación se declara cerrada (`CLOSED`) sin evidencia remota verificable en GitHub.** Un chat, un informe parcial o una prueba local no constituyen entrega.
+2. **Los estados son mutuamente excluyentes y siguen una progresión estricta.**
+3. **Todo dato o antecedente histórico sin evidencia local o remota verificable de forma independiente se clasifica como `NO_VERIFICADO`.**
+4. **Está estrictamente prohibido inventar SHAs, resultados de CI, firmas de auditoría o aprobaciones del fundador.**
+
+---
+
+## 2. Definición Estricta de Estados Permitidos
+
+| Estado | Definición y Criterio de Entrada |
+|---|---|
+| `PLANNED` | Sprint planificado o definido en roadmap, sin inicio de desarrollo ni código modificado. |
+| `IN_PROGRESS` | Desarrollo en curso o cambios locales en proceso sin commit ni push publicado en repositorio remoto. |
+| `LOCAL_EVIDENCE_ONLY` | Pruebas o cambios verificados localmente pero aún no publicados en el repositorio remoto canonical (`origin/main`). |
+| `EVIDENCE_READY` | Cambios con commit publicado en `origin/main` y evidencia reproducible (código, pruebas, logs) lista para auditoría independiente. |
+| `AUDITED` | Commit publicado verificado por CI/auditoría independiente de código, con gate funcional humano o despliegue en producción pendiente. |
+| `FOUNDER_GATE_PENDING` | Código e implementación técnica auditada y aprobada; a la espera del gate de validación funcional directa del fundador (Freddy). |
+| `CLOSED` | Ciclo completo verificado: SHA publicado en `origin/main` + evidencia reproducible + auditoría independiente sin hallazgos abiertos + gate fundador aprobado. |
+| `BLOCKED` | Desarrollo, auditoría o cierre pausado por impedimento técnico, vulnerabilidad abierta o falta de prerrequisitos. |
+| `NO_VERIFICADO` | Estado histórico o heredado sin evidencia local ni remota verificable de forma independiente. |
+| `SUPERSEDED` | Sprint, requisito o arquitectura reemplazada o dejada sin efecto por una decisión o sprint posterior. |
+
+---
+
+## 3. Tabla de Trazabilidad de Sprints y Hallazgos
+
+| ID | Título | Tipo | Estado | SHA base | SHA entrega | Evidencia | Auditoría | Gate fundador | Dependencias | Riesgos abiertos | Última actualización |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| T1 | Ledger de Trazabilidad y Auditoría | governance | IN_PROGRESS | 79993ed77bba76fa456afffce1aaf4038841aa01 | NO_VERIFICADO | docs/governance/*, scripts/validateSprintLedger.mjs | Pendiente auditoría independiente | Pendiente gate fundador | Ninguna | Sincronización con CI y auditoría externa | 2026-08-04 |
+| A1 | Integridad Dashboard e Indicadores Reales | feature | NO_VERIFICADO | 79993ed77bba76fa456afffce1aaf4038841aa01 | NO_VERIFICADO | NO_VERIFICADO | NO_VERIFICADO | NO_VERIFICADO | Ninguna | Trazabilidad y eliminación de mocks | 2026-08-04 |
+| B1 | Perímetro IA y Correo Backend Proxy | security | EVIDENCE_READY | 79993ed77bba76fa456afffce1aaf4038841aa01 | 79993ed77bba76fa456afffce1aaf4038841aa01 | server.ts, functions/src/index.ts, functions/src/middleware | CI 4/4 verde | Pendiente | Ninguna | Validación de tokens e invocación server-side | 2026-08-04 |
+| C1 | Zero-Trust Security Rules y Storage Multi-tenant | security | EVIDENCE_READY | 79993ed77bba76fa456afffce1aaf4038841aa01 | 79993ed77bba76fa456afffce1aaf4038841aa01 | firestore.rules, storage.rules, tests/rules/securityRules.test.ts | CI 4/4 verde (13 pruebas emulator locales en C1.A) | Pendiente | Ninguna | Pruebas C1.A locales pendientes de commit aislado | 2026-08-04 |
+| D1 | Saneamiento de Placeholders y Rutas | refactor | NO_VERIFICADO | 79993ed77bba76fa456afffce1aaf4038841aa01 | NO_VERIFICADO | NO_VERIFICADO | NO_VERIFICADO | NO_VERIFICADO | Ninguna | Módulos pendientes de migración real | 2026-08-04 |
+| R1 | Catálogo Normativo y Documental | engineering | IN_PROGRESS | 79993ed77bba76fa456afffce1aaf4038841aa01 | NO_VERIFICADO | src/lib/norms/*, tests/unit | Pruebas unitarias normativas pasando | Pendiente | Ninguna | Verificación de fórmulas contra estándares ASME/API | 2026-08-04 |
+| F-01 | Remediación de endpoints Express sin auth / proxy Gemini | security | EVIDENCE_READY | 79993ed77bba76fa456afffce1aaf4038841aa01 | 79993ed77bba76fa456afffce1aaf4038841aa01 | server.ts, functions/src/middleware/authorizer.ts | CI 4/4 verde | Pendiente | Ninguna | Auditoría independiente de código en servidor | 2026-08-04 |
+| F-02 | Remediación de aseveración falsa de CVE en documentación | governance | EVIDENCE_READY | 79993ed77bba76fa456afffce1aaf4038841aa01 | 79993ed77bba76fa456afffce1aaf4038841aa01 | docs/security/CVE_EXCEPTIONS.md | CI 4/4 verde | Pendiente | Ninguna | Verificación de precisión documental | 2026-08-04 |
+| B-BUILD-20260804 | Ajuste de memoria Node.js max-old-space-size a 2048MB | infrastructure | AUDITED | 6c63e5f29910dd4973516c905b7661b6bbd24771 | 79993ed77bba76fa456afffce1aaf4038841aa01 | package.json | CI remoto 4/4 verde (GitHub Actions) | Aprobado | Ninguna | Confirmar estabilidad en builds con consumo intensivo de memoria | 2026-08-04 |
+
+---
+
+## 4. Historial de Actualizaciones del Ledger
+
+| Fecha | Actor | SHA Commit | Sprint / Finding | Cambios y Motivo |
+|---|---|---|---|---|
+| 2026-08-04 | GAIS / Auditoría IC360 | 79993ed77bba76fa456afffce1aaf4038841aa01 | B-BUILD-20260804 | Publicación de ajuste de memoria en package.json (2048MB) verificado con CI 4/4. |
+| 2026-08-04 | GAIS | En desarrollo | T1 | Creación inicial de la gobernanza T1, ledger de trazabilidad y script de validación. |

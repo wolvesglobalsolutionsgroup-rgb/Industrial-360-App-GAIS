@@ -14,6 +14,7 @@
     "test:storage-rules": "firebase emulators:exec --only storage \"vitest run tests/storage\"",
     "test:all": "npm run test:unit && npm run test:rules && npm run test:storage-rules",
     "audit:no-hardcoded-tenant": "node scripts/auditNoHardcodedTenant.js",
+    "validate:sprint-ledger": "node scripts/validateSprintLedger.mjs",
     "lint": "tsc --noEmit --project tsconfig.json"
   },
   "dependencies": {
