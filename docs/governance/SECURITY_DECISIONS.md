@@ -97,6 +97,18 @@
   - La activación requiere Permiso de Trabajo (PTW) o Aval SIHO. La revisión requiere Dossier de Calidad o Valuación. La aceptación requiere Dictamen CWI/NDT y motivo ≥ 10 caracteres. Toda mutación genera un `AuditEvent` inmutable.
 - **Alineación Normativa PDVSA:** Totalmente trazable contra el Manual Corporativo de Contratación PDVSA (Marzo 2024) y la Norma PDVSA SI-S-04 en `docs/domain/NORMATIVE_MATRIX.md`.
 
+### D-SEC-11: Sistema Unificado de Estados UI y Navegación Honesta (Sprint G1)
+- **Decisión:** Toda pantalla y control en la interfaz de usuario debe comunicar con honestidad el estado real del sistema (datos verificados con origen, sin datos, acceso denegado o error), eliminando estados engañosos o placeholders vacíos.
+- **Componentes Canónicos de Estado (`src/components/states/`):**
+  - `EmptyState`: Mensaje claro de ausencia de datos con llamada a la acción opcional, sin generar listas vacías ni simular elementos.
+  - `ErrorState`: Captura y presenta fallas técnicas de forma segura, ocultando stack traces o llaves internas y proporcionando opción de reintento.
+  - `PermissionDenied`: Informa restricciones de acceso o roles faltantes sin exponer esquemas o estructuras de datos internas.
+  - `SourceBadge`: Etiqueta explícitamente el origen de cada dato mostrado en pantalla (`firestore`, `qa_seed`, `calculation`, `norm`, `external_api`).
+  - `QaBanner`: Mantiene la visibilidad persistente del entorno QA (`orgId: ic360-qa-pilot` / `environment: qa`) incluyendo el ID del dataset canónico (`DS-IC360-QA-CANONICAL`) y versión (`v1.0.0-QA`), así como marcas de agua en exportaciones de informes.
+  - `LastUpdated`: Muestra la marca temporal ISO/relativa del último refresco de datos.
+  - `DataStatus`: Envoltorio unificado para la gestión centralizada de estados (`loading`, `error`, `empty`, `ready`, `forbidden`).
+- **Navegación Honesta:** Las 31 rutas del catálogo de módulos (`ModulePanel.tsx`) están conectadas al 100% con páginas reales implementadas en `src/App.tsx`. Ninguna opción de menú dirige a componentes 404 o marcadores vacíos no funcionales.
+
 
 
 

@@ -25,6 +25,9 @@ import { DocumentSigner } from '../components/common/DocumentSigner';
 import { OPERATOR_BRAND_PRESETS } from '../lib/brandKitPresets';
 
 
+import SourceBadge from '../components/states/SourceBadge';
+import LastUpdated from '../components/states/LastUpdated';
+
 export interface SignatureInfo {
   signedBy: string;
   role: string;
@@ -530,10 +533,14 @@ export default function Valuations() {
         title="Valuaciones de Obra (ROE PDVSA)"
         subtitle="Certificados de pago, retenciones contractuales y flujo de firmas de aprobación"
         badge={
-          <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-600 text-white px-2.5 py-0.5 rounded-full shadow-xs flex items-center gap-1">
-            <FileSignature size={12} />
-            Formato ROE
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-600 text-white px-2.5 py-0.5 rounded-full shadow-xs flex items-center gap-1">
+              <FileSignature size={12} />
+              Formato ROE
+            </span>
+            <SourceBadge source={currentOrganization?.environment === 'qa' ? 'qa_seed' : 'firestore'} detail="ROE PDVSA" />
+            <LastUpdated timestamp={new Date()} />
+          </div>
         }
         actions={
           <Button 

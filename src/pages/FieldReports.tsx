@@ -24,6 +24,9 @@ import { fieldReportsRepo, tasksRepo } from '../lib/repositories';
 
 import { GPSPicker, FieldMap } from '../components/field';
 
+import SourceBadge from '../components/states/SourceBadge';
+import LastUpdated from '../components/states/LastUpdated';
+
 export interface FieldReportItem {
   id: string;
   projectId: string;
@@ -474,10 +477,14 @@ Responde de forma ejecutiva, concisa y profesional.`;
         title="Reportes Diarios de Campo"
         subtitle="Registro operativo, geolocalización, control de calidad y análisis con Gemini IA"
         badge={
-          <span className="text-[10px] font-black uppercase tracking-widest bg-brand-500 text-white px-2.5 py-0.5 rounded-full shadow-xs flex items-center gap-1">
-            <Camera size={12} />
-            Inspección
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest bg-brand-500 text-white px-2.5 py-0.5 rounded-full shadow-xs flex items-center gap-1">
+              <Camera size={12} />
+              Inspección
+            </span>
+            <SourceBadge source={currentOrganization?.environment === 'qa' ? 'qa_seed' : 'firestore'} detail="Diario Campo" />
+            <LastUpdated timestamp={new Date()} />
+          </div>
         }
         actions={
           <div className="flex gap-2">

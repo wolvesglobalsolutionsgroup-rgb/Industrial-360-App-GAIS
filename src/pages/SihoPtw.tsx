@@ -16,6 +16,9 @@ import { DocumentSeal } from '../components/common/DocumentSeal';
 import { DocumentSigner } from '../components/common/DocumentSigner';
 import { OPERATOR_BRAND_PRESETS } from '../lib/brandKitPresets';
 import { DocumentSignerItem } from '../lib/documentPolicy';
+import SourceBadge from '../components/states/SourceBadge';
+import LastUpdated from '../components/states/LastUpdated';
+import EmptyState from '../components/states/EmptyState';
 
 interface GasReadings {
   h2s: number; // Max 10 ppm
@@ -332,11 +335,12 @@ async function generateSha256Hash(dataString: string): Promise<string> {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-200 pb-4">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-bold rounded-md uppercase tracking-wider border border-emerald-500/20">
               Norma PDVSA SI-S-04 / SI-S-08
             </span>
-            <span className="text-xs text-ink-faint font-mono">HSE Module v3.2</span>
+            <SourceBadge source={currentOrganization?.environment === 'qa' ? 'qa_seed' : 'firestore'} detail="PDVSA SIHO" />
+            <LastUpdated timestamp={new Date()} />
           </div>
           <h1 className="text-3xl font-extrabold text-ink tracking-tight mt-1">
             Módulo SIHO-A & Permisos de Trabajo Seguro (PTS)

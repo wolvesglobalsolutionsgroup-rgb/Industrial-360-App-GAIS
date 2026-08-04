@@ -23,6 +23,11 @@ import HeroCard from '../components/dashboard/HeroCard';
 import PageHeader from '../components/common/PageHeader';
 import QaBanner from '../components/ui/QaBanner';
 
+import SourceBadge from '../components/states/SourceBadge';
+import LastUpdated from '../components/states/LastUpdated';
+import ErrorState from '../components/states/ErrorState';
+import PermissionDenied from '../components/states/PermissionDenied';
+
 export default function Dashboard() {
   const { currentProject, currentOrganization, projects } = useProject();
   const navigate = useNavigate();
@@ -31,6 +36,7 @@ export default function Dashboard() {
   const [isExporting, setIsExporting] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [errorState, setErrorState] = useState<string | null>(null);
+  const [lastSync, setLastSync] = useState<Date>(new Date());
 
   // Live Firestore State Metrics
   const [tasks, setTasks] = useState<any[]>([]);
@@ -254,15 +260,10 @@ export default function Dashboard() {
   if (!currentOrganization?.id) {
     return (
       <div className="p-6">
-        <Card className="border-amber-200 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/30">
-          <CardContent className="flex flex-col items-center text-center py-10 space-y-3">
-            <Building className="text-amber-500 w-12 h-12" />
-            <h2 className="text-lg font-extrabold text-ink">Sin Organización Autorizada Seleccionada</h2>
-            <p className="text-xs text-ink-soft max-w-md">
-              No se detectó un tenant u organización activa para el usuario. Por favor seleccione una organización autorizada para visualizar los indicadores de obra.
-            </p>
-          </CardContent>
-        </Card>
+        <PermissionDenied
+          title="Sin Organización Autorizada"
+          message="No se detectó una organización activa para el usuario. Por favor seleccione o solicite acceso a una organización autorizada para visualizar los indicadores de obra."
+        />
       </div>
     );
   }
@@ -270,16 +271,11 @@ export default function Dashboard() {
   if (errorState) {
     return (
       <div className="p-6">
-        <Card className="border-red-200 dark:border-red-900 bg-red-50/50 dark:bg-red-950/30">
-          <CardContent className="flex flex-col items-center text-center py-10 space-y-3">
-            <AlertTriangle className="text-rose-500 w-12 h-12" />
-            <h2 className="text-lg font-extrabold text-ink">Error al cargar el Panel Ejecutivo</h2>
-            <p className="text-xs text-ink-soft max-w-md">{errorState}</p>
-            <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
-              Reintentar
-            </Button>
-          </CardContent>
-        </Card>
+        <ErrorState
+          title="Error al Cargar Panel Ejecutivo"
+          message={errorState}
+          onRetry={() => window.location.reload()}
+        />
       </div>
     );
   }
@@ -295,13 +291,6 @@ export default function Dashboard() {
         className="space-y-6 pb-8 p-4 sm:p-6" 
         ref={dashboardRef}
       >
-        {isQaEnvironment && (
-          <div className="bg-red-500/10 border-2 border-red-500 rounded-xl p-3 text-center text-red-600 dark:text-red-400 font-extrabold text-xs tracking-wider uppercase flex items-center justify-center gap-2 shadow-xs">
-            <AlertTriangle size={16} className="text-red-500 shrink-0" />
-            <span>DATOS SINTÉTICOS — ENTORNO QA — NO OPERACIONAL</span>
-          </div>
-        )}
-
         {/* Page Header */}
         <PageHeader
           title={currentProject?.id === 'all' 
@@ -309,10 +298,17 @@ export default function Dashboard() {
             : `Panel Ejecutivo: ${currentProject?.name || 'Proyecto Activo'}`}
           subtitle={`Organización: ${currentOrganization?.name || 'Sin Organización'} · Estado operativo en tiempo real`}
           badge={
-            <span className="text-[10px] font-black uppercase tracking-widest bg-brand-500 text-white px-2.5 py-0.5 rounded-full shadow-xs flex items-center gap-1">
-              <Building size={12} />
-              {currentProject?.id === 'all' ? `${projects.length} Obras` : 'Proyecto Activo'}
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] font-black uppercase tracking-widest bg-brand-500 text-white px-2.5 py-0.5 rounded-full shadow-xs flex items-center gap-1">
+                <Building size={12} />
+                {currentProject?.id === 'all' ? `${projects.length} Obras` : 'Proyecto Activo'}
+              </span>
+              <SourceBadge 
+                source={isQaEnvironment ? 'qa_seed' : 'firestore'} 
+                detail={isQaEnvironment ? 'DS-IC360-QA-CANONICAL' : currentOrganization?.id}
+              />
+              <LastUpdated timestamp={lastSync} onRefresh={() => setLastSync(new Date())} />
+            </div>
           }
           actions={
             <Button 

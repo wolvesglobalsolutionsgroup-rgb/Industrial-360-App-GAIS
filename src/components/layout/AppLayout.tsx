@@ -5,10 +5,13 @@ import Topbar from './Topbar';
 import ModulePanel from './ModulePanel';
 import OfflineBanner from '../ui/OfflineBanner';
 import DemoBanner from '../ui/DemoBanner';
+import QaBanner from '../states/QaBanner';
+import { useProject } from '../../ProjectContext';
 
 export const AppLayout: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isModulePanelOpen, setIsModulePanelOpen] = useState(false);
+  const { currentOrganization } = useProject();
 
   const toggleModules = () => setIsModulePanelOpen(prev => !prev);
 
@@ -31,6 +34,12 @@ export const AppLayout: React.FC = () => {
 
       {/* Main Container */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        {/* QA Environment Banner */}
+        <QaBanner
+          orgId={currentOrganization?.id}
+          environment={currentOrganization?.environment}
+        />
+
         {/* Topbar */}
         <Topbar 
           onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -61,3 +70,4 @@ export const AppLayout: React.FC = () => {
 };
 
 export default AppLayout;
+
