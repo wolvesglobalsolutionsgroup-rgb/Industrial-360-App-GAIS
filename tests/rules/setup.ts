@@ -11,7 +11,7 @@ import { Firestore } from 'firebase/firestore';
 let testEnv: RulesTestEnvironment | null = null;
 
 export async function initTestEnv(projectId = 'ic360-security-test'): Promise<RulesTestEnvironment> {
-  const emulatorHost = process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8080';
+  const emulatorHost = process.env.FIRESTORE_EMULATOR_HOST || '127.0.0.1:8088';
   const [host, portStr] = emulatorHost.split(':');
   const port = parseInt(portStr || '8080', 10);
 

@@ -367,5 +367,327 @@ describe('Firestore Zero-Trust Security Rules (Sprint IC360-S1-zero-trust)', () 
       'Cliente no debe poder escribir directamente en idempotencyKeys'
     );
   });
+
+  // --------------------------------------------------------------------------
+  // CASO 8: Reglas de document_verifications (Lectura por org, escritura denegada al cliente)
+  // --------------------------------------------------------------------------
+  it('Caso 8: document_verifications permite lectura propia de org, deniega lectura de otra org y deniega escrituras del cliente', async () => {
+    const env = getTestEnv();
+    if (!env) return;
+
+    await env.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'organizations/prointeca/document_verifications/verif_prointeca'), {
+        hash: 'hash_123',
+        orgId: 'prointeca',
+      });
+      await setDoc(doc(context.firestore(), 'organizations/semax_pino/document_verifications/verif_semax'), {
+        hash: 'hash_456',
+        orgId: 'semax_pino',
+      });
+    });
+
+    const gerenteProintecaDb = getAuthedDb('user_gerente_p', {
+      orgId: 'prointeca',
+      role: 'gerente',
+    });
+
+    const ownVerifRef = doc(gerenteProintecaDb, 'organizations/prointeca/document_verifications/verif_prointeca');
+    const otherVerifRef = doc(gerenteProintecaDb, 'organizations/semax_pino/document_verifications/verif_semax');
+    const newVerifRef = doc(gerenteProintecaDb, 'organizations/prointeca/document_verifications/verif_new');
+
+    // 8a. Lectura propia -> PERMITIDA
+    await assertAllowed(
+      getDoc(ownVerifRef),
+      'Usuario de prointeca puede leer sus propios document_verifications'
+    );
+
+    // 8b. Lectura cruzada -> DENEGADA
+    await assertDenied(
+      getDoc(otherVerifRef),
+      'Usuario de prointeca no puede leer document_verifications de semax_pino'
+    );
+
+    // 8c. Escritura (create/update/delete) por cliente -> DENEGADA
+    await assertDenied(
+      setDoc(newVerifRef, { hash: 'hash_new', orgId: 'prointeca' }),
+      'Cliente no debe poder crear document_verifications'
+    );
+    await assertDenied(
+      updateDoc(ownVerifRef, { hash: 'hash_mod' }),
+      'Cliente no debe poder actualizar document_verifications'
+    );
+    await assertDenied(
+      deleteDoc(ownVerifRef),
+      'Cliente no debe poder eliminar document_verifications'
+    );
+  });
+
+  // --------------------------------------------------------------------------
+  // CASO 9: Reglas de audit_logs (Lectura restringida a gerente/superadmin de org, escritura denegada al cliente)
+  // --------------------------------------------------------------------------
+  it('Caso 9: audit_logs solo legible por gerente de la propia org; denegado para campo/inspector, denegado lectura cruzada y escrituras', async () => {
+    const env = getTestEnv();
+    if (!env) return;
+
+    await env.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'organizations/prointeca/audit_logs/log_p1'), {
+        action: 'PROJECT_UPDATED',
+        orgId: 'prointeca',
+      });
+      await setDoc(doc(context.firestore(), 'organizations/semax_pino/audit_logs/log_s1'), {
+        action: 'PROJECT_UPDATED',
+        orgId: 'semax_pino',
+      });
+    });
+
+    const gerenteProintecaDb = getAuthedDb('user_gerente_p9', {
+      orgId: 'prointeca',
+      role: 'gerente',
+    });
+    const campoProintecaDb = getAuthedDb('user_campo_p9', {
+      orgId: 'prointeca',
+      role: 'campo',
+    });
+
+    const ownLogGerenteRef = doc(gerenteProintecaDb, 'organizations/prointeca/audit_logs/log_p1');
+    const ownLogCampoRef = doc(campoProintecaDb, 'organizations/prointeca/audit_logs/log_p1');
+    const otherLogGerenteRef = doc(gerenteProintecaDb, 'organizations/semax_pino/audit_logs/log_s1');
+    const newLogGerenteRef = doc(gerenteProintecaDb, 'organizations/prointeca/audit_logs/log_new');
+
+    // 9a. Gerente orgA lee audit_logs en orgA -> PERMITIDO
+    await assertAllowed(
+      getDoc(ownLogGerenteRef),
+      'Gerente de prointeca puede leer audit_logs de su organización'
+    );
+
+    // 9b. Campo orgA intenta leer audit_logs en orgA -> DENEGADO
+    await assertDenied(
+      getDoc(ownLogCampoRef),
+      'Usuario rol campo no puede leer audit_logs'
+    );
+
+    // 9c. Gerente orgA intenta leer audit_logs en orgB -> DENEGADO
+    await assertDenied(
+      getDoc(otherLogGerenteRef),
+      'Gerente de prointeca no puede leer audit_logs de semax_pino'
+    );
+
+    // 9d. Escrituras de cliente en audit_logs -> DENEGADAS
+    await assertDenied(
+      setDoc(newLogGerenteRef, { action: 'HACK', orgId: 'prointeca' }),
+      'Cliente no puede crear audit_logs'
+    );
+  });
+
+  // --------------------------------------------------------------------------
+  // CASO 10: Separación explícita create / update / delete en tasks y validación de falsificación
+  // --------------------------------------------------------------------------
+  it('Caso 10: Validación estricta de create/update/delete en tareas y bloqueo de orgId/projectId falsificados', async () => {
+    const env = getTestEnv();
+    if (!env) return;
+
+    await env.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'organizations/prointeca/projects/proj_10/tasks/task_init'), {
+        title: 'Tarea Inicial',
+        orgId: 'prointeca',
+        projectId: 'proj_10',
+        createdBy: 'user_gerente_10',
+        createdAt: '2026-08-01T00:00:00Z',
+        status: 'borrador',
+      });
+    });
+
+    const gerenteDb = getAuthedDb('user_gerente_10', {
+      orgId: 'prointeca',
+      role: 'gerente',
+    });
+    const campoDb = getAuthedDb('user_campo_10', {
+      orgId: 'prointeca',
+      role: 'campo',
+    });
+
+    // 10a. Create con orgId + projectId correctos -> PERMITIDO
+    const validTaskRef = doc(gerenteDb, 'organizations/prointeca/projects/proj_10/tasks/task_valid');
+    await assertAllowed(
+      setDoc(validTaskRef, {
+        title: 'Tarea Válida',
+        orgId: 'prointeca',
+        projectId: 'proj_10',
+        status: 'borrador',
+      }),
+      'Gerente puede crear tarea con orgId y projectId coincidentes'
+    );
+
+    // 10b. Create con orgId falsificado -> DENEGADO
+    const forgedOrgTaskRef = doc(gerenteDb, 'organizations/prointeca/projects/proj_10/tasks/task_forged_org');
+    await assertDenied(
+      setDoc(forgedOrgTaskRef, {
+        title: 'Tarea Falsificada Org',
+        orgId: 'semax_pino',
+        projectId: 'proj_10',
+      }),
+      'Crear tarea con orgId falsificado debe ser denegado'
+    );
+
+    // 10c. Create con projectId falsificado -> DENEGADO
+    const forgedProjTaskRef = doc(gerenteDb, 'organizations/prointeca/projects/proj_10/tasks/task_forged_proj');
+    await assertDenied(
+      setDoc(forgedProjTaskRef, {
+        title: 'Tarea Falsificada Project',
+        orgId: 'prointeca',
+        projectId: 'proj_other',
+      }),
+      'Crear tarea con projectId falsificado debe ser denegado'
+    );
+
+    // 10d. Update intentando alterar orgId, projectId, createdBy o createdAt -> DENEGADO
+    const existingTaskRef = doc(gerenteDb, 'organizations/prointeca/projects/proj_10/tasks/task_init');
+    await assertDenied(
+      updateDoc(existingTaskRef, {
+        orgId: 'semax_pino',
+      }),
+      'No se permite modificar orgId en update'
+    );
+    await assertDenied(
+      updateDoc(existingTaskRef, {
+        createdBy: 'hacker',
+      }),
+      'No se permite modificar createdBy en update'
+    );
+
+    // 10e. Delete por campo -> DENEGADO
+    const campoTaskRef = doc(campoDb, 'organizations/prointeca/projects/proj_10/tasks/task_init');
+    await assertDenied(
+      deleteDoc(campoTaskRef),
+      'Rol campo no puede eliminar tareas'
+    );
+
+    // 10f. Delete por gerente -> PERMITIDO
+    await assertAllowed(
+      deleteDoc(existingTaskRef),
+      'Gerente sí puede eliminar tarea de su organización y proyecto'
+    );
+  });
+
+  // --------------------------------------------------------------------------
+  // CASO 11: Restricciones estrictas en CollectionGroup queries
+  // --------------------------------------------------------------------------
+  it('Caso 11: CollectionGroup query exige filtro exacto por orgId del token; deniega sin filtro o con orgId ajeno', async () => {
+    const env = getTestEnv();
+    if (!env) return;
+
+    await env.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'organizations/prointeca/projects/p1/tasks/t1'), {
+        title: 'Tarea Prointeca 1',
+        orgId: 'prointeca',
+        projectId: 'p1',
+      });
+      await setDoc(doc(context.firestore(), 'organizations/semax_pino/projects/p2/tasks/t2'), {
+        title: 'Tarea Semax 1',
+        orgId: 'semax_pino',
+        projectId: 'p2',
+      });
+    });
+
+    const prointecaDb = getAuthedDb('user_prointeca_cg', {
+      orgId: 'prointeca',
+      role: 'inspector',
+    });
+
+    // 11a. CollectionGroup con where('orgId', '==', 'prointeca') -> PERMITIDO
+    const validCgQuery = query(
+      collectionGroup(prointecaDb, 'tasks'),
+      where('orgId', '==', 'prointeca')
+    );
+    await assertAllowed(
+      getDocs(validCgQuery),
+      'CollectionGroup query con filtro por el orgId propio debe ser permitida'
+    );
+
+    // 11b. CollectionGroup sin filtro por orgId -> DENEGADO
+    const unconstrainedCgQuery = query(collectionGroup(prointecaDb, 'tasks'));
+    await assertDenied(
+      getDocs(unconstrainedCgQuery),
+      'CollectionGroup query sin filtro orgId debe ser denegada'
+    );
+
+    // 11c. CollectionGroup con filtro hacia otra organización -> DENEGADO
+    const wrongOrgCgQuery = query(
+      collectionGroup(prointecaDb, 'tasks'),
+      where('orgId', '==', 'semax_pino')
+    );
+    await assertDenied(
+      getDocs(wrongOrgCgQuery),
+      'CollectionGroup query hacia otra organización debe ser denegada'
+    );
+  });
+
+  // --------------------------------------------------------------------------
+  // CASO 12: Aislamiento estricto de documentos en /users/{uid}
+  // --------------------------------------------------------------------------
+  it('Caso 12: Usuario solo puede acceder a su propio documento en /users/{uid}; denegado el acceso a otros usuarios', async () => {
+    const env = getTestEnv();
+    if (!env) return;
+
+    await env.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'users/usr_alice'), {
+        displayName: 'Alice',
+        role: 'campo',
+        orgId: 'prointeca',
+      });
+      await setDoc(doc(context.firestore(), 'users/usr_bob'), {
+        displayName: 'Bob',
+        role: 'inspector',
+        orgId: 'prointeca',
+      });
+    });
+
+    const aliceDb = getAuthedDb('usr_alice', {
+      orgId: 'prointeca',
+      role: 'campo',
+    });
+
+    // 12a. Alice lee su propio documento -> PERMITIDO
+    await assertAllowed(
+      getDoc(doc(aliceDb, 'users/usr_alice')),
+      'Usuario Alice puede leer su propio documento'
+    );
+
+    // 12b. Alice intenta leer el documento de Bob -> DENEGADO
+    await assertDenied(
+      getDoc(doc(aliceDb, 'users/usr_bob')),
+      'Usuario Alice no puede leer el documento de Bob'
+    );
+
+    // 12c. Alice intenta modificar el documento de Bob -> DENEGADO
+    await assertDenied(
+      setDoc(doc(aliceDb, 'users/usr_bob'), { displayName: 'Hacked Bob' }),
+      'Usuario Alice no puede modificar el documento de Bob'
+    );
+  });
+
+  // --------------------------------------------------------------------------
+  // CASO 13: Catch-all final deniega rutas no contempladas
+  // --------------------------------------------------------------------------
+  it('Caso 13: El catch-all final deniega cualquier ruta no definida en las reglas', async () => {
+    const env = getTestEnv();
+    if (!env) return;
+
+    const userDb = getAuthedDb('user_any', {
+      orgId: 'prointeca',
+      role: 'superadmin',
+    });
+
+    const unhandledRef = doc(userDb, 'unknown_collection/doc_1');
+
+    await assertDenied(
+      getDoc(unhandledRef),
+      'Lectura en colección no contemplada debe ser denegada por catch-all'
+    );
+    await assertDenied(
+      setDoc(unhandledRef, { foo: 'bar' }),
+      'Escritura en colección no contemplada debe ser denegada por catch-all'
+    );
+  });
 });
 
