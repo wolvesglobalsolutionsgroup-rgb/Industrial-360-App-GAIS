@@ -36,3 +36,11 @@
 
 ### D-SEC-04: Integridad de Indicadores de Tablero y Eliminación de Mocks (A1)
 - **Decisión:** El Dashboard sólo presenta métricas reales derivadas de consultas filtradas por `orgId`. Si no existen datos o el usuario carece de `orgId`, se muestra un estado honesto de no disponible/vacío ("Sin dato") sin simular ni interpolar números o series de tiempo.
+
+### D-SEC-05: Perímetro de Backend Proxy Obligatorio para IA y Correo (Sprint B1)
+- **Decisión:** Toda invocación a modelos IA (Gemini) o servicios de envío de correo (Resend/SMTP) debe ejecutarse exclusivamente en el backend (Express/Cloud Functions).
+- **Control de Acceso y Autorización:** Las peticiones exigen autenticación por Firebase ID Token (`verifyFirebaseToken` / `requireAuth`). La identidad (`uid`), organización (`orgId`) y rol (`role`) se obtienen **únicamente** del token verificado o documento de usuario en Firestore. Queda estrictamente prohibido usar campos del `body` o `query` como fuente de autoridad. Para el envío de correo se requiere rol `superadmin` o `gerente`.
+- **Manejo de Respuestas y Errores:** Errores internos de proveedores o excepciones no controladas se traducen a mensajes de error genéricos para el cliente, evitando filtración de detalles técnicos. Se generan registros de auditoría redactados (audit logs) con `uid`, `orgId`, `role`, `status` y `timestamp`.
+- **Limitaciones de Rate Limit:** El control de tasa se ejecuta en memoria por instancia (Rate Limiter Express/MemoryStore). *Limitación*: En entornos multi-instancia serverless (Cloud Run/Cloud Functions), cada instancia mantiene su contador. Queda como pendiente la integración de almacenamiento distribuido (ej. Redis/Memorystore) para tasa global unificada.
+- **Pendientes de Observabilidad:** Integración de alertas automatizadas en Cloud Logging para monitorear picos de respuestas HTTP 403 y 429 por organización.
+

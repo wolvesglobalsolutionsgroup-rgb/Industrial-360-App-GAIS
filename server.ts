@@ -38,17 +38,26 @@ async function startServer() {
 
   // Gemini Proxy API endpoints
   const proxyHandler = async (req: express.Request, res: express.Response) => {
+    const uid = req.uid || 'anonymous';
+    const decodedToken = req.user;
+    const userRole = decodedToken?.role || 'authenticated';
+    const validatedOrgId = decodedToken?.orgId || 'unassigned';
+
     try {
       const result = await handleGeminiProxy(req.body || {});
+
+      console.log(`[AUDIT AI] uid=${uid} role=${userRole} orgId=${validatedOrgId} endpoint=/api/callGeminiProxy status=200 ts=${new Date().toISOString()}`);
+
       res.json(result);
     } catch (error: any) {
       const is429 = error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('Quota exceeded');
+
+      console.error(`[AUDIT AI ERROR] uid=${uid} role=${userRole} orgId=${validatedOrgId} status=${is429 ? 429 : 500} ts=${new Date().toISOString()} msg=${error?.message?.substring(0, 100)}`);
+
       if (is429) {
-        console.warn('Server Gemini Proxy Quota Limit Exceeded');
-        res.status(429).json({ error: error?.message || 'Quota exceeded for Gemini API.' });
+        res.status(429).json({ error: 'Excedido el límite de cuota o tasa de peticiones para la API de IA.' });
       } else {
-        console.error('Server Gemini Proxy Error:', error);
-        res.status(500).json({ error: error?.message || 'Error executing Gemini request.' });
+        res.status(500).json({ error: 'Error interno al procesar la solicitud de inteligencia artificial.' });
       }
     }
   };
@@ -58,14 +67,28 @@ async function startServer() {
 
   // Resend Email API Endpoint
   app.post('/api/send-email', verifyFirebaseToken, emailLimiter, async (req, res) => {
-    try {
-      const uid = req.uid;
-      const userDoc = await getFirestore().collection('users').doc(uid).get();
-      const role = userDoc.data()?.role ?? '';
-      if (!['superadmin', 'gerente'].includes(role)) {
-        return res.status(403).json({ error: 'Forbidden: rol insuficiente' });
-      }
+    const uid = req.uid;
+    const decodedToken = req.user;
 
+    // Derive role and orgId strictly from validated JWT claims or Firestore user doc (NEVER from req.body)
+    let role = decodedToken?.role ?? '';
+    let validatedOrgId = decodedToken?.orgId ?? 'unassigned';
+
+    if (!role) {
+      const userDoc = await getFirestore().collection('users').doc(uid).get();
+      if (userDoc.exists) {
+        const uData = userDoc.data();
+        role = uData?.role ?? '';
+        validatedOrgId = uData?.orgId ?? validatedOrgId;
+      }
+    }
+
+    if (!['superadmin', 'gerente'].includes(role)) {
+      console.warn(`[AUDIT EMAIL DENIED] uid=${uid} role=${role} orgId=${validatedOrgId} status=403 ts=${new Date().toISOString()}`);
+      return res.status(403).json({ error: 'Acceso denegado: Se requiere rol superadmin o gerente para enviar correos.' });
+    }
+
+    try {
       const { to, subject, event, portalLink } = req.body || {};
       const resendApiKey = process.env.RESEND_API_KEY;
 
@@ -73,31 +96,35 @@ async function startServer() {
         return res.status(400).json({ error: 'Faltan parámetros requeridos: to, subject' });
       }
 
-      const safeHtml = `<p>Notificación de ${event || 'proyecto'}.</p>
-        ${portalLink ? `<p><a href="${portalLink}">Ver Portal</a></p>` : ''}`;
+      const safeTo = Array.isArray(to) ? to.map(t => String(t).trim()) : [String(to).trim()];
+      const safeSubject = String(subject).substring(0, 200);
+
+      const safeHtml = `<p>Notificación de ${event ? String(event).replace(/[<>]/g, '') : 'proyecto'}.</p>
+        ${portalLink ? `<p><a href="${encodeURI(String(portalLink))}">Ver Portal</a></p>` : ''}`;
 
       if (resendApiKey) {
         const { Resend } = await import('resend');
         const resend = new Resend(resendApiKey);
         const emailResult = await resend.emails.send({
           from: process.env.RESEND_FROM_EMAIL || 'Industrial Control 360 <notificaciones@industrialcontrol360.com>',
-          to: Array.isArray(to) ? to : [to],
-          subject: subject || 'Notificación Operativa Industrial Control 360',
+          to: safeTo,
+          subject: safeSubject,
           html: safeHtml
         });
+        console.log(`[AUDIT EMAIL] uid=${uid} role=${role} orgId=${validatedOrgId} status=200 recipients=${safeTo.length} ts=${new Date().toISOString()}`);
         return res.json({ success: true, data: emailResult });
       } else {
-        console.log(`[EMAIL SIMULADO] Evento: ${event || 'notificacion'} | Para: ${to} | Asunto: ${subject}`);
+        console.log(`[AUDIT EMAIL SIMULATED] uid=${uid} role=${role} orgId=${validatedOrgId} status=200 event=${event || 'notificacion'} ts=${new Date().toISOString()}`);
         return res.json({
           success: true,
           simulated: true,
-          message: 'Notificación registrada (configura RESEND_API_KEY en .env para entrega directa vía Resend)',
-          details: { to, subject, event }
+          message: 'Notificación registrada exitosamente en servidor.',
+          details: { to: safeTo, subject: safeSubject, event }
         });
       }
     } catch (err: any) {
-      console.error('Error enviando email vía Resend:', err);
-      return res.status(500).json({ error: err?.message || 'Error al procesar envío de correo' });
+      console.error(`[AUDIT EMAIL ERROR] uid=${uid} role=${role} orgId=${validatedOrgId} status=500 ts=${new Date().toISOString()} msg=${err?.message?.substring(0, 100)}`);
+      return res.status(500).json({ error: 'Error interno al procesar el envío de correo.' });
     }
   });
 

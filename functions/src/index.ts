@@ -43,6 +43,10 @@ export const callGeminiProxy = async (req: any, res: any) => {
 
   if (res.headersSent) return;
 
+  const uid = req.user?.uid || 'unknown';
+  const userRole = req.user?.role || 'authenticated';
+  const orgId = req.user?.orgId || 'unassigned';
+
   // 2. Rate limiting (20/min por uid para callGeminiProxy)
   const geminiRateLimiter = rateLimit({ operation: 'callGeminiProxy', maxRequests: 20 });
   await new Promise<void>((resolve, reject) => {
@@ -56,15 +60,15 @@ export const callGeminiProxy = async (req: any, res: any) => {
 
   try {
     const result = await handleGeminiProxy(req.body || {});
+    logger.info(`[AUDIT AI FUNCTION] uid=${uid} role=${userRole} orgId=${orgId} status=200`);
     res.status(200).json(result);
   } catch (error: any) {
     const is429 = error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('Quota exceeded');
+    logger.error(`[AUDIT AI FUNCTION ERROR] uid=${uid} role=${userRole} orgId=${orgId} status=${is429 ? 429 : 500} msg=${error?.message?.substring(0, 100)}`);
     if (is429) {
-      logger.warn('Gemini Proxy Quota Limit Exceeded:', error?.message);
-      res.status(429).json({ error: error?.message || 'Quota exceeded for Gemini API.' });
+      res.status(429).json({ error: 'Excedido el límite de cuota o tasa de peticiones para la API de IA.' });
     } else {
-      logger.error('Gemini Proxy Error:', error);
-      res.status(500).json({ error: error?.message || 'Error executing Gemini request on server.' });
+      res.status(500).json({ error: 'Error interno al procesar la solicitud de inteligencia artificial.' });
     }
   }
 };
@@ -97,6 +101,22 @@ export const sendEmail = async (req: any, res: any) => {
 
   if (res.headersSent) return;
 
+  const uid = req.user?.uid || 'unknown';
+  let role = req.user?.role || '';
+  const orgId = req.user?.orgId || 'unassigned';
+
+  if (!role && uid) {
+    const dbAdmin = getFirestore();
+    const userSnap = await dbAdmin.collection('users').doc(uid).get();
+    role = userSnap.data()?.role ?? '';
+  }
+
+  if (!['superadmin', 'gerente'].includes(role)) {
+    logger.warn(`[AUDIT EMAIL FUNCTION DENIED] uid=${uid} role=${role} orgId=${orgId} status=403`);
+    res.status(403).json({ error: 'Acceso denegado: Se requiere rol superadmin o gerente para enviar correos.' });
+    return;
+  }
+
   // 2. Rate Limit (5/min por uid para sendEmail)
   const emailRateLimiter = rateLimit({ operation: 'sendEmail', maxRequests: 5 });
   await new Promise<void>((resolve, reject) => {
@@ -116,27 +136,33 @@ export const sendEmail = async (req: any, res: any) => {
       return;
     }
 
+    const safeTo = Array.isArray(to) ? to.map(t => String(t).trim()) : [String(to).trim()];
+    const safeSubject = String(subject || 'Notificación Operativa Industrial Control 360').substring(0, 200);
+
     const resendApiKey = process.env.RESEND_API_KEY;
     if (resendApiKey) {
       const { Resend } = await import('resend');
       const resend = new Resend(resendApiKey);
       const emailResult = await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'Industrial Control 360 <notificaciones@industrialcontrol360.com>',
-        to: Array.isArray(to) ? to : [to],
-        subject: subject || 'Notificación Operativa Industrial Control 360',
+        to: safeTo,
+        subject: safeSubject,
         html: html || `<p>Tiene una nueva actualización de su proyecto.</p><p><a href="${portalLink || '#'}">Acceder al Portal Cliente</a></p>`
       });
+      logger.info(`[AUDIT EMAIL FUNCTION] uid=${uid} role=${role} orgId=${orgId} status=200`);
       res.status(200).json({ success: true, data: emailResult });
     } else {
+      logger.info(`[AUDIT EMAIL FUNCTION SIMULATED] uid=${uid} role=${role} orgId=${orgId} status=200`);
       res.status(200).json({
         success: true,
         simulated: true,
         message: 'Notificación registrada exitosamente (simulado sin RESEND_API_KEY).',
-        details: { to, subject, event }
+        details: { to: safeTo, subject: safeSubject, event }
       });
     }
   } catch (err: any) {
-    res.status(500).json({ error: err?.message || 'Error al procesar envío de correo.' });
+    logger.error(`[AUDIT EMAIL FUNCTION ERROR] uid=${uid} role=${role} orgId=${orgId} status=500 msg=${err?.message?.substring(0, 100)}`);
+    res.status(500).json({ error: 'Error al procesar envío de correo.' });
   }
 };
 

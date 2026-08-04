@@ -11,6 +11,7 @@ declare global {
     interface Request {
       uid: string;
       email: string;
+      user?: any;
     }
   }
 }
@@ -23,13 +24,19 @@ export async function verifyFirebaseToken(
     res.status(401).json({ error: 'Unauthorized: missing token' });
     return;
   }
-  const idToken = authHeader.split('Bearer ')[1];
+  const idToken = authHeader.split('Bearer ')[1]?.trim();
+  if (!idToken) {
+    res.status(401).json({ error: 'Unauthorized: missing token' });
+    return;
+  }
   try {
-    const decoded = await getAuth().verifyIdToken(idToken);
+    const decoded = await getAuth().verifyIdToken(idToken, true);
     req.uid = decoded.uid;
     req.email = decoded.email ?? '';
+    req.user = decoded;
     next();
   } catch {
     res.status(401).json({ error: 'Unauthorized: invalid token' });
   }
 }
+
