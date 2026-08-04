@@ -46,3 +46,31 @@
 - **Limitaciones de Rate Limit:** El control de tasa se ejecuta en memoria por instancia (Rate Limiter Express/MemoryStore). *Limitación*: En entornos multi-instancia serverless (Cloud Run/Cloud Functions), cada instancia mantiene su contador. Queda como pendiente la integración de almacenamiento distribuido (ej. Redis/Memorystore) para tasa global unificada.
 - **Pendientes de Observabilidad:** Integración de alertas automatizadas en Cloud Logging para monitorear picos de respuestas HTTP 403 y 429 por organización.
 
+### D-SEC-06: Pruebas Zero-Trust Multi-Tenant en Firebase Emulator (Sprint C1)
+- **Decisión:** La seguridad multi-tenant de Firestore y Storage se demuestra mediante ejecuciones reales en Firebase Emulator (`npm run test:rules` y `npm run test:storage-rules`).
+- **Aislamiento Multi-Tenant (15 Tests Firestore):** Se verifican pruebas negativas donde un usuario de Org-A (`prointeca`) intenta leer, escribir, listar o consultar por `collectionGroup` en datos de Org-B (`semax_pino`). Todas las operaciones cruzadas son denegadas con HTTP 403 (`PERMISSION_DENIED`).
+- **Aislamiento de Rutas Sensibles:** Las colecciones `/organizations/{orgId}/memberships`, `/counters`, `/document_verifications` y `/audit_logs` prohíben la escritura desde cliente SDK. `audit_logs` es inmutable y de solo lectura para `gerente`/`superadmin` de la misma org. `counters` prohíbe lectura y escritura desde cliente.
+- **Restricción de Rol Readonly:** Los usuarios con Custom Claim `role == 'readonly'` pueden consultar documentos de su organización pero tienen denegada la creación (`create`), modificación (`update`) y eliminación (`delete`).
+
+### D-SEC-07: Política de Firebase Storage Industrial Multi-tenant (Sprint C1)
+- **Decisión:** Almacenamiento restringido por tipo MIME, tamaño y rol para prevenir cargas inseguras o denegaciones de servicio.
+- **Tipos Permitidos en Producción Permanente:**
+  - Imágenes (`image/*`) y documentos PDF (`application/pdf`): hasta 20 MB por archivo.
+  - Documentos Word (`.docx`, `.doc`) y hojas Excel (`.xlsx`, `.xls`): hasta 10 MB por archivo.
+- **Flujo de Staging / Carga Temporal para Archivos Complejos:**
+  - Los archivos de ingeniería complejos (XER Primavera P6, BC3 Fiebdc, KML/KMZ, IFC BIM, GLB/STEP) **NO** pueden cargarse directamente a la ubicación permanente de proyectos.
+  - Se permite su carga únicamente en la ruta de staging `/organizations/{orgId}/temp_uploads/{userId}/...` con un límite de 50 MB.
+  - Un servicio de backend autenticado valida la integridad, sintaxis y formato del archivo complejo en staging antes de moverlo o importar sus entidades a la ubicación final.
+- **MIME Types Prohibidos:** Se bloquean extensiones ejecutable o inseguras (`text/html`, `.sh`, `.exe`, `.js`, etc.).
+- **Control de Roles en Storage:** El rol `readonly` tiene prohibido subir o eliminar cualquier archivo.
+
+### D-SEC-08: Inventario de Subcolecciones e Incremento Gradual de Whitelist (Sprint C1)
+- **Inventario Completo (30 Subcolecciones):**
+  Se identificaron 30 subcolecciones bajo la jerarquía `/organizations/{orgId}/projects/{projectId}/...`:
+  1. `tasks`, 2. `expenses`, 3. `valuations`, 4. `siho_ptw`, 5. `weld_joints`, 6. `field_reports`, 7. `documents`, 8. `inventory`, 9. `routes`, 10. `engineering_calcs`, 11. `client_portals`, 12. `client_portal_access_logs`, 13. `hot_tap_interventions`, 14. `procurement`, 15. `apus`, 16. `quantity_takeoffs`, 17. `workers`, 18. `worker_attendance`, 19. `wbs_snapshots`, 20. `settings`, 21. `fleet_equipment` / `fleetEquipment`, 22. `environmental_aspects`, 23. `rasda_manifests`, 24. `environmental_inspections`, 25. `standby_claims`, 26. `standby_mocs`, 27. `instrumentation_loops`, 28. `civil_works`, 29. `loto_isolations`, 30. `alerts`.
+- **Estrategia de Transición Gradual Whitelist (Sin Romper Módulos):**
+  - *Fase 1 (Actual - Sprint C1):* Mantener la regla wildcard `match /{collectionName}/{docId}` validando pertenencia a `orgId` y `projectId`, verificando que `collectionName` no pertenezca a colecciones administrativas (`idempotencyKeys`).
+  - *Fase 2 (Siguiente Sprint):* Definir bloques `match /{collectionName}/{docId}` explícitos para las 30 subcolecciones inventariadas junto con esquemas de validación de campos obligatorios por tipo de entidad.
+  - *Fase 3 (Hardening Final):* Eliminar el wildcard catch-all en subcolecciones de proyectos para cerrar totalmente el perímetro a únicamente la lista explícita aprobada.
+
+

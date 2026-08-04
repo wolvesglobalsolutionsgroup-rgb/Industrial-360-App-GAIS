@@ -15,6 +15,13 @@ service firebase.storage {
       return isSignedIn() && request.auth.token.orgId == orgId;
     }
 
+    function isWritableRole() {
+      return isSignedIn() &&
+        'role' in request.auth.token &&
+        request.auth.token.role != 'readonly' &&
+        request.auth.token.role in ['superadmin', 'gerente', 'supervisor', 'inspector', 'campo'];
+    }
+
     function isAllowedSize(maxSizeInBytes) {
       return request.resource != null && request.resource.size <= maxSizeInBytes;
     }
@@ -22,6 +29,26 @@ service firebase.storage {
     function isImageOrPdf() {
       return request.resource != null && 
         (request.resource.contentType.matches('image/.*') || request.resource.contentType == 'application/pdf');
+    }
+
+    function isDocxOrXlsx() {
+      return request.resource != null &&
+        (request.resource.contentType == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+         request.resource.contentType == 'application/msword' ||
+         request.resource.contentType == 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+         request.resource.contentType == 'application/vnd.ms-excel');
+    }
+
+    function isStagingComplexFile() {
+      return request.resource != null &&
+        request.resource.size <= 50 * 1024 * 1024 &&
+        (request.resource.contentType == 'application/octet-stream' ||
+         request.resource.contentType == 'text/plain' ||
+         request.resource.contentType == 'application/vnd.google-earth.kml+xml' ||
+         request.resource.contentType == 'application/x-xer' ||
+         request.resource.contentType == 'model/gltf-binary' ||
+         request.resource.contentType == 'application/x-step' ||
+         request.resource.contentType == 'application/xml');
     }
 
     function isPublicBrandkitAsset() {
@@ -34,23 +61,35 @@ service firebase.storage {
 
     // 1. Recursos públicos de BrandKit por organización
     // Read: público sin autenticación
-    // Write: requiere autenticación de miembro de org o superadmin, máx 2MB, tipos png/jpeg/svg
+    // Write: requiere autenticación de miembro de org o superadmin, rol con permiso de escritura, máx 2MB, tipos png/jpeg/svg
     match /organizations/{orgId}/brandkit_public/{allPaths=**} {
       allow read: if true;
-      allow write: if (isOrgMember(orgId) || isSuperadmin()) && isPublicBrandkitAsset();
+      allow write: if (isOrgMember(orgId) || isSuperadmin()) && isWritableRole() && isPublicBrandkitAsset();
     }
 
-    // 2. Aislamiento Multi-Tenant por Organización
-    // Read/Write: requiere autenticación y pertenencia a orgId o rol superadmin
-    // Restricciones de escritura: máximo 20MB y tipo imagen o PDF
+    // 2. Carga temporal para archivos complejos (XER, BC3, KML, IFC, GLB) previa validación backend
+    // Read/Write: requiere autenticación de miembro de la org, rol de escritura y que la ruta sea /temp_uploads/{userId}/...
+    match /organizations/{orgId}/temp_uploads/{userId}/{allPaths=**} {
+      allow read: if (isOrgMember(orgId) || isSuperadmin()) && request.auth.uid == userId;
+      allow write: if (isOrgMember(orgId) || isSuperadmin()) && isWritableRole() && request.auth.uid == userId && isStagingComplexFile();
+      allow delete: if (isOrgMember(orgId) || isSuperadmin()) && isWritableRole() && request.auth.uid == userId;
+    }
+
+    // 3. Aislamiento Multi-Tenant Permanente por Organización
+    // Read: requiere pertenencia a orgId o superadmin
+    // Write: requiere pertenencia a orgId o superadmin, rol con permiso de escritura (readonly prohibido)
+    // Tipos autorizados: Imágenes/PDF (hasta 20MB) y DOCX/XLSX (hasta 10MB)
+    // Delete: requiere pertenencia a orgId o superadmin, rol con permiso de escritura (readonly prohibido)
     match /organizations/{orgId}/{allPaths=**} {
       allow read: if isOrgMember(orgId) || isSuperadmin();
       allow write: if (isOrgMember(orgId) || isSuperadmin()) &&
-                      isAllowedSize(20 * 1024 * 1024) &&
-                      isImageOrPdf();
+                      isWritableRole() &&
+                      ((isAllowedSize(20 * 1024 * 1024) && isImageOrPdf()) ||
+                       (isAllowedSize(10 * 1024 * 1024) && isDocxOrXlsx()));
+      allow delete: if (isOrgMember(orgId) || isSuperadmin()) && isWritableRole();
     }
 
-    // 3. Denegación por defecto (Zero-Trust)
+    // 4. Denegación por defecto (Zero-Trust)
     match /{allPaths=**} {
       allow read, write: if false;
     }

@@ -689,5 +689,110 @@ describe('Firestore Zero-Trust Security Rules (Sprint IC360-S1-zero-trust)', () 
       'Escritura en colección no contemplada debe ser denegada por catch-all'
     );
   });
+
+  // --------------------------------------------------------------------------
+  // CASO 14: Rol 'readonly' permite lectura pero prohíbe creación, modificación y eliminación
+  // --------------------------------------------------------------------------
+  it('Caso 14: Rol "readonly" permite lectura en proyectos de su org pero deniega escrituras y eliminaciones', async () => {
+    const env = getTestEnv();
+    if (!env) return;
+
+    await env.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'organizations/prointeca/projects/proj_ro/tasks/task_ro_1'), {
+        title: 'Tarea Solo Lectura',
+        orgId: 'prointeca',
+        projectId: 'proj_ro',
+        status: 'borrador',
+      });
+    });
+
+    const readonlyDb = getAuthedDb('user_readonly_1', {
+      orgId: 'prointeca',
+      role: 'readonly',
+    });
+
+    const taskRef = doc(readonlyDb, 'organizations/prointeca/projects/proj_ro/tasks/task_ro_1');
+    const newTaskRef = doc(readonlyDb, 'organizations/prointeca/projects/proj_ro/tasks/task_ro_new');
+
+    // 14a. Lectura -> PERMITIDA
+    await assertAllowed(
+      getDoc(taskRef),
+      'Usuario readonly puede leer documentos de su organización'
+    );
+
+    // 14b. Creación -> DENEGADA
+    await assertDenied(
+      setDoc(newTaskRef, {
+        title: 'Nueva Tarea Readonly',
+        orgId: 'prointeca',
+        projectId: 'proj_ro',
+        status: 'borrador',
+      }),
+      'Usuario readonly no debe poder crear documentos'
+    );
+
+    // 14c. Actualización -> DENEGADA
+    await assertDenied(
+      updateDoc(taskRef, {
+        title: 'Modificado por Readonly',
+      }),
+      'Usuario readonly no debe poder actualizar documentos'
+    );
+
+    // 14d. Eliminación -> DENEGADA
+    await assertDenied(
+      deleteDoc(taskRef),
+      'Usuario readonly no debe poder eliminar documentos'
+    );
+  });
+
+  // --------------------------------------------------------------------------
+  // CASO 15: Aislamiento tenant estricto en /organizations/{orgId} y /organizations/{orgId}/projects/{projectId}
+  // --------------------------------------------------------------------------
+  it('Caso 15: Aislamiento tenant en organizations y projects: Org-A no lee/escribe/lista en Org-B', async () => {
+    const env = getTestEnv();
+    if (!env) return;
+
+    await env.withSecurityRulesDisabled(async (context) => {
+      await setDoc(doc(context.firestore(), 'organizations/prointeca'), { name: 'Prointeca C.A.' });
+      await setDoc(doc(context.firestore(), 'organizations/semax_pino'), { name: 'Semax Pino' });
+      await setDoc(doc(context.firestore(), 'organizations/prointeca/projects/p_a'), {
+        name: 'Proyecto A',
+        orgId: 'prointeca',
+      });
+      await setDoc(doc(context.firestore(), 'organizations/semax_pino/projects/p_b'), {
+        name: 'Proyecto B',
+        orgId: 'semax_pino',
+      });
+    });
+
+    const orgADb = getAuthedDb('user_gerente_org_a', {
+      orgId: 'prointeca',
+      role: 'gerente',
+    });
+
+    // 15a. Org-A lee su propia organization y project -> PERMITIDO
+    await assertAllowed(getDoc(doc(orgADb, 'organizations/prointeca')), 'Org-A puede leer su organizacion');
+    await assertAllowed(getDoc(doc(orgADb, 'organizations/prointeca/projects/p_a')), 'Org-A puede leer su proyecto');
+
+    // 15b. Org-A intenta leer organization o project de Org-B -> DENEGADO
+    await assertDenied(getDoc(doc(orgADb, 'organizations/semax_pino')), 'Org-A no puede leer organizacion Org-B');
+    await assertDenied(getDoc(doc(orgADb, 'organizations/semax_pino/projects/p_b')), 'Org-A no puede leer proyecto Org-B');
+
+    // 15c. Org-A intenta crear proyecto en Org-B -> DENEGADO
+    await assertDenied(
+      setDoc(doc(orgADb, 'organizations/semax_pino/projects/p_injected'), {
+        name: 'Proyecto Infiltrado',
+        orgId: 'semax_pino',
+      }),
+      'Org-A no puede crear proyecto en Org-B'
+    );
+
+    // 15d. Escritura directa en /organizations/{orgId} está prohibida desde cliente -> DENEGADO
+    await assertDenied(
+      setDoc(doc(orgADb, 'organizations/prointeca'), { name: 'Intento Modificar Org' }),
+      'Escritura directa en documento de organizacion esta prohibida desde cliente'
+    );
+  });
 });
 
