@@ -56,8 +56,8 @@ export function validatePortalLink(portalLinkCandidate: unknown, uid: string = '
   return { validUrl: parsed.toString(), redactReason: null };
 }
 
-export function escapeHtmlAttr(str: string): string {
-  return str
+export function escapeHtmlAttr(value: string): string {
+  return value
     .replace(/&/g, '&amp;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;')
@@ -65,9 +65,8 @@ export function escapeHtmlAttr(str: string): string {
     .replace(/>/g, '&gt;');
 }
 
-async function startServer() {
+export function createApp(): express.Express {
   const app = express();
-  const PORT = 3000;
 
   app.use(express.json({ limit: '25mb' }));
 
@@ -184,7 +183,7 @@ async function startServer() {
         });
       }
     } catch (err: any) {
-      console.error(`[AUDIT EMAIL ERROR] uid=${uid} role=${role} orgId=${validatedOrgId} status=500 ts=${new Date().toISOString()} msg=${err?.message?.substring(0, 100)}`);
+      console.error(`[AUDIT EMAIL ERROR] uid=${uid} role=${role} orgId=${validatedOrgId} status=500 ts=${new Date().toISOString()} msg=${err?.stack || err?.message}`);
       return res.status(500).json({ error: 'Error interno al procesar el envío de correo.' });
     }
   });
@@ -199,6 +198,15 @@ async function startServer() {
     const { verifyDocument } = await import('./functions/src/index');
     await verifyDocument(req, res);
   });
+
+  return app;
+}
+
+export const createExpressApp = createApp;
+
+async function startServer() {
+  const app = createApp();
+  const PORT = 3000;
 
   // Vite middleware in development mode
   if (process.env.NODE_ENV !== 'production') {

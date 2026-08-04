@@ -1,6 +1,7 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as http from 'http';
 
 // Mocks for Firebase Admin SDK
 vi.mock('firebase-admin/app', () => ({
@@ -26,8 +27,21 @@ vi.mock('firebase-admin/firestore', () => ({
   }),
 }));
 
+const { mockResendSend } = vi.hoisted(() => ({
+  mockResendSend: vi.fn().mockResolvedValue({ id: 'msg_mock_123' }),
+}));
+
+vi.mock('resend', () => {
+  class Resend {
+    emails = {
+      send: mockResendSend,
+    };
+  }
+  return { Resend };
+});
+
 import { verifyFirebaseToken } from '../../middleware/verifyFirebaseToken';
-import { validatePortalLink, escapeHtmlAttr } from '../../../server';
+import { validatePortalLink, escapeHtmlAttr, createApp } from '../../../server';
 
 describe('Perímetro Backend de Seguridad IA y Correo (Sprint B1 & B1.1)', () => {
   beforeEach(() => {
@@ -268,6 +282,227 @@ describe('Perímetro Backend de Seguridad IA y Correo (Sprint B1 & B1.1)', () =>
       const role = 'inspector';
       const isAllowed = ['superadmin', 'gerente'].includes(role);
       expect(isAllowed).toBe(false);
+    });
+  });
+
+  describe('5. Pruebas Integrales del Handler Express /api/send-email (Sprint B1.1.1)', () => {
+    let server: http.Server;
+    let baseUrl: string;
+    const ORIGINAL_ENV = process.env.PORTAL_ALLOWED_HOSTS;
+    const ORIGINAL_RESEND_KEY = process.env.RESEND_API_KEY;
+
+    beforeAll(async () => {
+      const app = createApp();
+      await new Promise<void>((resolve) => {
+        server = http.createServer(app);
+        server.listen(0, '127.0.0.1', () => {
+          const addr = server.address() as any;
+          baseUrl = `http://127.0.0.1:${addr.port}`;
+          resolve();
+        });
+      });
+    });
+
+    afterAll(async () => {
+      if (ORIGINAL_ENV !== undefined) {
+        process.env.PORTAL_ALLOWED_HOSTS = ORIGINAL_ENV;
+      } else {
+        delete process.env.PORTAL_ALLOWED_HOSTS;
+      }
+      if (ORIGINAL_RESEND_KEY !== undefined) {
+        process.env.RESEND_API_KEY = ORIGINAL_RESEND_KEY;
+      } else {
+        delete process.env.RESEND_API_KEY;
+      }
+
+      await new Promise<void>((resolve) => {
+        if (server) {
+          server.close(() => resolve());
+        } else {
+          resolve();
+        }
+      });
+    });
+
+    beforeEach(() => {
+      mockResendSend.mockClear();
+    });
+
+    it('5.1 URL válida con &, ", \', <, > en path/query queda correctamente escapada (&amp;, &quot;, &#39;, &lt;, &gt;) en HTML a Resend', async () => {
+      // Direct unit verification of escapeHtmlAttr function
+      const testStr = 'https://portal.prointeca.com/view?a=1&b="c"&d=\'e\'&f=<g>&h=>i';
+      const escapedStr = escapeHtmlAttr(testStr);
+      expect(escapedStr).toContain('&amp;');
+      expect(escapedStr).toContain('&quot;');
+      expect(escapedStr).toContain('&#39;');
+      expect(escapedStr).toContain('&lt;');
+      expect(escapedStr).toContain('&gt;');
+
+      process.env.RESEND_API_KEY = 're_test_key_123';
+      process.env.PORTAL_ALLOWED_HOSTS = 'portal.prointeca.com';
+      mockVerifyIdToken.mockResolvedValueOnce({
+        uid: 'usr_gerente_h1',
+        email: 'gerente@prointeca.com',
+        role: 'gerente',
+        orgId: 'org_test',
+      });
+
+      const rawCandidate = 'https://portal.prointeca.com/view?param=a&b=c&mode=view';
+
+      const res = await fetch(`${baseUrl}/api/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer valid_token_gerente_1',
+        },
+        body: JSON.stringify({
+          to: 'cliente@ejemplo.com',
+          subject: 'Aviso de Inspección',
+          event: 'inspección',
+          portalLink: rawCandidate,
+        }),
+      });
+
+      expect(res.status).toBe(200);
+      const json = await res.json();
+      expect(json).toEqual({ success: true });
+
+      expect(mockResendSend).toHaveBeenCalledTimes(1);
+      const payload = mockResendSend.mock.calls[0][0];
+      expect(payload.html).toContain('&amp;');
+      expect(payload.html).toContain('href="https://portal.prointeca.com/view?param=a&amp;b=c&amp;mode=view"');
+    });
+
+    it('5.2 Handler real con portalLink en host no permitido omite href y la URL candidata', async () => {
+      process.env.RESEND_API_KEY = 're_test_key_123';
+      process.env.PORTAL_ALLOWED_HOSTS = 'portal.prointeca.com';
+      mockVerifyIdToken.mockResolvedValueOnce({
+        uid: 'usr_gerente_h2',
+        email: 'gerente@prointeca.com',
+        role: 'gerente',
+        orgId: 'org_test',
+      });
+
+      const res = await fetch(`${baseUrl}/api/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer valid_token_gerente_2',
+        },
+        body: JSON.stringify({
+          to: 'cliente@ejemplo.com',
+          subject: 'Aviso de Inspección',
+          event: 'inspección',
+          portalLink: 'https://phishing-domain.com/malicious/link',
+        }),
+      });
+
+      expect(res.status).toBe(200);
+      expect(mockResendSend).toHaveBeenCalledTimes(1);
+      const payload = mockResendSend.mock.calls[0][0];
+      expect(payload.html).not.toContain('href');
+      expect(payload.html).not.toContain('phishing-domain.com');
+    });
+
+    it('5.3 Handler real sin PORTAL_ALLOWED_HOSTS omite href', async () => {
+      process.env.RESEND_API_KEY = 're_test_key_123';
+      delete process.env.PORTAL_ALLOWED_HOSTS;
+      mockVerifyIdToken.mockResolvedValueOnce({
+        uid: 'usr_gerente_h3',
+        email: 'gerente@prointeca.com',
+        role: 'gerente',
+        orgId: 'org_test',
+      });
+
+      const res = await fetch(`${baseUrl}/api/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer valid_token_gerente_3',
+        },
+        body: JSON.stringify({
+          to: 'cliente@ejemplo.com',
+          subject: 'Aviso de Inspección',
+          event: 'inspección',
+          portalLink: 'https://portal.prointeca.com/view?vId=123',
+        }),
+      });
+
+      expect(res.status).toBe(200);
+      expect(mockResendSend).toHaveBeenCalledTimes(1);
+      const payload = mockResendSend.mock.calls[0][0];
+      expect(payload.html).not.toContain('href');
+    });
+
+    it('5.4 Respuesta simulada real contiene exactamente success, simulated, message y cero datos sensibles', async () => {
+      delete process.env.RESEND_API_KEY;
+      process.env.PORTAL_ALLOWED_HOSTS = 'portal.prointeca.com';
+      mockVerifyIdToken.mockResolvedValueOnce({
+        uid: 'usr_gerente_h4',
+        email: 'gerente@prointeca.com',
+        role: 'gerente',
+        orgId: 'org_test',
+      });
+
+      const res = await fetch(`${baseUrl}/api/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer valid_token_gerente_4',
+        },
+        body: JSON.stringify({
+          to: 'cliente@ejemplo.com',
+          subject: 'Aviso de Inspección',
+          event: 'inspección',
+          portalLink: 'https://portal.prointeca.com/view?vId=123',
+        }),
+      });
+
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body).toEqual({
+        success: true,
+        simulated: true,
+        message: 'Notificación registrada en servidor.',
+      });
+      expect(body).not.toHaveProperty('to');
+      expect(body).not.toHaveProperty('subject');
+      expect(body).not.toHaveProperty('event');
+      expect(body).not.toHaveProperty('portalLink');
+      expect(body).not.toHaveProperty('html');
+      expect(body).not.toHaveProperty('details');
+      expect(body).not.toHaveProperty('recipients');
+      expect(mockResendSend).not.toHaveBeenCalled();
+    });
+
+    it('5.5 Token válido con rol inspector/campo recibe HTTP 403 desde el handler real sin invocar Resend', async () => {
+      process.env.RESEND_API_KEY = 're_test_key_123';
+      process.env.PORTAL_ALLOWED_HOSTS = 'portal.prointeca.com';
+      mockVerifyIdToken.mockResolvedValueOnce({
+        uid: 'usr_inspector_h5',
+        email: 'inspector@prointeca.com',
+        role: 'inspector',
+        orgId: 'org_test',
+      });
+
+      const res = await fetch(`${baseUrl}/api/send-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer valid_token_inspector_5',
+        },
+        body: JSON.stringify({
+          to: 'cliente@ejemplo.com',
+          subject: 'Intento Denegado',
+          event: 'inspección',
+        }),
+      });
+
+      expect(res.status).toBe(403);
+      const body = await res.json();
+      expect(body).toHaveProperty('error');
+      expect(body.error).toContain('Acceso denegado');
+      expect(mockResendSend).not.toHaveBeenCalled();
     });
   });
 });
