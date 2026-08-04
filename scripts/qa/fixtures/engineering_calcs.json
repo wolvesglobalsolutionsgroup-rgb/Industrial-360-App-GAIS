@@ -1,0 +1,22 @@
+[
+  {
+    "id": "qa_calc_001",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "code": "CALC-QA-ASME-B318-01",
+    "title": "Cálculo de Espesor Mínimo Tubería Gasoducto DN20 ASME B31.8 / API 5L X65",
+    "designPressure": 1440,
+    "outsideDiameter": 20.0,
+    "specifiedMinYieldStrength": 65000,
+    "longitudinalJointFactor": 1.0,
+    "temperatureDeratingFactor": 1.0,
+    "classLocationFactor": 0.6,
+    "calculatedThickness": 0.369,
+    "nominalThicknessSelected": 0.500,
+    "status": "aprobado",
+    "norm": "ASME B31.8 Ed. 2022 Sec. 841.1.1",
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  }
+]

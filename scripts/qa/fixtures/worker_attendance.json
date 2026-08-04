@@ -1,0 +1,44 @@
+[
+  {
+    "id": "qa_attend_001",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "workerId": "qa_worker_001",
+    "workerName": "Ing. Carlos Mendoza",
+    "date": "2026-08-01",
+    "status": "presente",
+    "hoursWorked": 8,
+    "frontName": "Frente San Mateo",
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  },
+  {
+    "id": "qa_attend_002",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "workerId": "qa_worker_002",
+    "workerName": "José Gregorio Silva",
+    "date": "2026-08-01",
+    "status": "presente",
+    "hoursWorked": 10,
+    "frontName": "Frente San Mateo",
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  },
+  {
+    "id": "qa_attend_003",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "workerId": "qa_worker_003",
+    "workerName": "Roberto Paredes",
+    "date": "2026-08-01",
+    "status": "presente",
+    "hoursWorked": 8,
+    "frontName": "KP 0+000 Zanjeado",
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  }
+]

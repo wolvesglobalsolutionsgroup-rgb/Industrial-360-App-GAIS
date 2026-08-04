@@ -13,6 +13,11 @@
     "test:rules": "firebase emulators:exec --only firestore \"vitest run tests/rules\"",
     "test:storage-rules": "firebase emulators:exec --only storage \"vitest run tests/storage\"",
     "test:all": "npm run test:unit && npm run test:rules && npm run test:storage-rules",
+    "qa:manifest": "tsx scripts/qa/generateManifest.ts",
+    "qa:dry-run": "tsx scripts/qa/seedQaDataset.ts --dry-run",
+    "qa:seed": "tsx scripts/qa/seedQaDataset.ts --apply",
+    "qa:reset": "tsx scripts/qa/seedQaDataset.ts --reset",
+    "test:qa": "firebase emulators:exec --only firestore \"vitest run tests/qa\"",
     "audit:no-hardcoded-tenant": "node scripts/auditNoHardcodedTenant.js",
     "validate:sprint-ledger": "node scripts/validateSprintLedger.mjs",
     "lint": "tsc --noEmit --project tsconfig.json"

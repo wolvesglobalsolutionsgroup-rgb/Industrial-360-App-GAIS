@@ -1,0 +1,30 @@
+[
+  {
+    "id": "qa_inv_001",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "itemCode": "INV-QA-TUB-20",
+    "description": "Tubería de Acero Carbono API 5L X65 DN20 Biselada (DATOS SINTÉTICOS QA)",
+    "quantity": 550,
+    "unit": "tubo (12m)",
+    "location": "Patio de Acopio Anaco KP 0+000",
+    "minStock": 100,
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  },
+  {
+    "id": "qa_inv_002",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "itemCode": "INV-QA-VALV-20",
+    "description": "Válvula de Bola 20\" ANSI 600 Extremos para Soldar (DATOS SINTÉTICOS QA)",
+    "quantity": 12,
+    "unit": "unidad",
+    "location": "Almacén Central San Mateo",
+    "minStock": 2,
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  }
+]

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "qa_env_001",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "aspectCode": "ENV-QA-001",
+    "title": "Manejo de Aceites Usados de Maquinaria Pesada [SINTÉTICO QA]",
+    "category": "desechos_peligrosos",
+    "riskLevel": "medio",
+    "mitigationPlan": "Disposición en tambores etiquetados con retiro por empresa autorizada RASDA",
+    "status": "controlado",
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  }
+]

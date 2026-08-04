@@ -1,0 +1,10 @@
+{
+  "id": "ic360-qa-pilot",
+  "name": "Constructora Río Verde S.A. (DATOS SINTÉTICOS)",
+  "taxId": "J-99999999-0",
+  "description": "Organización piloto para pruebas automatizadas y QA en entorno de desarrollo (DATOS SINTÉTICOS)",
+  "environment": "qa",
+  "isQa": true,
+  "datasetId": "DS-IC360-QA-CANONICAL",
+  "version": "v1.0.0-QA"
+}

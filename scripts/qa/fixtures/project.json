@@ -1,0 +1,16 @@
+{
+  "id": "proj-qa-anaco-001",
+  "orgId": "ic360-qa-pilot",
+  "name": "Gasoducto Anaco–Aragua DN20 · Fase II (QA)",
+  "code": "PROJ-QA-ANAC-01",
+  "description": "Gasoducto de transporte de gas natural 20 pulgadas (DATOS SINTÉTICOS DE PRUEBA ENTORNO QA)",
+  "status": "en_ejecucion",
+  "contractNumber": "CTO-2026-QA-089",
+  "budget": 2450000.00,
+  "advancePercent": 48.5,
+  "hhtCount": 18400,
+  "ownerId": "ic360-qa-pilot",
+  "isQa": true,
+  "datasetId": "DS-IC360-QA-CANONICAL",
+  "version": "v1.0.0-QA"
+}

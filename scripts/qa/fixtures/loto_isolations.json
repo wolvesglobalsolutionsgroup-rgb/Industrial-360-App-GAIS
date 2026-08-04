@@ -1,0 +1,16 @@
+[
+  {
+    "id": "qa_loto_001",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "lotoNumber": "LOTO-QA-2026-001",
+    "equipmentName": "Válvula de Seccionamiento de Entrada Estación San Mateo",
+    "isolationType": "mecánica_y_presión",
+    "lockedBy": "Ing. Miguel Ángel López (SIHO)",
+    "status": "bloqueado",
+    "lockDate": "2026-08-01",
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "id": "qa_snapshot_2026_05",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "date": "2026-05-31",
+    "periodLabel": "Mayo 2026",
+    "plannedPercent": 15.0,
+    "actualPercent": 12.0,
+    "earnedValue": 294000.00,
+    "plannedCost": 367500.00,
+    "actualCost": 310000.00,
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  },
+  {
+    "id": "qa_snapshot_2026_06",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "date": "2026-06-30",
+    "periodLabel": "Junio 2026",
+    "plannedPercent": 32.0,
+    "actualPercent": 28.5,
+    "earnedValue": 698250.00,
+    "plannedCost": 784000.00,
+    "actualCost": 715000.00,
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  },
+  {
+    "id": "qa_snapshot_2026_07",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "date": "2026-07-31",
+    "periodLabel": "Julio 2026",
+    "plannedPercent": 50.0,
+    "actualPercent": 42.0,
+    "earnedValue": 1029000.00,
+    "plannedCost": 1225000.00,
+    "actualCost": 1080000.00,
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  },
+  {
+    "id": "qa_snapshot_2026_08",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "date": "2026-08-04",
+    "periodLabel": "Agosto 2026 (Corte)",
+    "plannedPercent": 58.0,
+    "actualPercent": 48.5,
+    "earnedValue": 1188250.00,
+    "plannedCost": 1421000.00,
+    "actualCost": 1212000.00,
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  }
+]

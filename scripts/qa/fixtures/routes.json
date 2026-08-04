@@ -1,0 +1,18 @@
+[
+  {
+    "id": "qa_route_001",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "code": "RUT-QA-ANAC-01",
+    "name": "Trazado Tubería Gasoducto Anaco–San Mateo (KP 0+000 a KP 25+000)",
+    "totalKm": 25.0,
+    "points": [
+      { "kp": "KP 0+000", "lat": 9.4321, "lng": -64.4632, "description": "Estación de Salida Anaco (SINTÉTICO)" },
+      { "kp": "KP 12+500", "lat": 9.4890, "lng": -64.5120, "description": "Punto Medio Cruce de Vía (SINTÉTICO)" },
+      { "kp": "KP 25+000", "lat": 9.5412, "lng": -64.5811, "description": "Estación Trampa Receptoras San Mateo (SINTÉTICO)" }
+    ],
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  }
+]

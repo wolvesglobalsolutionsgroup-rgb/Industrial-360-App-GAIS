@@ -73,4 +73,14 @@
   - *Fase 2 (Siguiente Sprint):* Definir bloques `match /{collectionName}/{docId}` explícitos para las 30 subcolecciones inventariadas junto con esquemas de validación de campos obligatorios por tipo de entidad.
   - *Fase 3 (Hardening Final):* Eliminar el wildcard catch-all en subcolecciones de proyectos para cerrar totalmente el perímetro a únicamente la lista explícita aprobada.
 
+### D-SEC-09: Dataset QA Canónico, Sintético, Idempotente y Reseteable (Sprint A2)
+- **Decisión:** El entorno QA opera sobre un tenant fijo dedicado (`orgId: 'ic360-qa-pilot'`, `environment: 'qa'`) con datos 100% sintéticos etiquetados (`datasetId: 'DS-IC360-QA-CANONICAL'`, `version: 'v1.0.0-QA'`). Queda estrictamente prohibida la interacción o toque de organizaciones o proyectos de producción (`prointeca`, `semax_pino`, etc.).
+- **Motor de Sembrado (Dataset Engine):** Implementado en `scripts/qa/seedQaDataset.ts` con tres modos de ejecución:
+  - `--dry-run`: Lee las plantillas/fixtures en `scripts/qa/fixtures/`, valida pertenencia de subcolecciones contra la lista D-SEC-08, genera el plan de ejecución y verifica la integridad del manifest sin realizar escrituras ni llamadas de red.
+  - `--apply`: Escribe los 41 documentos sintéticos del dataset de forma idempotente (IDs deterministas) mediante Firebase Admin SDK o SDK cliente autenticado en el emulador. Registra un evento de auditoría inmutable en `/organizations/ic360-qa-pilot/audit_logs`. Re-ejecuciones sucesivas mantienen exactamente el mismo número y contenido de documentos (sin duplicación).
+  - `--reset`: Elimina exclusivamente todos los documentos pertenecientes a `ic360-qa-pilot` en Firestore. Demostrado mediante prueba automatizada en emulador que otras organizaciones de producción permanecen 100% intactas e inalteradas.
+- **Manifest e Integridad:** Todo dataset incluye un `manifest.json` que registra el hash SHA-256 acumulado de todos los datos de prueba, la versión, metadatos y el desglose exacto de conteos por colección.
+- **Visualización Obligatoria de QA Banner:** Las vistas operativas detectan automáticamente si el usuario o proyecto está en entorno QA (`ic360-qa-pilot` o `environment: 'qa'`) desplegando en la parte superior el banner distintivo de advertencia `QaBanner` y la marca de agua correspondiente en exportaciones PDF, evitando que cualquier dato sintético sea confundido con datos de ingeniería reales.
+
+
 

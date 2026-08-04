@@ -1,0 +1,62 @@
+[
+  {
+    "id": "qa_expense_001",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "description": "Suministro Tubería API 5L X65 20\" Grado B (DATOS SINTÉTICOS QA)",
+    "category": "materiales",
+    "amount": 380000.00,
+    "status": "aprobado",
+    "supplier": "Siderúrgica del Orinoco (SINTÉTICO)",
+    "invoiceNumber": "FACT-QA-2026-101",
+    "date": "2026-05-10",
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  },
+  {
+    "id": "qa_expense_002",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "description": "Alquiler Tendedero de Tubería Sideboom CAT PL87 y Maquinaria Pesada",
+    "category": "equipos",
+    "amount": 125000.00,
+    "status": "aprobado",
+    "supplier": "Alquileres Industriales Anaco (SINTÉTICO)",
+    "invoiceNumber": "FACT-QA-2026-102",
+    "date": "2026-05-20",
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  },
+  {
+    "id": "qa_expense_003",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "description": "Nómina y Viáticos Cuadrilla Soldadores Calificados API 1104",
+    "category": "mano_de_obra",
+    "amount": 85000.00,
+    "status": "aprobado",
+    "supplier": "Constructora Río Verde S.A.",
+    "invoiceNumber": "NOM-QA-2026-005",
+    "date": "2026-06-15",
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  },
+  {
+    "id": "qa_expense_004",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "description": "Consumibles de Soldadura Lincoln E7018 / E8010 y Discos de Pulir 7\"",
+    "category": "consumibles",
+    "amount": 22000.00,
+    "status": "aprobado",
+    "supplier": "Suministros Industriales Oriente (SINTÉTICO)",
+    "invoiceNumber": "FACT-QA-2026-104",
+    "date": "2026-07-02",
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  }
+]

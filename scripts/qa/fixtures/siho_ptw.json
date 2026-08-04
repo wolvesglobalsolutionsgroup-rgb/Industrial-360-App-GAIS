@@ -1,0 +1,42 @@
+[
+  {
+    "id": "qa_ptw_001",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "ptwNumber": "PTW-QA-2026-001",
+    "type": "caliente",
+    "title": "Permiso de Trabajo en Caliente - Soldadura SMAW en KP 4+200 [DATOS SINTÉTICOS QA]",
+    "location": "KP 4+200 San Mateo (Coordenadas Sintéticas)",
+    "description": "Corte, biselado y soldadura de tubería DN20. Control de atmósferas explosivas con explosímetro LEL 0%",
+    "issuer": "Ing. Miguel Ángel López (SIHO QA)",
+    "executor": "Cuadrilla Mecánica N° 1",
+    "status": "aprobado",
+    "startDate": "2026-08-01",
+    "endDate": "2026-08-05",
+    "hazards": ["Atmósfera inflamable", "Calor y proyecciones de chispas", "Cargas suspendidas"],
+    "controls": ["Monitoreo continuo de LEL y O2", "Extintor 20lb PQS en sitio", "Lona ignífuga de protección"],
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  },
+  {
+    "id": "qa_ptw_002",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "ptwNumber": "PTW-QA-2026-002",
+    "type": "espacio_confinado",
+    "title": "Permiso de Trabajo Espacio Confinado - Inspección Interna Válvula San Mateo [DATOS SINTÉTICOS QA]",
+    "location": "Estación de Válvulas San Mateo",
+    "description": "Entrada a tanquilla subterránea para verificación de sello de válvula de bola 20\"",
+    "issuer": "Ing. Miguel Ángel López (SIHO QA)",
+    "executor": "Inspector NDT CWI",
+    "status": "en_revision",
+    "startDate": "2026-08-04",
+    "endDate": "2026-08-06",
+    "hazards": ["Deficiencia de oxígeno", "Acumulación de gases pesados"],
+    "controls": ["Ventilación forzada continua", "Arnés y línea de vida", "Vigía en exterior con radio"],
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  }
+]

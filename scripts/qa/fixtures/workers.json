@@ -1,0 +1,44 @@
+[
+  {
+    "id": "qa_worker_001",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "fullName": "Ing. Carlos Mendoza",
+    "nationalId": "V-18.990.111",
+    "specialty": "Inspector CWI / QA-QC",
+    "status": "activo",
+    "qrCode": "QR-QA-WORKER-001",
+    "certifications": ["AWS CWI 1904221", "ASNT Level II UT/RX"],
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  },
+  {
+    "id": "qa_worker_002",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "fullName": "José Gregorio Silva",
+    "nationalId": "V-15.443.210",
+    "specialty": "Soldador Especialista API 1104",
+    "status": "activo",
+    "qrCode": "QR-QA-WORKER-002",
+    "certifications": ["Estampador P-884 API 1104 6G"],
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  },
+  {
+    "id": "qa_worker_003",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "fullName": "Roberto Paredes",
+    "nationalId": "V-14.112.558",
+    "specialty": "Operador de Excavadora / Maquinaria Pesada",
+    "status": "activo",
+    "qrCode": "QR-QA-WORKER-003",
+    "certifications": ["Licencia Especial Maquinaria Pesada Grado 5"],
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  }
+]

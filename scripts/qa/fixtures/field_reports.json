@@ -1,0 +1,32 @@
+[
+  {
+    "id": "qa_report_001",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "reportNumber": "REP-QA-001",
+    "date": "2026-08-01",
+    "author": "Ing. Carlos Mendoza",
+    "title": "Reporte Diario de Inspección · Frente San Mateo KP 4+200 [SINTÉTICO QA]",
+    "content": "Avanzado 180m de zanjeado en terreno arcilloso. Ejecutadas 4 juntas de soldadura API 5L X65 sin hallazgos críticos.",
+    "weather": "soleado",
+    "status": "aprobado",
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  },
+  {
+    "id": "qa_report_002",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "reportNumber": "REP-QA-002",
+    "date": "2026-08-02",
+    "author": "Ing. Carlos Mendoza",
+    "title": "Reporte Diario de Inspección · Avance Zanja y NDT KP 5+500 [SINTÉTICO QA]",
+    "content": "Prueba hidroestática preliminar en tramo corto completada a 2160 psig durante 4 horas. Presión estable.",
+    "weather": "nublado",
+    "status": "aprobado",
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  }
+]

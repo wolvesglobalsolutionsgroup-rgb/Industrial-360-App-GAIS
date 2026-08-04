@@ -1,0 +1,35 @@
+[
+  {
+    "id": "qa_valuation_001",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "valuationNumber": "VAL-QA-001",
+    "title": "Valuación N° 01 · Anticipo y Movilización Inicial",
+    "period": "Mayo 2026",
+    "totalAmount": 245000.00,
+    "netAmount": 220500.00,
+    "retentionAmount": 24500.00,
+    "status": "aprobada",
+    "submittedDate": "2026-05-28",
+    "approvalDate": "2026-06-02",
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  },
+  {
+    "id": "qa_valuation_002",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "valuationNumber": "VAL-QA-002",
+    "title": "Valuación N° 02 · Avance Físico Tramo KP 0+000 a KP 8+000",
+    "period": "Junio–Julio 2026",
+    "totalAmount": 310000.00,
+    "netAmount": 279000.00,
+    "retentionAmount": 31000.00,
+    "status": "en_revision",
+    "submittedDate": "2026-07-30",
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  }
+]

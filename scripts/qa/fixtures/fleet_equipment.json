@@ -1,0 +1,32 @@
+[
+  {
+    "id": "qa_equip_001",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "code": "EQ-QA-SB-01",
+    "name": "Tendedero de Tubería Sideboom Caterpillar PL87",
+    "type": "Tendedero / Maquinaria Pesada",
+    "serialNumber": "CAT0PL87QA001",
+    "status": "operativo",
+    "hoursCounter": 2450,
+    "lastMaintenance": "2026-07-20",
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  },
+  {
+    "id": "qa_equip_002",
+    "orgId": "ic360-qa-pilot",
+    "projectId": "proj-qa-anaco-001",
+    "code": "EQ-QA-EX-02",
+    "name": "Excavadora Hidráulica CAT 336DL",
+    "type": "Excavadora / Zanjeo",
+    "serialNumber": "CAT0336QA002",
+    "status": "operativo",
+    "hoursCounter": 3810,
+    "lastMaintenance": "2026-07-15",
+    "isQa": true,
+    "datasetId": "DS-IC360-QA-CANONICAL",
+    "version": "v1.0.0-QA"
+  }
+]
