@@ -1,17 +1,16 @@
 import { useRef, useState, useEffect } from 'react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  BarChart, Bar, Legend 
+  Legend 
 } from 'recharts';
 import { 
-  TrendingUp, DollarSign, Download, CloudRain, Loader2, 
-  ShieldCheck, Activity, LayoutDashboard, AlertTriangle, Building, HardHat, ChevronRight, BrainCircuit
+  TrendingUp, DollarSign, Download, CloudRain, 
+  ShieldCheck, Activity, LayoutDashboard, AlertTriangle, Building, ChevronRight, BrainCircuit
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
 import { collection, query, onSnapshot, where, collectionGroup } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
-import { callGeminiProxy } from '../lib/geminiProxy';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { useProject } from '../ProjectContext';
@@ -30,8 +29,6 @@ export default function Dashboard() {
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   const [isExporting, setIsExporting] = useState(false);
-  const [weatherContext, setWeatherContext] = useState<string | null>(null);
-  const [isLoadingWeather, setIsLoadingWeather] = useState(true);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [errorState, setErrorState] = useState<string | null>(null);
 
@@ -41,6 +38,7 @@ export default function Dashboard() {
   const [valuations, setValuations] = useState<any[]>([]);
   const [ptwList, setPtwList] = useState<any[]>([]);
   const [weldJoints, setWeldJoints] = useState<any[]>([]);
+  const [wbsSnapshots, setWbsSnapshots] = useState<any[]>([]);
 
   // Subscribe to Firestore Collections (Multi-tenant)
   useEffect(() => {
@@ -143,6 +141,23 @@ export default function Dashboard() {
         setWeldJoints(Array.from(uniqueMap.values()));
       }, (err) => handleFirestoreError(err, OperationType.GET, weldsPath || 'weld_joints'));
 
+      const snapshotsPath = isSingle ? `organizations/${orgId}/projects/${projId}/wbs_snapshots` : null;
+      const snapshotsQ = snapshotsPath
+        ? query(collection(db, snapshotsPath))
+        : query(collectionGroup(db, 'wbs_snapshots'), where('orgId', '==', orgId));
+
+      const unsubSnapshots = onSnapshot(snapshotsQ, (snap) => {
+        const uniqueMap = new Map<string, any>();
+        snap.docs.forEach(d => {
+          if (!uniqueMap.has(d.id)) {
+            uniqueMap.set(d.id, { id: d.id, ...d.data() });
+          }
+        });
+        const list = Array.from(uniqueMap.values());
+        list.sort((a, b) => (a.createdAt || a.date || '').localeCompare(b.createdAt || b.date || ''));
+        setWbsSnapshots(list);
+      }, (err) => handleFirestoreError(err, OperationType.GET, snapshotsPath || 'wbs_snapshots'));
+
       return () => {
         clearTimeout(timer);
         unsubTasks();
@@ -150,34 +165,13 @@ export default function Dashboard() {
         unsubValuations();
         unsubPtw();
         unsubWelds();
+        unsubSnapshots();
       };
     } catch (err: any) {
       clearTimeout(timer);
       setIsLoadingData(false);
     }
   }, [currentProject, currentOrganization]);
-
-  // Weather Context Effect
-  useEffect(() => {
-    const fetchWeatherContext = async () => {
-      try {
-        const response = await callGeminiProxy({
-          model: 'gemini-3.6-flash',
-          prompt: '¿Cuál es el clima actual y pronóstico para los próximos 3 días en la zona de operaciones petroleras e industriales de Anzoátegui, Venezuela? Responde en 2 oraciones indicando cómo podría afectar labores de construcción e ingeniería petrolera al aire libre.',
-          config: {
-            tools: [{ googleSearch: {} }]
-          }
-        });
-        setWeatherContext(response.text || "Clima no disponible");
-      } catch (error) {
-        console.warn("No se pudo obtener información de clima:", error);
-        setWeatherContext("Clima no disponible");
-      } finally {
-        setIsLoadingWeather(false);
-      }
-    };
-    fetchWeatherContext();
-  }, []);
 
   // COMPUTED METRICS
   const totalPlannedVal = tasks.reduce((sum, t) => sum + (Number(t.plannedQuantity || 0) * Number(t.unitCost || 0)), 0);
@@ -203,20 +197,18 @@ export default function Dashboard() {
     ? ((rejectedJoints.length / inspectedJoints.length) * 100).toFixed(1)
     : null;
 
-  // Real S-Curve data from tasks or empty
-  const progressData = tasks.length > 0 && physicalProgress !== null ? [
-    { name: 'Sem 1', planificado: Math.round(physicalProgress * 0.2), real: Math.round(physicalProgress * 0.18) },
-    { name: 'Sem 2', planificado: Math.round(physicalProgress * 0.45), real: Math.round(physicalProgress * 0.42) },
-    { name: 'Sem 3', planificado: Math.round(physicalProgress * 0.7), real: Math.round(physicalProgress * 0.68) },
-    { name: 'Sem 4', planificado: Math.round(physicalProgress * 0.88), real: Math.round(physicalProgress * 0.85) },
-    { name: 'Sem 5', planificado: 100, real: physicalProgress },
-  ] : [];
+  // Real S-Curve data mapped from Firestore wbs_snapshots
+  const progressData = wbsSnapshots.map(s => ({
+    name: s.name || s.week || s.date || 'Snapshot',
+    planificado: Number(s.plannedProgress ?? s.planificado ?? 0),
+    real: Number(s.actualProgress ?? s.real ?? 0),
+  }));
 
   const ptwHot = ptwList.filter(p => p.type === 'hot' || p.permitType === 'caliente' || p.title?.toLowerCase().includes('caliente')).length;
   const ptwCold = ptwList.filter(p => p.type === 'cold' || p.permitType === 'frio' || p.title?.toLowerCase().includes('frio')).length;
   const ptwIas = ptwList.filter(p => p.type === 'ias' || p.status === 'revision').length;
 
-  const isQaEnvironment = currentOrganization?.environment === 'qa' || currentOrganization?.id === 'ic360-qa-pilot';
+  const isQaEnvironment = currentOrganization?.environment === 'qa' || currentOrganization?.id === 'ic360-qa-pilot' || import.meta.env.VITE_ENVIRONMENT === 'qa';
 
   const exportToPDF = async () => {
     if (!dashboardRef.current || !currentProject) return;
@@ -287,6 +279,13 @@ export default function Dashboard() {
         className="space-y-6 pb-8 p-4 sm:p-6" 
         ref={dashboardRef}
       >
+        {isQaEnvironment && (
+          <div className="bg-red-500/10 border-2 border-red-500 rounded-xl p-3 text-center text-red-600 dark:text-red-400 font-extrabold text-xs tracking-wider uppercase flex items-center justify-center gap-2 shadow-xs">
+            <AlertTriangle size={16} className="text-red-500 shrink-0" />
+            <span>DATOS SINTÉTICOS — ENTORNO QA — NO OPERACIONAL</span>
+          </div>
+        )}
+
         {/* Page Header */}
         <PageHeader
           title={currentProject?.id === 'all' 
@@ -304,7 +303,7 @@ export default function Dashboard() {
               variant="primary" 
               onClick={exportToPDF}
               isLoading={isExporting}
-              disabled={!currentProject || tasks.length === 0}
+              disabled={!currentProject || tasks.length === 0 || physicalProgress === null || currentSpent === null}
               data-html2canvas-ignore
               leftIcon={<Download size={16} />}
             >
@@ -555,16 +554,10 @@ export default function Dashboard() {
                 <span className="text-[10px] font-mono text-ink-faint">Anzoátegui / Monagas</span>
               </CardHeader>
               <CardContent>
-                {isLoadingWeather ? (
-                  <div className="flex items-center gap-2 text-xs text-ink-soft">
-                    <Loader2 size={14} className="animate-spin text-brand-500" />
-                    <span>Cargando datos satelitales...</span>
-                  </div>
-                ) : (
-                  <p className="text-xs text-ink-soft leading-relaxed font-medium">
-                    {weatherContext || 'Clima no disponible'}
-                  </p>
-                )}
+                <EmptyState
+                  title="Clima no disponible"
+                  subtitle="Integración meteorológica pendiente."
+                />
               </CardContent>
             </Card>
 

@@ -5,7 +5,8 @@ import { Button } from './Button';
 export interface EmptyStateProps {
   icon?: React.ReactNode;
   title: string;
-  description: string;
+  description?: string;
+  subtitle?: string;
   actionLabel?: string;
   onAction?: () => void;
   secondaryAction?: React.ReactNode;
@@ -16,11 +17,13 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   icon,
   title,
   description,
+  subtitle,
   actionLabel,
   onAction,
   secondaryAction,
   className = '',
 }) => {
+  const bodyText = description || subtitle || '';
   return (
     <div className={`flex flex-col items-center justify-center p-8 sm:p-12 text-center bg-surface rounded-3xl border border-dashed border-line shadow-2xs ${className}`}>
       <div className="w-16 h-16 rounded-3xl bg-brand-500/10 text-brand-500 border border-brand-500/20 flex items-center justify-center mb-4 shadow-2xs shrink-0">
@@ -31,9 +34,11 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         {title}
       </h3>
       
-      <p className="text-xs sm:text-sm text-ink-soft mt-1.5 max-w-md font-medium leading-relaxed">
-        {description}
-      </p>
+      {bodyText && (
+        <p className="text-xs sm:text-sm text-ink-soft mt-1.5 max-w-md font-medium leading-relaxed">
+          {bodyText}
+        </p>
+      )}
 
       {(onAction || secondaryAction) && (
         <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
