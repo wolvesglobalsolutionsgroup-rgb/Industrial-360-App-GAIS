@@ -12,11 +12,14 @@ export async function sendNotificationEmail(options: SendEmailOptions): Promise<
   try {
     const auth = getAuth();
     const token = await auth.currentUser?.getIdToken();
+    if (!token) {
+      throw new Error('Sesión no autenticada. Inicia sesión para enviar notificaciones.');
+    }
     const res = await fetch('/api/send-email', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify(options)
     });

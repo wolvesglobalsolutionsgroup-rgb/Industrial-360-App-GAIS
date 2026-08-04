@@ -14,7 +14,9 @@ async function startServer() {
 
   // CORS support
   app.use((req, res, next) => {
-    const allowedOrigins = ['https://industrial-360.vercel.app', 'http://localhost:5173', 'http://localhost:3000'];
+    const allowedOrigins = (
+      process.env.CORS_ALLOWED_ORIGINS ?? 'https://industrial-360.vercel.app,http://localhost:5173,http://localhost:3000'
+    ).split(',').map(o => o.trim());
     const origin = req.headers.origin;
     if (origin && allowedOrigins.includes(origin)) {
       res.header('Access-Control-Allow-Origin', origin);
@@ -57,7 +59,7 @@ async function startServer() {
   // Resend Email API Endpoint
   app.post('/api/send-email', verifyFirebaseToken, emailLimiter, async (req, res) => {
     try {
-      const uid = (req as any).uid;
+      const uid = req.uid;
       const userDoc = await getFirestore().collection('users').doc(uid).get();
       const role = userDoc.data()?.role ?? '';
       if (!['superadmin', 'gerente'].includes(role)) {

@@ -28,7 +28,6 @@ const VoiceChat = lazy(() => import('./pages/VoiceChat'));
 const BIMViewer = lazy(() => import('./pages/BIMViewer'));
 const EngineeringTools = lazy(() => import('./pages/EngineeringTools'));
 const Settings = lazy(() => import('./pages/Settings'));
-const ModulePlaceholder = lazy(() => import('./pages/ModulePlaceholder'));
 const ProgressDetails = lazy(() => import('./pages/ProgressDetails'));
 const BudgetDetails = lazy(() => import('./pages/BudgetDetails'));
 const PersonnelDetails = lazy(() => import('./pages/PersonnelDetails'));
@@ -220,7 +219,7 @@ function AppContent() {
             <Route path="civil" element={<Navigate to="/civil-engineering" replace />} />
 
             <Route path="alerts-details" element={<AlertsDetails />} />
-            <Route path="modulos/:id" element={<ModulePlaceholder />} />
+            <Route path="modulos/:id" element={<Navigate to="/" replace />} />
             <Route path="*" element={<NotFound />} />
           </Route>
           <Route path="*" element={<NotFound />} />
