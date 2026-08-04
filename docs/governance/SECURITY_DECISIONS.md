@@ -74,13 +74,29 @@
   - *Fase 3 (Hardening Final):* Eliminar el wildcard catch-all en subcolecciones de proyectos para cerrar totalmente el perímetro a únicamente la lista explícita aprobada.
 
 ### D-SEC-09: Dataset QA Canónico, Sintético, Idempotente y Reseteable (Sprint A2)
-- **Decisión:** El entorno QA opera sobre un tenant fijo dedicado (`orgId: 'ic360-qa-pilot'`, `environment: 'qa'`) con datos 100% sintéticos etiquetados (`datasetId: 'DS-IC360-QA-CANONICAL'`, `version: 'v1.0.0-QA'`). Queda estrictamente prohibida la interacción o toque de organizaciones o proyectos de producción (`prointeca`, `semax_pino`, etc.).
+- **Decisión:** El entorno QA opera sobre un tenant fijo dedicado (`orgId: 'ic360-qa-pilot'`, `environment: 'qa'`) con datos 100% sintéticos etiquetados (`datasetId: 'DS-IC360-QA-CANONICAL'`, `version: 'v1.0.0-QA'`). Queda strictly prohibida la interacción o toque de organizaciones o proyectos de producción (`prointeca`, `semax_pino`, etc.).
 - **Motor de Sembrado (Dataset Engine):** Implementado en `scripts/qa/seedQaDataset.ts` con tres modos de ejecución:
   - `--dry-run`: Lee las plantillas/fixtures en `scripts/qa/fixtures/`, valida pertenencia de subcolecciones contra la lista D-SEC-08, genera el plan de ejecución y verifica la integridad del manifest sin realizar escrituras ni llamadas de red.
   - `--apply`: Escribe los 41 documentos sintéticos del dataset de forma idempotente (IDs deterministas) mediante Firebase Admin SDK o SDK cliente autenticado en el emulador. Registra un evento de auditoría inmutable en `/organizations/ic360-qa-pilot/audit_logs`. Re-ejecuciones sucesivas mantienen exactamente el mismo número y contenido de documentos (sin duplicación).
   - `--reset`: Elimina exclusivamente todos los documentos pertenecientes a `ic360-qa-pilot` en Firestore. Demostrado mediante prueba automatizada en emulador que otras organizaciones de producción permanecen 100% intactas e inalteradas.
 - **Manifest e Integridad:** Todo dataset incluye un `manifest.json` que registra el hash SHA-256 acumulado de todos los datos de prueba, la versión, metadatos y el desglose exacto de conteos por colección.
 - **Visualización Obligatoria de QA Banner:** Las vistas operativas detectan automáticamente si el usuario o proyecto está en entorno QA (`ic360-qa-pilot` o `environment: 'qa'`) desplegando en la parte superior el banner distintivo de advertencia `QaBanner` y la marca de agua correspondiente en exportaciones PDF, evitando que cualquier dato sintético sea confundido con datos de ingeniería reales.
+
+### D-SEC-10: Dominio de Expediente Compartido Contratista-Operador y Acceso Exterminado Acotado (Sprint E1)
+- **Corrección de Arquitectura de Competencia:** Resuelve definitivamente la falla de conceder membership global de tenant a contratistas o inspectores externos. La colaboración se rige exclusivamente por expedientes compartidos acotados (`SharedServiceRecord`) que vinculan `Contract`, `Service` y `WorkOrder` entre la organización Operadora (`ownerOrgId`) y la Contratista (`contractorOrgId`).
+- **Control de Acceso Acotado (`ExternalParticipant`):**
+  - Todo usuario externo recibe acceso estrictamente acotado a un `contractId`, `serviceId` o `workOrderId` específico.
+  - **Prohibición de Membership:** No se otorga membership global en la organización operadora (`targetOrgId`).
+  - **Verificación Multicapa:** Intentos de acceso a contratos no asignados retornan `SCOPE_MISMATCH`. Intentos de acceso a organizaciones distintas retornan `TENANT_MISMATCH`. Accesos vencidos (`now >= expiresAt`) retornan `EXPIRED`. Accesos suspendidos (`revoked === true`) retornan `REVOKED`.
+- **Máquina de Estados y Segregación de Funciones:**
+  - Ciclo de vida: `draft` → `planned` → `active` → `under_review` → `accepted` → `closed` (o `cancelled`).
+  - **Prohibición de Auto-Aprobación:** La empresa contratista o sus supervisores de campo tienen **estrictamente prohibido** mover un expediente a `accepted`. La transición de `under_review` a `accepted` es competencia exclusiva de roles autorizados de la empresa Operadora (`operador_gerente`, `operador_inspector`, `operador_cwi`).
+- **Verificación Server-Side Anti-Spoofing:**
+  - `ownerOrgId` y `contractorOrgId` se derivan e imponen server-side a partir de metadatos legítimos del contrato y claims verificados. Cualquier intento del cliente de falsificar u sobrescribir los campos `ownerOrgId` o `contractorOrgId` en el payload es detectado y rechazado inmediatamente (`spoofAttemptDetected: true`).
+- **Evidencia Mínima Obligatoria y Trazabilidad:**
+  - La activación requiere Permiso de Trabajo (PTW) o Aval SIHO. La revisión requiere Dossier de Calidad o Valuación. La aceptación requiere Dictamen CWI/NDT y motivo ≥ 10 caracteres. Toda mutación genera un `AuditEvent` inmutable.
+- **Alineación Normativa PDVSA:** Totalmente trazable contra el Manual Corporativo de Contratación PDVSA (Marzo 2024) y la Norma PDVSA SI-S-04 en `docs/domain/NORMATIVE_MATRIX.md`.
+
 
 
 

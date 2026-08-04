@@ -10,9 +10,10 @@
     "clean": "rm -rf dist",
     "test": "vitest run",
     "test:unit": "vitest run src",
+    "test:domain": "vitest run tests/domain",
     "test:rules": "firebase emulators:exec --only firestore \"vitest run tests/rules\"",
     "test:storage-rules": "firebase emulators:exec --only storage \"vitest run tests/storage\"",
-    "test:all": "npm run test:unit && npm run test:rules && npm run test:storage-rules",
+    "test:all": "npm run test:unit && npm run test:domain && npm run test:rules && npm run test:storage-rules",
     "qa:manifest": "tsx scripts/qa/generateManifest.ts",
     "qa:dry-run": "tsx scripts/qa/seedQaDataset.ts --dry-run",
     "qa:seed": "tsx scripts/qa/seedQaDataset.ts --apply",
@@ -69,7 +70,8 @@
     "resend": "^6.18.0",
     "tailwind-merge": "^3.5.0",
     "three": "^0.183.2",
-    "tokml": "0.2.2"
+    "tokml": "0.2.2",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.1",
