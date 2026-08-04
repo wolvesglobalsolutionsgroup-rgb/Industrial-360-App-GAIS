@@ -1,3 +1,5 @@
+import { getAuth } from 'firebase/auth';
+
 export interface SendEmailOptions {
   to: string | string[];
   subject: string;
@@ -8,9 +10,14 @@ export interface SendEmailOptions {
 
 export async function sendNotificationEmail(options: SendEmailOptions): Promise<{ success: boolean; message?: string }> {
   try {
+    const auth = getAuth();
+    const token = await auth.currentUser?.getIdToken();
     const res = await fetch('/api/send-email', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      },
       body: JSON.stringify(options)
     });
     const data = await res.json();

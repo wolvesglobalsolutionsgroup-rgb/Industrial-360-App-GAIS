@@ -1,3 +1,5 @@
+import { getAuth } from 'firebase/auth';
+
 export interface GeminiRequestOptions {
   prompt?: string;
   model?: string;
@@ -8,10 +10,17 @@ export interface GeminiRequestOptions {
 
 export async function callGeminiProxy(options: GeminiRequestOptions): Promise<{ text: string; raw?: any }> {
   try {
+    const auth = getAuth();
+    const token = await auth.currentUser?.getIdToken();
+    if (!token) {
+      return { text: 'Sesión no autenticada.', raw: { error: true } };
+    }
+
     const response = await fetch('/api/callGeminiProxy', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify(options),
     });

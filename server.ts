@@ -1,7 +1,10 @@
 import express from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
+import { getFirestore } from 'firebase-admin/firestore';
 import { handleGeminiProxy } from './src/lib/geminiServer';
+import { verifyFirebaseToken } from './src/middleware/verifyFirebaseToken';
+import { geminiLimiter, emailLimiter, publicLimiter } from './src/middleware/rateLimiter';
 
 async function startServer() {
   const app = express();
@@ -48,18 +51,28 @@ async function startServer() {
     }
   };
 
-  app.post('/api/gemini/proxy', proxyHandler);
-  app.post('/api/callGeminiProxy', proxyHandler);
+  app.post('/api/gemini/proxy', verifyFirebaseToken, geminiLimiter, proxyHandler);
+  app.post('/api/callGeminiProxy', verifyFirebaseToken, geminiLimiter, proxyHandler);
 
   // Resend Email API Endpoint
-  app.post('/api/send-email', async (req, res) => {
+  app.post('/api/send-email', verifyFirebaseToken, emailLimiter, async (req, res) => {
     try {
-      const { to, subject, html, event, portalLink } = req.body || {};
+      const uid = (req as any).uid;
+      const userDoc = await getFirestore().collection('users').doc(uid).get();
+      const role = userDoc.data()?.role ?? '';
+      if (!['superadmin', 'gerente'].includes(role)) {
+        return res.status(403).json({ error: 'Forbidden: rol insuficiente' });
+      }
+
+      const { to, subject, event, portalLink } = req.body || {};
       const resendApiKey = process.env.RESEND_API_KEY;
 
-      if (!to || (!html && !subject)) {
-        return res.status(400).json({ error: 'Faltan parámetros requeridos: to, subject, html' });
+      if (!to || !subject) {
+        return res.status(400).json({ error: 'Faltan parámetros requeridos: to, subject' });
       }
+
+      const safeHtml = `<p>Notificación de ${event || 'proyecto'}.</p>
+        ${portalLink ? `<p><a href="${portalLink}">Ver Portal</a></p>` : ''}`;
 
       if (resendApiKey) {
         const { Resend } = await import('resend');
@@ -68,7 +81,7 @@ async function startServer() {
           from: process.env.RESEND_FROM_EMAIL || 'Industrial Control 360 <notificaciones@industrialcontrol360.com>',
           to: Array.isArray(to) ? to : [to],
           subject: subject || 'Notificación Operativa Industrial Control 360',
-          html: html || `<p>Tiene una nueva actualización de su proyecto.</p><p><a href="${portalLink || '#'}">Acceder al Portal Cliente</a></p>`
+          html: safeHtml
         });
         return res.json({ success: true, data: emailResult });
       } else {
@@ -87,12 +100,12 @@ async function startServer() {
   });
 
   // Client Portal & Document Verification Endpoints
-  app.all('/api/get-client-portal', async (req, res) => {
+  app.all('/api/get-client-portal', publicLimiter, async (req, res) => {
     const { getClientPortal } = await import('./functions/src/index');
     await getClientPortal(req, res);
   });
 
-  app.all('/api/verify-document', async (req, res) => {
+  app.all('/api/verify-document', publicLimiter, async (req, res) => {
     const { verifyDocument } = await import('./functions/src/index');
     await verifyDocument(req, res);
   });
