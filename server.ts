@@ -6,6 +6,65 @@ import { handleGeminiProxy } from './src/lib/geminiServer';
 import { verifyFirebaseToken } from './src/middleware/verifyFirebaseToken';
 import { geminiLimiter, emailLimiter, publicLimiter } from './src/middleware/rateLimiter';
 
+export function validatePortalLink(portalLinkCandidate: unknown, uid: string = 'unknown'): { validUrl: string | null; redactReason: string | null } {
+  if (!portalLinkCandidate || typeof portalLinkCandidate !== 'string' || !portalLinkCandidate.trim()) {
+    return { validUrl: null, redactReason: null };
+  }
+
+  const rawAllowlist = process.env.PORTAL_ALLOWED_HOSTS;
+  if (!rawAllowlist || !rawAllowlist.trim()) {
+    console.log(`[AUDIT EMAIL LINK OMITTED] uid=${uid} reason=missing_allowlist ts=${new Date().toISOString()}`);
+    return { validUrl: null, redactReason: 'missing_allowlist' };
+  }
+
+  const allowedHosts = new Set(
+    rawAllowlist
+      .split(',')
+      .map(h => h.trim().toLowerCase())
+      .filter(Boolean)
+  );
+
+  if (allowedHosts.size === 0) {
+    console.log(`[AUDIT EMAIL LINK OMITTED] uid=${uid} reason=missing_allowlist ts=${new Date().toISOString()}`);
+    return { validUrl: null, redactReason: 'missing_allowlist' };
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(portalLinkCandidate);
+  } catch {
+    console.log(`[AUDIT EMAIL LINK OMITTED] uid=${uid} reason=invalid_url ts=${new Date().toISOString()}`);
+    return { validUrl: null, redactReason: 'invalid_url' };
+  }
+
+  if (parsed.protocol !== 'https:') {
+    console.log(`[AUDIT EMAIL LINK OMITTED] uid=${uid} reason=invalid_url ts=${new Date().toISOString()}`);
+    return { validUrl: null, redactReason: 'invalid_url' };
+  }
+
+  if (parsed.username || parsed.password) {
+    console.log(`[AUDIT EMAIL LINK OMITTED] uid=${uid} reason=invalid_url ts=${new Date().toISOString()}`);
+    return { validUrl: null, redactReason: 'invalid_url' };
+  }
+
+  const normalizedHost = parsed.hostname.toLowerCase();
+  if (!allowedHosts.has(normalizedHost)) {
+    console.log(`[AUDIT EMAIL LINK OMITTED] uid=${uid} reason=disallowed_host ts=${new Date().toISOString()}`);
+    return { validUrl: null, redactReason: 'disallowed_host' };
+  }
+
+  return { validUrl: parsed.toString(), redactReason: null };
+}
+
+export function escapeHtmlAttr(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 async function startServer() {
   const app = express();
   const PORT = 3000;
@@ -98,28 +157,30 @@ async function startServer() {
 
       const safeTo = Array.isArray(to) ? to.map(t => String(t).trim()) : [String(to).trim()];
       const safeSubject = String(subject).substring(0, 200);
+      const safeEvent = event ? String(event).replace(/[<>]/g, '') : 'proyecto';
 
-      const safeHtml = `<p>Notificación de ${event ? String(event).replace(/[<>]/g, '') : 'proyecto'}.</p>
-        ${portalLink ? `<p><a href="${encodeURI(String(portalLink))}">Ver Portal</a></p>` : ''}`;
+      const { validUrl } = validatePortalLink(portalLink, uid);
+
+      const safeHtml = `<p>Notificación de ${safeEvent}.</p>` +
+        (validUrl ? `\n        <p><a href="${escapeHtmlAttr(validUrl)}">Ver Portal</a></p>` : '');
 
       if (resendApiKey) {
         const { Resend } = await import('resend');
         const resend = new Resend(resendApiKey);
-        const emailResult = await resend.emails.send({
+        await resend.emails.send({
           from: process.env.RESEND_FROM_EMAIL || 'Industrial Control 360 <notificaciones@industrialcontrol360.com>',
           to: safeTo,
           subject: safeSubject,
           html: safeHtml
         });
         console.log(`[AUDIT EMAIL] uid=${uid} role=${role} orgId=${validatedOrgId} status=200 recipients=${safeTo.length} ts=${new Date().toISOString()}`);
-        return res.json({ success: true, data: emailResult });
+        return res.json({ success: true });
       } else {
-        console.log(`[AUDIT EMAIL SIMULATED] uid=${uid} role=${role} orgId=${validatedOrgId} status=200 event=${event || 'notificacion'} ts=${new Date().toISOString()}`);
+        console.log(`[AUDIT EMAIL SIMULATED] uid=${uid} role=${role} orgId=${validatedOrgId} status=200 event=${safeEvent} ts=${new Date().toISOString()}`);
         return res.json({
           success: true,
           simulated: true,
-          message: 'Notificación registrada exitosamente en servidor.',
-          details: { to: safeTo, subject: safeSubject, event }
+          message: 'Notificación registrada en servidor.'
         });
       }
     } catch (err: any) {
@@ -162,4 +223,6 @@ async function startServer() {
   });
 }
 
-startServer();
+if (process.env.NODE_ENV !== 'test' && !process.env.VITEST) {
+  startServer();
+}

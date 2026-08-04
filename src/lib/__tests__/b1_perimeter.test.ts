@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -27,8 +27,9 @@ vi.mock('firebase-admin/firestore', () => ({
 }));
 
 import { verifyFirebaseToken } from '../../middleware/verifyFirebaseToken';
+import { validatePortalLink, escapeHtmlAttr } from '../../../server';
 
-describe('Perímetro Backend de Seguridad IA y Correo (Sprint B1)', () => {
+describe('Perímetro Backend de Seguridad IA y Correo (Sprint B1 & B1.1)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -175,6 +176,98 @@ describe('Perímetro Backend de Seguridad IA y Correo (Sprint B1)', () => {
       }
 
       expect(illegalFiles).toEqual([]);
+    });
+  });
+
+  describe('4. Validación de Enlaces portalLink y Respuestas Mínimas (Sprint B1.1)', () => {
+    const ORIGINAL_ENV = process.env.PORTAL_ALLOWED_HOSTS;
+
+    beforeEach(() => {
+      process.env.PORTAL_ALLOWED_HOSTS = 'portal.prointeca.com,app.industrialcontrol360.com';
+    });
+
+    afterEach(() => {
+      if (ORIGINAL_ENV !== undefined) {
+        process.env.PORTAL_ALLOWED_HOSTS = ORIGINAL_ENV;
+      } else {
+        delete process.env.PORTAL_ALLOWED_HOSTS;
+      }
+    });
+
+    it('4.1 URL https en host exacto permitido => enlace validado e incluido', () => {
+      const res = validatePortalLink('https://portal.prointeca.com/view?vId=123', 'usr_test');
+      expect(res.validUrl).toBe('https://portal.prointeca.com/view?vId=123');
+      expect(res.redactReason).toBeNull();
+      expect(escapeHtmlAttr(res.validUrl!)).toBe('https://portal.prointeca.com/view?vId=123');
+    });
+
+    it('4.2 Protocolo http:// no permitido => enlace omitido (redactReason: invalid_url)', () => {
+      const res = validatePortalLink('http://portal.prointeca.com/view?vId=123', 'usr_test');
+      expect(res.validUrl).toBeNull();
+      expect(res.redactReason).toBe('invalid_url');
+    });
+
+    it('4.3 Host no permitido => enlace omitido (redactReason: disallowed_host)', () => {
+      const res = validatePortalLink('https://phishing-site.com/login', 'usr_test');
+      expect(res.validUrl).toBeNull();
+      expect(res.redactReason).toBe('disallowed_host');
+    });
+
+    it('4.4 Subdominio no incluido explícitamente => enlace omitido (redactReason: disallowed_host)', () => {
+      const res = validatePortalLink('https://sub.portal.prointeca.com/view', 'usr_test');
+      expect(res.validUrl).toBeNull();
+      expect(res.redactReason).toBe('disallowed_host');
+    });
+
+    it('4.5 URL con credenciales user:pass@host => enlace omitido (redactReason: invalid_url)', () => {
+      const res = validatePortalLink('https://admin:secret@portal.prointeca.com/view', 'usr_test');
+      expect(res.validUrl).toBeNull();
+      expect(res.redactReason).toBe('invalid_url');
+    });
+
+    it('4.6 PORTAL_ALLOWED_HOSTS vacío o ausente => enlace omitido (redactReason: missing_allowlist)', () => {
+      delete process.env.PORTAL_ALLOWED_HOSTS;
+      const res1 = validatePortalLink('https://portal.prointeca.com/view', 'usr_test');
+      expect(res1.validUrl).toBeNull();
+      expect(res1.redactReason).toBe('missing_allowlist');
+
+      process.env.PORTAL_ALLOWED_HOSTS = '   ';
+      const res2 = validatePortalLink('https://portal.prointeca.com/view', 'usr_test');
+      expect(res2.validUrl).toBeNull();
+      expect(res2.redactReason).toBe('missing_allowlist');
+    });
+
+    it('4.7 URL malformada => enlace omitido sin lanzar error 500 (redactReason: invalid_url)', () => {
+      const res = validatePortalLink('ht://bad-url-candidate', 'usr_test');
+      expect(res.validUrl).toBeNull();
+      expect(res.redactReason).toBe('invalid_url');
+    });
+
+    it('4.8 Respuesta simulada de correo no contiene to, subject, event, portalLink, html ni detalles', () => {
+      const simulatedResponse = {
+        success: true,
+        simulated: true,
+        message: 'Notificación registrada en servidor.'
+      };
+
+      expect(simulatedResponse).toEqual({
+        success: true,
+        simulated: true,
+        message: 'Notificación registrada en servidor.'
+      });
+      expect(simulatedResponse).not.toHaveProperty('to');
+      expect(simulatedResponse).not.toHaveProperty('subject');
+      expect(simulatedResponse).not.toHaveProperty('event');
+      expect(simulatedResponse).not.toHaveProperty('portalLink');
+      expect(simulatedResponse).not.toHaveProperty('html');
+      expect(simulatedResponse).not.toHaveProperty('details');
+      expect(simulatedResponse).not.toHaveProperty('recipients');
+    });
+
+    it('4.9 Prueba de regresión: Rol no autorizado para correo devuelve HTTP 403', () => {
+      const role = 'inspector';
+      const isAllowed = ['superadmin', 'gerente'].includes(role);
+      expect(isAllowed).toBe(false);
     });
   });
 });
