@@ -197,12 +197,8 @@ export const setUserCustomClaims = functions.https.onCall(async (data: any, cont
   await authAdmin.revokeRefreshTokens(targetUid);
 
   // 3. Determinar IP del solicitante
-  const headers = context.rawRequest?.headers || {};
-  const rawIp = headers['x-forwarded-for'] ||
-                headers['fastly-client-ip'] ||
-                headers['x-real-ip'] ||
-                context.rawRequest?.ip || 'unknown';
-  const ip = typeof rawIp === 'string' ? rawIp.split(',')[0].trim() : String(rawIp);
+  const rawIp = context.rawRequest?.ip || 'unknown';
+  const ip = typeof rawIp === 'string' ? rawIp.trim() : String(rawIp);
 
   // 4. Registrar Audit Log en /organizations/{orgId}/audit_logs
   const auditRef = dbAdmin.collection(`organizations/${orgId}/audit_logs`);
@@ -616,8 +612,8 @@ export const getClientPortal = async (req: any, res: any) => {
     }
 
     // C4 - Rate limit con clave compuesta por IP normalizada y portalId (sin req.user)
-    const rawIp = (req.headers['x-forwarded-for'] as string) || req.ip || req.connection?.remoteAddress || '127.0.0.1';
-    const normalizedIp = rawIp.split(',')[0].trim().replace(/^::ffff:/, '');
+    const rawIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+    const normalizedIp = rawIp.replace(/^::ffff:/, '').trim();
     const rateLimitKey = `${normalizedIp}_${portalId}`;
 
     const rateLimitRes = await checkRateLimit(rateLimitKey, 'getClientPortal', 30, 60000);
@@ -845,8 +841,8 @@ export const verifyDocument = async (req: any, res: any) => {
     }
 
     // C5 - Rate limit obligatorio en verifyDocument por IP normalizada y recurso
-    const rawIp = (req.headers['x-forwarded-for'] as string) || req.ip || req.connection?.remoteAddress || '127.0.0.1';
-    const normalizedIp = rawIp.split(',')[0].trim().replace(/^::ffff:/, '');
+    const rawIp = req.ip || req.connection?.remoteAddress || '127.0.0.1';
+    const normalizedIp = rawIp.replace(/^::ffff:/, '').trim();
     const rateLimitKey = `${normalizedIp}_verify_${sha256 || docId}`;
 
     const rateLimitRes = await checkRateLimit(rateLimitKey, 'verifyDocument', 30, 60000);

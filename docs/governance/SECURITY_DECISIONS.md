@@ -109,6 +109,34 @@
   - `DataStatus`: Envoltorio unificado para la gestión centralizada de estados (`loading`, `error`, `empty`, `ready`, `forbidden`).
 - **Navegación Honesta:** Las 31 rutas del catálogo de módulos (`ModulePanel.tsx`) están conectadas al 100% con páginas reales implementadas en `src/App.tsx`. Ninguna opción de menú dirige a componentes 404 o marcadores vacíos no funcionales.
 
+### D-SEC-12: Mapeo Nominal de Middleware, Trust Proxy y Endpoints Residuales (Sprint F-A)
+- **Decisión:** Mapeo explícito y nominal de middlewares de seguridad por runtime y grupo de rutas, eliminando cualquier ambigüedad sobre la protección perimetral.
+- **Runtime Express Node.js (`server.ts`)**:
+  - `app.set('trust proxy', 1)` habilitado al inicio de `createApp()` antes de cualquier middleware que evalúe IP.
+  - `/api/gemini/proxy` y `/api/callGeminiProxy` protegidos por `verifyFirebaseToken` (`src/middleware/verifyFirebaseToken.ts`) y `geminiLimiter` (`src/middleware/rateLimiter.ts`).
+  - `/api/send-email` protegido por `verifyFirebaseToken` y `emailLimiter` (`src/middleware/rateLimiter.ts`).
+  - `/api/get-client-portal` y `/api/verify-document` protegidos por `publicLimiter` (`src/middleware/rateLimiter.ts`) y delegados a Cloud Functions con verificación de hash criptográfico y rate limiting persistente en Firestore.
+- **Runtime Cloud Functions (`functions/src/index.ts`)**:
+  - Endpoints HTTPS Express (`callGeminiProxy`, `sendEmail`) protegidos por `requireAuth` (`functions/src/middleware/requireAuth.ts`) y `rateLimit` (`functions/src/middleware/rateLimit.ts`).
+  - Endpoints Callable (`setUserCustomClaims`, `createClientPortal`, `rotateClientPortalToken`, `revokeClientPortalToken`, `sealDocument`, `syncOutboxMutation`, `issueRegulatoryCode`) protegidos por `authorizeServerSideRequest` (`functions/src/middleware/authorizer.ts`).
+  - Endpoints de administración de QA (`provisionQaMembership`, `revokeQaMembership`) protegidos por verificación estricta de claim `platformAdmin === true`.
+  - Endpoints públicos (`getClientPortal`, `verifyDocument`) protegidos por `checkRateLimit` persistente en Firestore por IP normalizada y token hash.
+- **Eliminación de Falsificación de IP**: Se eliminó toda lectura manual de cabecera `x-forwarded-for`, sustituyéndola exclusivamente por `req.ip` (evaluada tras `trust proxy 1`), bloqueando cualquier intento de salto de rate limit mediante cabeceras falsificadas por el cliente.
+
+### D-SEC-13: Acción Manual Requerida en Google Cloud Console — Restricción Web de API Key (Sprint F-A)
+- **Decisión:** La clave de API de cliente Firebase (`VITE_FIREBASE_API_KEY`) debe ser restringida a nivel de infraestructura en Google Cloud Console para limitar su uso exclusivo a orígenes autorizados.
+- **Acción Manual Requerida (Google Cloud Console)**:
+  1. Ir a **Google Cloud Console** > **APIs & Services** > **Credentials**.
+  2. Seleccionar la Web API Key correspondiente al proyecto Firebase de producción.
+  3. En **Application restrictions**, seleccionar **HTTP referrers (web sites)**.
+  4. En **Website restrictions**, agregar los siguientes patrones de URL:
+     - `https://industrial-360.vercel.app/*` (Dominio de Producción en Vercel)
+     - `https://*.vercel.app/*` (Previews de deployments de Vercel)
+     - `http://localhost:3000/*` (Desarrollo local en Cloud Run / container)
+     - `http://localhost:5173/*` (Desarrollo local Vite)
+  5. En **API restrictions**, seleccionar **Restrict key** e incluir únicamente los servicios requeridos: *Identity Toolkit API*, *Firebase Management API*, *Cloud Firestore API*, *Cloud Storage API*.
+  6. Guardar cambios.
+
 
 
 

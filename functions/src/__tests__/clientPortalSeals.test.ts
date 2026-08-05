@@ -190,7 +190,7 @@ describe('S14.4 — Client Portal & Document Sealing Security Suite', () => {
         'x-forwarded-for': '192.168.1.100',
         ...headers,
       },
-      ip: '192.168.1.100',
+      ip: headers['ip'] || headers['x-forwarded-for'] || '192.168.1.100',
     };
 
     const res: any = {

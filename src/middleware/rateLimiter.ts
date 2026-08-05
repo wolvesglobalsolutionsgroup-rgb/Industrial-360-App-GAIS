@@ -1,9 +1,11 @@
 import rateLimit from 'express-rate-limit';
 
+export const getLimiterKey = (req: any): string => req.uid ?? req.ip ?? 'unknown';
+
 export const geminiLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 30,
-  keyGenerator: (req: any) => req.uid ?? req.ip ?? 'unknown',
+  keyGenerator: getLimiterKey,
   message: { error: 'Rate limit exceeded. Intenta en 1 minuto.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -12,7 +14,7 @@ export const geminiLimiter = rateLimit({
 export const emailLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 5,
-  keyGenerator: (req: any) => req.uid ?? req.ip ?? 'unknown',
+  keyGenerator: getLimiterKey,
   message: { error: 'Email rate limit exceeded.' },
   standardHeaders: true,
   legacyHeaders: false,

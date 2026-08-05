@@ -68,6 +68,8 @@ export function escapeHtmlAttr(value: string): string {
 export function createApp(): express.Express {
   const app = express();
 
+  app.set('trust proxy', 1);
+
   app.use(express.json({ limit: '25mb' }));
 
   // CORS support

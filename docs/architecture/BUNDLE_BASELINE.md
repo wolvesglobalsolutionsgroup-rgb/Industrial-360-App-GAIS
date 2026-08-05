@@ -1,0 +1,133 @@
+# Bundle Baseline Report — Industrial Control 360
+
+*Fecha de generación:* 2026-08-05
+
+| chunk | tamaño raw | tamaño gzip | fecha |
+|---|---|---|---|
+| `3d-BWLcVucl.js` | 3.62 MB (3,795,307 B) | 732.11 KB (749,677 B) | 2026-08-05 |
+| `index-zZkjL9m8.js` | 2.38 MB (2,497,102 B) | 520.82 KB (533,321 B) | 2026-08-05 |
+| `charts-BlKZ6VsS.js` | 1.13 MB (1,184,207 B) | 266.05 KB (272,435 B) | 2026-08-05 |
+| `pdf-DqeLrh3l.js` | 946.73 KB (969,456 B) | 228.94 KB (234,435 B) | 2026-08-05 |
+| `excel-BtjaKB1p.js` | 925.67 KB (947,887 B) | 251.79 KB (257,833 B) | 2026-08-05 |
+| `Chatbot-BeXpJMov.js` | 516.01 KB (528,395 B) | 110.68 KB (113,336 B) | 2026-08-05 |
+| `maps-BPhfcTBN.js` | 485.78 KB (497,439 B) | 115.21 KB (117,979 B) | 2026-08-05 |
+| `EngineeringTools-BKcboKnn.js` | 397.86 KB (407,410 B) | 54.27 KB (55,576 B) | 2026-08-05 |
+| `react-Bm2yhXAs.js` | 383.03 KB (392,221 B) | 92.78 KB (95,007 B) | 2026-08-05 |
+| `index.es-DwD7Tae7.js` | 377.73 KB (386,791 B) | 84.89 KB (86,926 B) | 2026-08-05 |
+| `QaQcWelding-CUoqeuzQ.js` | 273.95 KB (280,525 B) | 34.63 KB (35,462 B) | 2026-08-05 |
+| `Tasks-C_6HMIZ6.js` | 234.27 KB (239,894 B) | 41.46 KB (42,456 B) | 2026-08-05 |
+| `WorkerQrRegistry-5UCwEcsg.js` | 232.21 KB (237,783 B) | 42.93 KB (43,960 B) | 2026-08-05 |
+| `index-CcKV7F-v.css` | 202.81 KB (207,681 B) | 30.09 KB (30,810 B) | 2026-08-05 |
+| `SihoPtw-CwxyAgC8.js` | 197.7 KB (202,443 B) | 23.92 KB (24,491 B) | 2026-08-05 |
+| `ApuEstimation-9XDlhntG.js` | 180.01 KB (184,334 B) | 19.9 KB (20,382 B) | 2026-08-05 |
+| `IntegrityIli-CaYY3DLA.js` | 137.16 KB (140,447 B) | 17.01 KB (17,419 B) | 2026-08-05 |
+| `ProcurementInventory-BPbqppcW.js` | 134.95 KB (138,184 B) | 13.51 KB (13,833 B) | 2026-08-05 |
+| `purify.es-B6PHV2kG.js` | 115.08 KB (117,838 B) | 32.91 KB (33,695 B) | 2026-08-05 |
+| `FleetEquipment-BLCkI0Sm.js` | 107.3 KB (109,873 B) | 13.64 KB (13,968 B) | 2026-08-05 |
+| `LogisticsMap-DVo3evok.js` | 103.15 KB (105,627 B) | 18.41 KB (18,848 B) | 2026-08-05 |
+| `Valuations-Bz6NEBX0.js` | 95.29 KB (97,576 B) | 11.91 KB (12,191 B) | 2026-08-05 |
+| `CivilEngineeringRegistry-BdoX-SGr.js` | 90.66 KB (92,833 B) | 10.7 KB (10,958 B) | 2026-08-05 |
+| `PlatformOwnerConsole-BmPCRcAT.js` | 90.6 KB (92,773 B) | 13.33 KB (13,652 B) | 2026-08-05 |
+| `LotoIsolation-1LWTGeCS.js` | 87.6 KB (89,707 B) | 10.81 KB (11,065 B) | 2026-08-05 |
+| `Settings-BMedqG2a.js` | 87.35 KB (89,445 B) | 8.9 KB (9,115 B) | 2026-08-05 |
+| `InstrumentationControl-BVfwiEio.js` | 85.56 KB (87,617 B) | 10.34 KB (10,593 B) | 2026-08-05 |
+| `EnvironmentalManagement-DgI3ISar.js` | 82.76 KB (84,746 B) | 9.59 KB (9,817 B) | 2026-08-05 |
+| `FieldReports-CeY14zIX.js` | 77.86 KB (79,726 B) | 11.76 KB (12,045 B) | 2026-08-05 |
+| `ClientPortalView-DOJRJtC2.js` | 77 KB (78,845 B) | 8.36 KB (8,559 B) | 2026-08-05 |
+| `StandbyMoc-BwtVExsf.js` | 73.81 KB (75,584 B) | 10.18 KB (10,427 B) | 2026-08-05 |
+| `Dashboard-DHBW_Dir.js` | 70.43 KB (72,123 B) | 10.21 KB (10,452 B) | 2026-08-05 |
+| `DossierCompiler-Dg-oKYgt.js` | 70.02 KB (71,696 B) | 12.55 KB (12,856 B) | 2026-08-05 |
+| `ClientPortalBuilder-CzW19fVN.js` | 65.84 KB (67,417 B) | 10.6 KB (10,856 B) | 2026-08-05 |
+| `InteroperabilityEngine-CXWOAPUo.js` | 62.01 KB (63,498 B) | 9.09 KB (9,305 B) | 2026-08-05 |
+| `Landing-B71pqKCs.js` | 57.15 KB (58,524 B) | 6.71 KB (6,869 B) | 2026-08-05 |
+| `HotTapSchemes-Dd_kHm_z.js` | 57.08 KB (58,445 B) | 7.9 KB (8,092 B) | 2026-08-05 |
+| `SyncCenter-BvFmRaFk.js` | 56.95 KB (58,316 B) | 7.26 KB (7,438 B) | 2026-08-05 |
+| `Expenses-CJLe84jG.js` | 56.68 KB (58,036 B) | 9.31 KB (9,536 B) | 2026-08-05 |
+| `Projects-DZNxGw-u.js` | 46.77 KB (47,894 B) | 7.72 KB (7,909 B) | 2026-08-05 |
+| `PersonnelDetails-BzkBkKdP.js` | 38.53 KB (39,458 B) | 4.74 KB (4,853 B) | 2026-08-05 |
+| `BudgetDetails-DU1eTRXL.js` | 38.48 KB (39,405 B) | 4.56 KB (4,669 B) | 2026-08-05 |
+| `ProgressDetails-CBERAi7U.js` | 35.33 KB (36,175 B) | 4.41 KB (4,518 B) | 2026-08-05 |
+| `AlertsDetails-Dip42XOB.js` | 32.85 KB (33,634 B) | 4.21 KB (4,306 B) | 2026-08-05 |
+| `Login-Ds8zrQ80.js` | 28.14 KB (28,819 B) | 4.87 KB (4,986 B) | 2026-08-05 |
+| `Documents-ulzaOwnK.js` | 27.16 KB (27,816 B) | 4.75 KB (4,867 B) | 2026-08-05 |
+| `api1163-Lfy2cVzj.js` | 24.82 KB (25,411 B) | 7.01 KB (7,178 B) | 2026-08-05 |
+| `ProjectBrain-DV4IRknG.js` | 23.5 KB (24,065 B) | 5.22 KB (5,346 B) | 2026-08-05 |
+| `Intelligence-QObAREOq.js` | 19.36 KB (19,827 B) | 3.17 KB (3,242 B) | 2026-08-05 |
+| `Dialog-CrPoEwmp.js` | 17.3 KB (17,714 B) | 4.87 KB (4,983 B) | 2026-08-05 |
+| `GPSPicker-twIAB_ld.js` | 12.32 KB (12,612 B) | 2.36 KB (2,421 B) | 2026-08-05 |
+| `VoiceChat-DTgRjn0z.js` | 11.25 KB (11,523 B) | 2.84 KB (2,906 B) | 2026-08-05 |
+| `brandKitPresets-CmHXiOCS.js` | 10.58 KB (10,829 B) | 2.15 KB (2,198 B) | 2026-08-05 |
+| `BIMViewer-BD3vcZS5.js` | 9.56 KB (9,791 B) | 1.95 KB (1,999 B) | 2026-08-05 |
+| `fleetEquipmentRepo-Dt5j817T.js` | 9.05 KB (9,272 B) | 1.7 KB (1,738 B) | 2026-08-05 |
+| `Table-BvY6_gIz.js` | 7.72 KB (7,906 B) | 1.74 KB (1,777 B) | 2026-08-05 |
+| `pdfQualityUtils-iLJU8tA_.js` | 7.64 KB (7,825 B) | 2.37 KB (2,428 B) | 2026-08-05 |
+| `LastUpdated-CZBoJkEp.js` | 5.72 KB (5,855 B) | 1.64 KB (1,681 B) | 2026-08-05 |
+| `StatCard-7a7ppXuG.js` | 5.46 KB (5,590 B) | 1.31 KB (1,341 B) | 2026-08-05 |
+| `NotFound-D04g-hjw.js` | 4.09 KB (4,187 B) | 1.01 KB (1,032 B) | 2026-08-05 |
+| `StatusBadge-n788SU7L.js` | 3.9 KB (3,989 B) | 1.09 KB (1,120 B) | 2026-08-05 |
+| `dossierTypes-DfhEmZ4V.js` | 3.52 KB (3,601 B) | 1.43 KB (1,467 B) | 2026-08-05 |
+| `Button-sXyV3649.js` | 3.11 KB (3,188 B) | 1.07 KB (1,094 B) | 2026-08-05 |
+| `EmptyState-DU_LEf8f.js` | 2.87 KB (2,934 B) | 898 B (898 B) | 2026-08-05 |
+| `Input-D_wfbKxb.js` | 2.81 KB (2,873 B) | 959 B (959 B) | 2026-08-05 |
+| `PageHeader-7M1_NYbi.js` | 2.13 KB (2,186 B) | 600 B (600 B) | 2026-08-05 |
+| `xerParser-D_-xL5Wz.js` | 2.09 KB (2,138 B) | 836 B (836 B) | 2026-08-05 |
+| `geminiProxy-CcZgOPEO.js` | 1.72 KB (1,764 B) | 823 B (823 B) | 2026-08-05 |
+| `bc3Parser-CIplJB3k.js` | 1.67 KB (1,715 B) | 715 B (715 B) | 2026-08-05 |
+| `Card-BmNcnvC3.js` | 1.46 KB (1,499 B) | 615 B (615 B) | 2026-08-05 |
+| `useRequiredProject-BUD6sa6x.js` | 1.1 KB (1,129 B) | 463 B (463 B) | 2026-08-05 |
+| `qr-code-BNP_4vt9.js` | 1.02 KB (1,041 B) | 461 B (461 B) | 2026-08-05 |
+| `settings-2-BrxkBum3.js` | 1 KB (1,024 B) | 446 B (446 B) | 2026-08-05 |
+| `rotate-ccw--ZpTUJMW.js` | 871 B (871 B) | 400 B (400 B) | 2026-08-05 |
+| `octagon-alert-C-m14p3e.js` | 755 B (755 B) | 413 B (413 B) | 2026-08-05 |
+| `ruler-Bow3zByz.js` | 728 B (728 B) | 408 B (408 B) | 2026-08-05 |
+| `droplets-JpcoIl0_.js` | 710 B (710 B) | 442 B (442 B) | 2026-08-05 |
+| `file-spreadsheet-t5Of6_BO.js` | 707 B (707 B) | 376 B (376 B) | 2026-08-05 |
+| `volume-2-CkEu1r3I.js` | 706 B (706 B) | 436 B (436 B) | 2026-08-05 |
+| `radio-BlWJ8aIQ.js` | 680 B (680 B) | 402 B (402 B) | 2026-08-05 |
+| `key-round-6vjvMa0Y.js` | 670 B (670 B) | 420 B (420 B) | 2026-08-05 |
+| `scale-BiTZdweA.js` | 670 B (670 B) | 386 B (386 B) | 2026-08-05 |
+| `camera-C0Q6Oxf3.js` | 645 B (645 B) | 410 B (410 B) | 2026-08-05 |
+| `printer-CjXFFg-H.js` | 643 B (643 B) | 399 B (399 B) | 2026-08-05 |
+| `save-sXUbf585.js` | 637 B (637 B) | 389 B (389 B) | 2026-08-05 |
+| `trash-2-BI5ZmFh-.js` | 632 B (632 B) | 360 B (360 B) | 2026-08-05 |
+| `file-code-BY4WKb0Y.js` | 619 B (619 B) | 365 B (365 B) | 2026-08-05 |
+| `user-x-BV-upc-B.js` | 615 B (615 B) | 381 B (381 B) | 2026-08-05 |
+| `folder-open-BHeOYtBK.js` | 596 B (596 B) | 380 B (380 B) | 2026-08-05 |
+| `folder-check-DbYGyZYf.js` | 591 B (591 B) | 379 B (379 B) | 2026-08-05 |
+| `send-B1GMZMbu.js` | 591 B (591 B) | 391 B (391 B) | 2026-08-05 |
+| `award-DMYOQ8Ig.js` | 581 B (581 B) | 388 B (388 B) | 2026-08-05 |
+| `wifi-tus9Kv2V.js` | 571 B (571 B) | 350 B (350 B) | 2026-08-05 |
+| `shield-C8uj3yhy.js` | 568 B (568 B) | 381 B (381 B) | 2026-08-05 |
+| `image-Br0Guheq.js` | 567 B (567 B) | 367 B (367 B) | 2026-08-05 |
+| `calendar-DhjnWxAW.js` | 564 B (564 B) | 348 B (348 B) | 2026-08-05 |
+| `circle-alert-i0XfxcUd.js` | 562 B (562 B) | 335 B (335 B) | 2026-08-05 |
+| `compass-B8-HomWz.js` | 562 B (562 B) | 365 B (365 B) | 2026-08-05 |
+| `eye-Dvjhl0z5.js` | 559 B (559 B) | 357 B (357 B) | 2026-08-05 |
+| `file-check-JyXQrjVm.js` | 558 B (558 B) | 346 B (346 B) | 2026-08-05 |
+| `funnel-D9qRkZ1f.js` | 552 B (552 B) | 367 B (367 B) | 2026-08-05 |
+| `zap-3zd5G11a.js` | 552 B (552 B) | 363 B (363 B) | 2026-08-05 |
+| `key-W6ST_ghb.js` | 548 B (548 B) | 363 B (363 B) | 2026-08-05 |
+| `paperclip-7-av384J.js` | 535 B (535 B) | 349 B (349 B) | 2026-08-05 |
+| `wind-D8Al4KIB.js` | 528 B (528 B) | 339 B (339 B) | 2026-08-05 |
+| `pen-BNbIWcJL.js` | 525 B (525 B) | 359 B (359 B) | 2026-08-05 |
+| `download-Ek90m5ow.js` | 522 B (522 B) | 337 B (337 B) | 2026-08-05 |
+| `copy-CxIB1SbU.js` | 519 B (519 B) | 351 B (351 B) | 2026-08-05 |
+| `upload-jNuvf8F4.js` | 516 B (516 B) | 336 B (336 B) | 2026-08-05 |
+| `circle-x-CB-qEDib.js` | 499 B (499 B) | 321 B (321 B) | 2026-08-05 |
+| `info-BWC3pCBc.js` | 490 B (490 B) | 320 B (320 B) | 2026-08-05 |
+| `play-Dc5OxwuG.js` | 482 B (482 B) | 332 B (332 B) | 2026-08-05 |
+| `user-BlYuux2c.js` | 473 B (473 B) | 327 B (327 B) | 2026-08-05 |
+| `trending-down-CEThdzff.js` | 467 B (467 B) | 319 B (319 B) | 2026-08-05 |
+| `gauge-CCi1-UN5.js` | 451 B (451 B) | 315 B (315 B) | 2026-08-05 |
+| `arrow-right-DffZAqR0.js` | 450 B (450 B) | 310 B (310 B) | 2026-08-05 |
+| `Skeleton-BwwLc3cH.js` | 449 B (449 B) | 312 B (312 B) | 2026-08-05 |
+| `clock-B1JOUZcj.js` | 448 B (448 B) | 312 B (312 B) | 2026-08-05 |
+| `plus-e9yeDHtV.js` | 426 B (426 B) | 295 B (295 B) | 2026-08-05 |
+| `square-HfY7P2xf.js` | 423 B (423 B) | 295 B (295 B) | 2026-08-05 |
+| `config-DQKnJTyi.js` | 121 B (121 B) | 89 B (89 B) | 2026-08-05 |
+
+
+## Resumen de Entrada (Entrypoint)
+- **Chunk Principal (Entry point):** `index-zZkjL9m8.js`
+- **Tamaño Raw:** 2.38 MB
+- **Tamaño Gzip:** 520.82 KB

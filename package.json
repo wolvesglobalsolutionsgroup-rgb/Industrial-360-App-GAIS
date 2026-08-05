@@ -20,6 +20,7 @@
     "qa:reset": "tsx scripts/qa/seedQaDataset.ts --reset",
     "test:qa": "firebase emulators:exec --only firestore \"vitest run tests/qa\"",
     "audit:no-hardcoded-tenant": "node scripts/auditNoHardcodedTenant.js",
+    "analyze": "node scripts/analyzeBundle.mjs",
     "validate:sprint-ledger": "node scripts/validateSprintLedger.mjs",
     "lint": "tsc --noEmit --project tsconfig.json"
   },

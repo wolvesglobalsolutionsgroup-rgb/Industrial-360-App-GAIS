@@ -1,5 +1,8 @@
 name: CI Hardened Pipeline
 
+permissions:
+  contents: read
+
 on:
   push:
     branches: [ main, master, 'sprint/**' ]

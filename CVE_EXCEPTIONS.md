@@ -16,3 +16,20 @@
 - **Justificación de Arquitectura**: Los payloads de mutación en cola offline (Outbox) contienen deltas JSON parciales para entidades multi-tenant (WBS, APUs, Partes Diarios, MTRs). Al resolver conflictos visuales mediante el visor de diffs, la fusión manual de parches de objetos JSON puede recibir campos con estructuras arbitrarias creadas por el usuario en modo desconectado. Para evitar excepciones de análisis en ejecuciones cliente/servidor, se requiere un validador de esquema de parches con fallback a copia profunda sanitizada e inmutable.
 - **Estado**: ACEPTADO Y DOCUMENTADO.
 - **Manejo Dinámico**: Toda fusión de objetos JSON en el SyncCenter valida la preservación obligatoria del identificador `id`, `orgId` y `projectId`, descartando mutaciones huérfanas o incompatibles con el esquema canónico del repositorio.
+
+## CVE-FA-001: Runtime Middleware Security Mapping & Trust Proxy Enforcement
+- **Sprint**: F-A
+- **Archivos**: `server.ts`, `src/middleware/verifyFirebaseToken.ts`, `src/middleware/rateLimiter.ts`, `functions/src/index.ts`, `functions/src/middleware/requireAuth.ts`, `functions/src/middleware/authorizer.ts`, `functions/src/middleware/rateLimit.ts`
+- **Mapeo de Middleware por Runtime y Grupo de Rutas**:
+  - **Runtime Express Node.js (`server.ts`)**:
+    - `app.set('trust proxy', 1)` habilitado explícitamente en `createApp()` antes de los rate limiters.
+    - Endpoints de IA (`/api/gemini/proxy`, `/api/callGeminiProxy`) protegidos por middleware `verifyFirebaseToken` y `geminiLimiter`.
+    - Endpoint de correo (`/api/send-email`) protegido por middleware `verifyFirebaseToken` y `emailLimiter`.
+    - Endpoints públicos de portal y documentos (`/api/get-client-portal`, `/api/verify-document`) protegidos por `publicLimiter` y verificación criptográfica server-side.
+  - **Runtime Firebase Cloud Functions (`functions/src/index.ts`)**:
+    - Endpoints HTTPS Express-style (`callGeminiProxy`, `sendEmail`) protegidos por `requireAuth` y `rateLimit`.
+    - Endpoints Callables (`setUserCustomClaims`, `createClientPortal`, `rotateClientPortalToken`, `revokeClientPortalToken`, `sealDocument`, `syncOutboxMutation`, `issueRegulatoryCode`) protegidos por `authorizeServerSideRequest`.
+    - Endpoints de administración de QA (`provisionQaMembership`, `revokeQaMembership`) protegidos por verificación estricta de claim `platformAdmin === true`.
+    - Endpoints públicos (`getClientPortal`, `verifyDocument`) protegidos por `checkRateLimit` persistente en Firestore.
+- **Justificación de Arquitectura**: Garantiza la imposición de límites de tasa basados en la IP real del cliente (`req.ip`) tras el reverse proxy y elimina toda posibilidad de falsificación mediante cabeceras `X-Forwarded-For` arbitrarias.
+- **Estado**: ACEPTADO Y DOCUMENTADO.
