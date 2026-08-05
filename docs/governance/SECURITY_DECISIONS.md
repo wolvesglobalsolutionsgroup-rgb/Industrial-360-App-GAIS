@@ -137,6 +137,14 @@
   5. En **API restrictions**, seleccionar **Restrict key** e incluir únicamente los servicios requeridos: *Identity Toolkit API*, *Firebase Management API*, *Cloud Firestore API*, *Cloud Storage API*.
   6. Guardar cambios.
 
+### D-SEC-14: Consolidación de Runtime Backend Único en Cloud Functions (Sprint F-B)
+- **Decisión:** Selección de la **Opción A (Cloud Functions como Runtime Único de Producto)** para eliminar la duplicidad arquitectónica entre el servidor Express en `server.ts` y Firebase Cloud Functions en `functions/src/index.ts`, reduciendo la superficie de ataque y garantizando una restricción de costo absoluto de **$0** hasta 10 clientes.
+- **Rol Reducido de `server.ts`:** `server.ts` queda reservado exclusivamente para servir archivos estáticos del frontend React en producción (o delegación en Vercel) y responder a la comprobación de salud en `/api/health`.
+- **Consolidación de Lógica Operativa y de Seguridad:**
+  - Toda la lógica de negocio (`/api/callGeminiProxy`, `/api/send-email`, `/api/get-client-portal`, `/api/verify-document`) reside de forma centralizada en Cloud Functions (`functions/src/index.ts`).
+  - Todas las peticiones HTTPS están protegidas por middleware server-side de autenticación `requireAuth` (`functions/src/middleware/requireAuth.ts`) y rate limiting persistente en Firestore `rateLimit` (`functions/src/middleware/rateLimit.ts`).
+  - La función de correo integra sanitización server-side de enlaces mediante `validatePortalLink` (verificación de protocolo `https:`, ausencia de credenciales y coincidencia con `PORTAL_ALLOWED_HOSTS`), escape HTML `escapeHtmlAttr` y restricción de autorización por Custom Claims (`superadmin` o `gerente`), retornando payloads mínimos sanitizados.
+
 
 
 

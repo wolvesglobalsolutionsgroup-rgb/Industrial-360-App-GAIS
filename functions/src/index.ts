@@ -8,6 +8,7 @@ import { requireAuth } from './middleware/requireAuth';
 import { rateLimit, checkRateLimit } from './middleware/rateLimit';
 import { authorizeServerSideRequest } from './middleware/authorizer';
 import { logger } from './logger';
+import { validatePortalLink, escapeHtmlAttr } from '../../server';
 
 if (!getApps().length) {
   initializeApp();
@@ -105,10 +106,14 @@ export const sendEmail = async (req: any, res: any) => {
   let role = req.user?.role || '';
   const orgId = req.user?.orgId || 'unassigned';
 
-  if (!role && uid) {
-    const dbAdmin = getFirestore();
-    const userSnap = await dbAdmin.collection('users').doc(uid).get();
-    role = userSnap.data()?.role ?? '';
+  if (!role && uid && uid !== 'unknown') {
+    try {
+      const dbAdmin = getFirestore();
+      const userSnap = await dbAdmin.collection('users').doc(uid).get();
+      role = typeof userSnap?.data === 'function' ? (userSnap.data()?.role ?? '') : '';
+    } catch {
+      role = '';
+    }
   }
 
   if (!['superadmin', 'gerente'].includes(role)) {
@@ -131,7 +136,7 @@ export const sendEmail = async (req: any, res: any) => {
   try {
     const { to, subject, html, event, portalLink } = req.body || {};
 
-    if (!to || (!html && !subject)) {
+    if (!to || (!html && !subject && !portalLink)) {
       res.status(400).json({ error: 'Faltan parámetros requeridos: to, subject, html' });
       return;
     }
@@ -139,30 +144,42 @@ export const sendEmail = async (req: any, res: any) => {
     const safeTo = Array.isArray(to) ? to.map(t => String(t).trim()) : [String(to).trim()];
     const safeSubject = String(subject || 'Notificación Operativa Industrial Control 360').substring(0, 200);
 
+    const { validUrl, redactReason } = validatePortalLink(portalLink, uid);
+    let finalHtml = html;
+    if (!finalHtml) {
+      if (validUrl) {
+        const safeHref = escapeHtmlAttr(validUrl);
+        finalHtml = `<p>Tiene una nueva actualización de su proyecto.</p><p><a href="${safeHref}">Acceder al Portal Cliente</a></p>`;
+      } else {
+        finalHtml = `<p>Tiene una nueva actualización de su proyecto.</p><p>Acceda a su portal desde su panel de control habitual.</p>`;
+      }
+    }
+
     const resendApiKey = process.env.RESEND_API_KEY;
     if (resendApiKey) {
-      const { Resend } = await import('resend');
-      const resend = new Resend(resendApiKey);
+      const resendModule = await import('resend');
+      const ResendClass = resendModule.Resend || (resendModule as any).default?.Resend || (resendModule as any).default;
+      const resend = new ResendClass(resendApiKey);
       const emailResult = await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'Industrial Control 360 <notificaciones@industrialcontrol360.com>',
         to: safeTo,
         subject: safeSubject,
-        html: html || `<p>Tiene una nueva actualización de su proyecto.</p><p><a href="${portalLink || '#'}">Acceder al Portal Cliente</a></p>`
+        html: finalHtml
       });
       logger.info(`[AUDIT EMAIL FUNCTION] uid=${uid} role=${role} orgId=${orgId} status=200`);
-      res.status(200).json({ success: true, data: emailResult });
+      res.status(200).json({ success: true });
     } else {
       logger.info(`[AUDIT EMAIL FUNCTION SIMULATED] uid=${uid} role=${role} orgId=${orgId} status=200`);
       res.status(200).json({
         success: true,
         simulated: true,
-        message: 'Notificación registrada exitosamente (simulado sin RESEND_API_KEY).',
-        details: { to: safeTo, subject: safeSubject, event }
+        message: 'Notificación registrada en servidor.'
       });
     }
   } catch (err: any) {
+    console.error('DEBUG SEND EMAIL ERROR:', err);
     logger.error(`[AUDIT EMAIL FUNCTION ERROR] uid=${uid} role=${role} orgId=${orgId} status=500 msg=${err?.message?.substring(0, 100)}`);
-    res.status(500).json({ error: 'Error al procesar envío de correo.' });
+    res.status(500).json({ error: 'Error al procesar envío de correo.', debug: err?.message });
   }
 };
 

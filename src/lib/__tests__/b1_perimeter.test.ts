@@ -18,11 +18,21 @@ vi.mock('firebase-admin/auth', () => ({
 
 const mockUserDocGet = vi.fn();
 vi.mock('firebase-admin/firestore', () => ({
+  FieldValue: {
+    serverTimestamp: vi.fn(),
+  },
   getFirestore: () => ({
     collection: (coll: string) => ({
       doc: (id: string) => ({
         get: mockUserDocGet,
       }),
+    }),
+    runTransaction: vi.fn().mockImplementation(async (cb: any) => {
+      return cb({
+        get: vi.fn().mockResolvedValue({ exists: false }),
+        set: vi.fn(),
+        update: vi.fn(),
+      });
     }),
   }),
 }));
@@ -42,6 +52,7 @@ vi.mock('resend', () => {
 
 import { verifyFirebaseToken } from '../../middleware/verifyFirebaseToken';
 import { validatePortalLink, escapeHtmlAttr, createApp } from '../../../server';
+import { sendEmail } from '../../../functions/src/index';
 
 describe('Perímetro Backend de Seguridad IA y Correo (Sprint B1 & B1.1)', () => {
   beforeEach(() => {
@@ -293,6 +304,7 @@ describe('Perímetro Backend de Seguridad IA y Correo (Sprint B1 & B1.1)', () =>
 
     beforeAll(async () => {
       const app = createApp();
+      app.post('/api/send-email', sendEmail);
       await new Promise<void>((resolve) => {
         server = http.createServer(app);
         server.listen(0, '127.0.0.1', () => {
