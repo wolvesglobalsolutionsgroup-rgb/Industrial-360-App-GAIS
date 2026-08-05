@@ -3,20 +3,24 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as http from 'http';
 
+const { mockVerifyIdToken, mockUserDocGet } = vi.hoisted(() => ({
+  mockVerifyIdToken: vi.fn(),
+  mockUserDocGet: vi.fn(),
+}));
+
 // Mocks for Firebase Admin SDK
 vi.mock('firebase-admin/app', () => ({
   initializeApp: vi.fn(),
   getApps: vi.fn(() => []),
+  cert: vi.fn(),
 }));
 
-const mockVerifyIdToken = vi.fn();
 vi.mock('firebase-admin/auth', () => ({
   getAuth: () => ({
     verifyIdToken: mockVerifyIdToken,
   }),
 }));
 
-const mockUserDocGet = vi.fn();
 vi.mock('firebase-admin/firestore', () => ({
   FieldValue: {
     serverTimestamp: vi.fn(),
@@ -47,7 +51,7 @@ vi.mock('resend', () => {
       send: mockResendSend,
     };
   }
-  return { Resend };
+  return { Resend, default: { Resend } };
 });
 
 import { verifyFirebaseToken } from '../../middleware/verifyFirebaseToken';
