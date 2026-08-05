@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
 import { createServer as createViteServer } from 'vite';
 
@@ -69,7 +69,7 @@ export function createApp(): express.Express {
   app.use(express.json({ limit: '25mb' }));
 
   // CORS support
-  app.use((req, res, next) => {
+  app.use((req: Request, res: Response, next: NextFunction) => {
     const allowedOrigins = (
       process.env.CORS_ALLOWED_ORIGINS ?? 'https://industrial-360.vercel.app,http://localhost:5173,http://localhost:3000'
     ).split(',').map(o => o.trim());
@@ -82,13 +82,14 @@ export function createApp(): express.Express {
     res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     if (req.method === 'OPTIONS') {
-      return res.sendStatus(204);
+      res.sendStatus(204);
+      return;
     }
     next();
   });
 
   // Healthcheck endpoint (Unica ruta API activa en server.ts - ADR-001)
-  app.get('/api/health', (req, res) => {
+  app.get('/api/health', (req: Request, res: Response) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
@@ -136,7 +137,7 @@ async function startServer() {
   } else {
     const distPath = path.join(process.cwd(), 'dist');
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
+    app.get('*', (req: Request, res: Response) => {
       res.sendFile(path.join(distPath, 'index.html'));
     });
   }

@@ -134,7 +134,7 @@ export const sendEmail = async (req: any, res: any) => {
   if (res.headersSent) return;
 
   try {
-    const { to, subject, html, event, portalLink } = req.body || {};
+    const { to, subject, html, portalLink } = req.body || {};
 
     if (!to || (!html && !subject && !portalLink)) {
       res.status(400).json({ error: 'Faltan parámetros requeridos: to, subject, html' });
@@ -144,7 +144,7 @@ export const sendEmail = async (req: any, res: any) => {
     const safeTo = Array.isArray(to) ? to.map(t => String(t).trim()) : [String(to).trim()];
     const safeSubject = String(subject || 'Notificación Operativa Industrial Control 360').substring(0, 200);
 
-    const { validUrl, redactReason } = validatePortalLink(portalLink, uid);
+    const { validUrl } = validatePortalLink(portalLink, uid);
     let finalHtml = html;
     if (!finalHtml) {
       if (validUrl) {
@@ -160,7 +160,7 @@ export const sendEmail = async (req: any, res: any) => {
       const resendModule = await import('resend');
       const ResendClass = resendModule.Resend || (resendModule as any).default?.Resend || (resendModule as any).default;
       const resend = new ResendClass(resendApiKey);
-      const emailResult = await resend.emails.send({
+      await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'Industrial Control 360 <notificaciones@industrialcontrol360.com>',
         to: safeTo,
         subject: safeSubject,
