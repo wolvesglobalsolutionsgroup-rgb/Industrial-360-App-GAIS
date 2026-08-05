@@ -1,6 +1,15 @@
 import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import * as http from 'http';
 
+// Mock Resend para evitar llamadas de red reales en tests
+vi.mock('resend', () => ({
+  Resend: vi.fn().mockImplementation(() => ({
+    emails: {
+      send: vi.fn().mockResolvedValue({ id: 'mock_email_id' }),
+    },
+  })),
+}));
+
 // Mocks para Firebase Admin SDK
 vi.mock('firebase-admin/app', () => ({
   initializeApp: vi.fn(),

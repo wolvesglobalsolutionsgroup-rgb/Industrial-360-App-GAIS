@@ -1,6 +1,6 @@
 import rateLimit from 'express-rate-limit';
 
-export const getLimiterKey = (req: any): string => req.uid ?? req.ip ?? 'unknown';
+export const getLimiterKey = (req: any): string => req.uid ?? (typeof req.ip === 'string' ? req.ip : 'unknown');
 
 export const geminiLimiter = rateLimit({
   windowMs: 60 * 1000,
@@ -23,8 +23,9 @@ export const emailLimiter = rateLimit({
 export const publicLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 60,
-  keyGenerator: (req: any) => req.ip ?? 'unknown',
+  keyGenerator: (req: any) => typeof req.ip === 'string' ? req.ip : 'unknown',
   message: { error: 'Too many requests.' },
   standardHeaders: true,
   legacyHeaders: false,
 });
+
