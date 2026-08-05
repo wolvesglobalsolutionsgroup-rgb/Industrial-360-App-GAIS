@@ -18,11 +18,15 @@ export interface MapMarkerItem {
 
 export function convertGeoJSONToKML(geoJson: any, nameName = 'name', descriptionName = 'description'): string {
   try {
-    const kml = tokml(geoJson, {
-      name: nameName,
-      description: descriptionName
-    });
-    return kml;
+    const tokmlFn = typeof tokml === 'function' ? tokml : (tokml as any)?.default;
+    if (typeof tokmlFn === 'function') {
+      const kml = tokmlFn(geoJson, {
+        name: nameName,
+        description: descriptionName
+      });
+      return kml;
+    }
+    return generateCustomKMLFromGeoJSON(geoJson);
   } catch (err) {
     console.error("Error converting GeoJSON to KML via tokml:", err);
     // Fallback XML generator

@@ -20,6 +20,8 @@ import PortfolioNetwork from '../components/map/PortfolioNetwork';
 import { subscribeSyncStatus, syncPendingRecords, SyncStats, isBrowserOnline } from '../lib/offline/syncEngine';
 import { exportRouteToKML, exportMarkersToKML, downloadKMLFile, importKMLToGeoJSON } from '../lib/kml/kmlExporter';
 import * as turf from '@turf/turf';
+import SourceBadge from '../components/states/SourceBadge';
+import LastUpdated from '../components/states/LastUpdated';
 
 export default function LogisticsMap() {
   const { currentProject, currentOrganization } = useProject();
@@ -342,9 +344,13 @@ Ofrece una respuesta técnica, indicando rutas de acceso recomendadas, estacione
         title="Modo Campo, Mapas y GIS"
         subtitle="Mapeo satelital Leaflet, captura GPS offline, trazado de servidumbre y exportación KML (PDVSA)"
         badge={
-          <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-600 text-white px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
-            <Compass size={12} /> GIS Field Engine
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-600 text-white px-2.5 py-0.5 rounded-full flex items-center gap-1 shadow-xs">
+              <Compass size={12} /> GIS Field Engine
+            </span>
+            <SourceBadge source={currentOrganization?.environment === 'qa' ? 'qa_seed' : 'firestore'} detail="Leaflet GIS" />
+            <LastUpdated timestamp={new Date()} />
+          </div>
         }
         actions={
           <div className="flex flex-wrap gap-2">

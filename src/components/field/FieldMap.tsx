@@ -3,6 +3,14 @@ import L from 'leaflet';
 import { MapPin, Layers, Eye, Download, Navigation, Maximize2, Compass } from 'lucide-react';
 import { Button } from '../ui';
 
+function escapeHtml(text: string): string {
+  if (!text) return '';
+  return text.replace(/[&<>"']/g, (match) => {
+    const map: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return map[match] || match;
+  });
+}
+
 export interface MapMarkerData {
   id: string;
   lat: number;
@@ -226,13 +234,6 @@ export default function FieldMap({
 
         layerGroupRef.current?.addLayer(polyline);
       }
-    });
-  };
-
-  const escapeHtml = (text: string) => {
-    return text.replace(/[&<>"']/g, (match) => {
-      const map: any = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-      return map[match];
     });
   };
 
