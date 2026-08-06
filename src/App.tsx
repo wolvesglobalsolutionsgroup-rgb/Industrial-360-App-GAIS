@@ -207,12 +207,12 @@ function AppContent() {
             <Route path="worker-qr-registry" element={<WorkerQrRegistry />} />
             <Route path="personnel-qr" element={<Navigate to="/worker-qr-registry" replace />} />
 
-            <Route path="environmental-management" element={<EnvironmentalManagement />} />
+            <Route path="environmental-management" element={<WorkflowRunnerPage overrideWorkflowId="wf-048-gestion-ambiental-siho" />} />
             <Route path="environmental" element={<Navigate to="/environmental-management" replace />} />
 
             <Route path="loto-isolation" element={
               <ProtectedRoute allowedRoles={['superadmin', 'gerente', 'supervisor', 'inspector', 'campo']} moduleName="Control de Fuentes de Energía y LOTO">
-                <LotoIsolation />
+                <WorkflowRunnerPage overrideWorkflowId="wf-051-control-aislamiento-loto" />
               </ProtectedRoute>
             } />
             <Route path="loto" element={<Navigate to="/loto-isolation" replace />} />
@@ -239,7 +239,7 @@ function AppContent() {
 
             <Route path="civil-engineering" element={
               <ProtectedRoute allowedRoles={['superadmin', 'gerente', 'supervisor', 'inspector', 'campo']} moduleName="Ensayos Civiles & Suelos">
-                <CivilEngineeringRegistry />
+                <WorkflowRunnerPage overrideWorkflowId="wf-050-ensayos-civiles-suelos" />
               </ProtectedRoute>
             } />
             <Route path="civil" element={<Navigate to="/civil-engineering" replace />} />

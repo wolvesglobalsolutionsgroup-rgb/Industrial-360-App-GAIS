@@ -25,13 +25,19 @@ import {
 } from 'lucide-react';
 import { getPhaseByNumber } from '../components/navigation/phaseNavigation';
 
-export default function WorkflowRunnerPage() {
+interface WorkflowRunnerPageProps {
+  overrideWorkflowId?: string;
+}
+
+export default function WorkflowRunnerPage({ overrideWorkflowId }: WorkflowRunnerPageProps = {}) {
   ensureWorkflowsRegistered();
 
-  const { workflowId = 'wf-042-inspeccion-izaje', instanceId = 'inst-001' } = useParams<{
+  const { workflowId: paramWorkflowId = 'wf-042-inspeccion-izaje', instanceId = 'inst-001' } = useParams<{
     workflowId: string;
     instanceId: string;
   }>();
+
+  const workflowId = overrideWorkflowId || paramWorkflowId;
 
   const navigate = useNavigate();
   const { currentProject, brandKit } = useProject();
