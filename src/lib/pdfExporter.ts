@@ -1,6 +1,6 @@
-import { jsPDF } from 'jspdf';
+import { jsPDF, jsPDFOptions } from 'jspdf';
 import { DocumentViewModel } from './documentViewModel';
-import { DocumentExporter } from './documentPolicy';
+import { DocumentExporter } from './exporters/types';
 
 /**
  * Utility to convert Hex color string (e.g. '#0B2239') into RGB tuple
@@ -21,8 +21,9 @@ function hexToRgb(hexString?: string): { r: number; g: number; b: number } {
 /**
  * Creates and returns a new jsPDF instance cleanly.
  * This is the ONLY designated entrypoint for raw jsPDF instantiation in the codebase.
+ * Provided as a temporary compatibility bridge for legacy pages until complete DocumentViewModel adoption.
  */
-export function createJsPdfInstance(options?: any): jsPDF {
+export function createJsPdfInstance(options?: jsPDFOptions): jsPDF {
   return new jsPDF(
     options || {
       orientation: 'portrait',

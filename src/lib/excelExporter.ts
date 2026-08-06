@@ -2,7 +2,7 @@ import ExcelJS from 'exceljs';
 import { TakeoffItem } from '../components/engineering/QuantityTakeoff';
 import { ApuItem, calculateApuUnitCost } from './engineering/apuCalculator';
 import { DocumentViewModel, DocumentTableCell } from './documentViewModel';
-import { DocumentExporter } from './documentPolicy';
+import { DocumentExporter } from './exporters/types';
 
 /**
  * Concrete instance of DocumentExporter contract for Excel XLSX format.

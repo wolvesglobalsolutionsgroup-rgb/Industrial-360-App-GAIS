@@ -14,7 +14,7 @@ import {
   HeadingLevel
 } from 'docx';
 import { DocumentViewModel } from './documentViewModel';
-import { DocumentExporter } from './documentPolicy';
+import { DocumentExporter } from './exporters/types';
 
 /**
  * Concrete instance of DocumentExporter contract for DOCX format.
