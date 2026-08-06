@@ -308,3 +308,321 @@ export function evaluateTenantPlanLifecycle(
 
   return { updatedTenant: updated, alert };
 }
+
+// ==========================================
+// QUOTA POLICY & FINOPS GUARDRAILS EXTENSION
+// ==========================================
+
+export type QuotaOperationType =
+  | 'EXPORT_DOCUMENT'
+  | 'IA_INVOCATION'
+  | 'FIRESTORE_WRITE'
+  | 'FIRESTORE_READ'
+  | 'HEAVY_WORKFLOW';
+
+export interface OperationQuotaLimit {
+  dailyLimit: number;
+  description: string;
+}
+
+export interface OrganizationQuotaPolicy {
+  planId: string;
+  limits: Record<QuotaOperationType | string, OperationQuotaLimit>;
+}
+
+export const DEFAULT_QUOTA_POLICIES: Record<string, OrganizationQuotaPolicy> = {
+  ENTERPRISE_OIL_GAS: {
+    planId: 'ENTERPRISE_OIL_GAS',
+    limits: {
+      EXPORT_DOCUMENT: { dailyLimit: 500, description: 'Exportaciones de documentos (PDF, XLSX, DOCX, PPTX)' },
+      IA_INVOCATION: { dailyLimit: 1000, description: 'Invocaciones al proxy de IA Gemini' },
+      FIRESTORE_WRITE: { dailyLimit: 50000, description: 'Operaciones de escritura en Firestore' },
+      FIRESTORE_READ: { dailyLimit: 200000, description: 'Operaciones de lectura en Firestore' },
+      HEAVY_WORKFLOW: { dailyLimit: 100, description: 'Workflows intensivos (Dossier compilation, CPM/EVM)' },
+    },
+  },
+  PROFESSIONAL: {
+    planId: 'PROFESSIONAL',
+    limits: {
+      EXPORT_DOCUMENT: { dailyLimit: 100, description: 'Exportaciones de documentos (PDF, XLSX, DOCX, PPTX)' },
+      IA_INVOCATION: { dailyLimit: 200, description: 'Invocaciones al proxy de IA Gemini' },
+      FIRESTORE_WRITE: { dailyLimit: 10000, description: 'Operaciones de escritura en Firestore' },
+      FIRESTORE_READ: { dailyLimit: 50000, description: 'Operaciones de lectura en Firestore' },
+      HEAVY_WORKFLOW: { dailyLimit: 20, description: 'Workflows intensivos (Dossier compilation, CPM/EVM)' },
+    },
+  },
+  STANDARD: {
+    planId: 'STANDARD',
+    limits: {
+      EXPORT_DOCUMENT: { dailyLimit: 20, description: 'Exportaciones de documentos (PDF, XLSX, DOCX, PPTX)' },
+      IA_INVOCATION: { dailyLimit: 50, description: 'Invocaciones al proxy de IA Gemini' },
+      FIRESTORE_WRITE: { dailyLimit: 2000, description: 'Operaciones de escritura en Firestore' },
+      FIRESTORE_READ: { dailyLimit: 10000, description: 'Operaciones de lectura en Firestore' },
+      HEAVY_WORKFLOW: { dailyLimit: 5, description: 'Workflows intensivos (Dossier compilation, CPM/EVM)' },
+    },
+  },
+};
+
+/**
+ * Error de Dominio para Exceso de Cuota FinOps
+ */
+export class QuotaExceededError extends Error {
+  public readonly name = 'QuotaExceededError';
+  public readonly operation: string;
+  public readonly limit: number;
+  public readonly currentUsage: number;
+  public readonly orgId: string;
+  public readonly recoverable: boolean;
+
+  constructor(params: {
+    operation: string;
+    limit: number;
+    currentUsage: number;
+    orgId: string;
+    message?: string;
+    recoverable?: boolean;
+  }) {
+    const msg =
+      params.message ||
+      `Cuota excedida para la operación '${params.operation}' en la organización '${params.orgId}'. Límite diario: ${params.limit}, Uso actual: ${params.currentUsage}.`;
+    super(msg);
+    this.operation = params.operation;
+    this.limit = params.limit;
+    this.currentUsage = params.currentUsage;
+    this.orgId = params.orgId;
+    this.recoverable = params.recoverable ?? true;
+    Object.setPrototypeOf(this, QuotaExceededError.prototype);
+  }
+}
+
+// Registro interno en memoria para consumo de cuotas por tenant/operación
+const quotaUsageMap = new Map<string, number>();
+const customPolicyMap = new Map<string, OrganizationQuotaPolicy>();
+
+function buildQuotaUsageKey(orgId: string, operation: string, userId?: string): string {
+  return userId ? `${orgId}:${userId}:${operation}` : `${orgId}:${operation}`;
+}
+
+export function getQuotaUsage(orgId: string, operation: QuotaOperationType | string, userId?: string): number {
+  const key = buildQuotaUsageKey(orgId, operation, userId);
+  return quotaUsageMap.get(key) || 0;
+}
+
+export function recordQuotaUsage(
+  orgId: string,
+  operation: QuotaOperationType | string,
+  amount: number = 1,
+  userId?: string
+): number {
+  const key = buildQuotaUsageKey(orgId, operation, userId);
+  const current = quotaUsageMap.get(key) || 0;
+  const updated = current + amount;
+  quotaUsageMap.set(key, updated);
+  return updated;
+}
+
+export function resetQuotaUsage(orgId?: string, operation?: string): void {
+  if (!orgId) {
+    quotaUsageMap.clear();
+    customPolicyMap.clear();
+    return;
+  }
+  if (operation) {
+    const key = buildQuotaUsageKey(orgId, operation);
+    quotaUsageMap.delete(key);
+    return;
+  }
+  for (const key of Array.from(quotaUsageMap.keys())) {
+    if (key.startsWith(`${orgId}:`)) {
+      quotaUsageMap.delete(key);
+    }
+  }
+}
+
+export function setCustomQuotaPolicy(orgId: string, policy: OrganizationQuotaPolicy): void {
+  customPolicyMap.set(orgId, policy);
+}
+
+export function getQuotaPolicy(orgId: string, planId?: string): OrganizationQuotaPolicy {
+  if (customPolicyMap.has(orgId)) {
+    return customPolicyMap.get(orgId)!;
+  }
+  const effectivePlan = planId && DEFAULT_QUOTA_POLICIES[planId] ? planId : 'STANDARD';
+  return DEFAULT_QUOTA_POLICIES[effectivePlan];
+}
+
+export interface QuotaCheckOptions {
+  orgId: string;
+  operation: QuotaOperationType | string;
+  planId?: string;
+  userId?: string;
+  increment?: number;
+  throwOnExceeded?: boolean;
+  customLimit?: number;
+}
+
+export interface QuotaCheckResult {
+  allowed: boolean;
+  operation: string;
+  limit: number;
+  currentUsage: number;
+  newUsage: number;
+  remaining: number;
+  orgId: string;
+  thresholdPercent: number;
+  thresholdReached?: '50%' | '80%' | '95%' | '100%';
+  alert?: FinOpsAlert;
+}
+
+/**
+ * Valida si una operación respeta la política de cuota de la organización.
+ * Si increment > 0 y la operación es permitida, actualiza el registro de consumo.
+ * Si throwOnExceeded === true y la cuota se excede, lanza QuotaExceededError.
+ */
+export function checkQuota(options: QuotaCheckOptions): QuotaCheckResult {
+  const {
+    orgId,
+    operation,
+    planId,
+    userId,
+    increment = 0,
+    throwOnExceeded = false,
+    customLimit,
+  } = options;
+
+  const policy = getQuotaPolicy(orgId, planId);
+  const opLimitInfo = policy.limits[operation];
+  
+  // Si no hay límite explícito para la operación, se usa un fallback seguro
+  const limit = customLimit ?? (opLimitInfo ? opLimitInfo.dailyLimit : 100);
+
+  const currentUsage = getQuotaUsage(orgId, operation, userId);
+  const proposedUsage = currentUsage + increment;
+  const allowed = proposedUsage <= limit;
+
+  let thresholdReached: '50%' | '80%' | '95%' | '100%' | undefined;
+  let alert: FinOpsAlert | undefined;
+
+  const thresholdPercent = limit > 0 ? Math.round((proposedUsage / limit) * 100) : 100;
+
+  if (!allowed) {
+    thresholdReached = '100%';
+    alert = {
+      id: `alt-quota-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      orgId,
+      orgName: orgId,
+      metric: `QUOTA_${operation}`,
+      thresholdPercent: 100,
+      severity: 'critical',
+      message: `Cuota diaria excedida para la operación ${operation}. Límite: ${limit}, Solicitado: ${proposedUsage}.`,
+      triggeredAt: new Date().toISOString(),
+    };
+  } else if (thresholdPercent >= 95) {
+    thresholdReached = '95%';
+    alert = {
+      id: `alt-quota-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      orgId,
+      orgName: orgId,
+      metric: `QUOTA_${operation}`,
+      thresholdPercent: 95,
+      severity: 'critical',
+      message: `Consumo crítico de cuota (${thresholdPercent}%) para ${operation}. Límite diario: ${limit}.`,
+      triggeredAt: new Date().toISOString(),
+    };
+  } else if (thresholdPercent >= 80) {
+    thresholdReached = '80%';
+    alert = {
+      id: `alt-quota-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+      orgId,
+      orgName: orgId,
+      metric: `QUOTA_${operation}`,
+      thresholdPercent: 80,
+      severity: 'warning',
+      message: `Consumo alto de cuota (${thresholdPercent}%) para ${operation}. Límite diario: ${limit}.`,
+      triggeredAt: new Date().toISOString(),
+    };
+  } else if (thresholdPercent >= 50) {
+    thresholdReached = '50%';
+  }
+
+  if (allowed && increment > 0) {
+    recordQuotaUsage(orgId, operation, increment, userId);
+  }
+
+  const result: QuotaCheckResult = {
+    allowed,
+    operation,
+    limit,
+    currentUsage,
+    newUsage: allowed ? proposedUsage : currentUsage,
+    remaining: Math.max(0, limit - (allowed ? proposedUsage : currentUsage)),
+    orgId,
+    thresholdPercent,
+    thresholdReached,
+    alert,
+  };
+
+  if (!allowed && throwOnExceeded) {
+    throw new QuotaExceededError({
+      operation,
+      limit,
+      currentUsage,
+      orgId,
+      message: `Cuota excedida para la operación '${operation}' en la organización '${orgId}'. Límite diario: ${limit}, Uso actual: ${currentUsage}.`,
+    });
+  }
+
+  return result;
+}
+
+// Guardas helper directas para invocaciones rápidas
+export function guardExportDocument(orgId: string, planId?: string, count: number = 1): QuotaCheckResult {
+  return checkQuota({
+    orgId,
+    operation: 'EXPORT_DOCUMENT',
+    planId,
+    increment: count,
+    throwOnExceeded: true,
+  });
+}
+
+export function guardIaInvocation(orgId: string, planId?: string, count: number = 1): QuotaCheckResult {
+  return checkQuota({
+    orgId,
+    operation: 'IA_INVOCATION',
+    planId,
+    increment: count,
+    throwOnExceeded: true,
+  });
+}
+
+export function guardHeavyWorkflow(orgId: string, planId?: string, count: number = 1): QuotaCheckResult {
+  return checkQuota({
+    orgId,
+    operation: 'HEAVY_WORKFLOW',
+    planId,
+    increment: count,
+    throwOnExceeded: true,
+  });
+}
+
+export function guardFirestoreWrite(orgId: string, count: number = 1, planId?: string): QuotaCheckResult {
+  return checkQuota({
+    orgId,
+    operation: 'FIRESTORE_WRITE',
+    planId,
+    increment: count,
+    throwOnExceeded: true,
+  });
+}
+
+export function guardFirestoreRead(orgId: string, count: number = 1, planId?: string): QuotaCheckResult {
+  return checkQuota({
+    orgId,
+    operation: 'FIRESTORE_READ',
+    planId,
+    increment: count,
+    throwOnExceeded: true,
+  });
+}
+
