@@ -199,7 +199,7 @@ export default function Tasks() {
       }
       setLoading(false);
       clearTimeout(timer);
-    });
+    }, { limitCount: 50 });
 
     return () => {
       clearTimeout(timer);

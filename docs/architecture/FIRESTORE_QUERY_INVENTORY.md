@@ -1,17 +1,17 @@
 # Inventario de Consultas Firestore — Industrial Control 360
 
 *Fecha de auditoría:* 2026-08-06  
-*Sprint:* F-C — Firestore, Índices y Bundle  
+*Sprint:* F-C-bis — Cierre de Límite Global de Consultas Firestore (Sprint FinOps F-C-bis)
 
 ## 1. Resumen Ejecutivo
 
-Este documento contiene el inventario exhaustivo de todas las consultas directas a Firestore (`onSnapshot()` y `getDocs()`) identificadas en los repositorios (`src/lib/repositories/*Repo.ts`) y páginas de la aplicación (`src/pages/*.tsx`).
+Este documento contiene el inventario exhaustivo de todas las consultas a Firestore (`onSnapshot()`, `getDocs()` y suscripciones a repositorios) identificadas en los repositorios (`src/lib/repositories/*Repo.ts`) y páginas de la aplicación (`src/pages/*.tsx`).
 
-### Métricas Clave y Estado FinOps (Sprint F-C):
-- **Capa Base de Repositorios:** `BaseRepository` implementa `getPaginated()` con soporte obligatorio de filtro `orgId`, ordenamiento y paginación con `limit(<=50)` + cursor `startAfter()`.
-- **Topes de Consultas de Repositorio:** 100% de los métodos de repositorio (`getAll`, `subscribe`, `getHorometerLogs`, `getFuelLogs`) aplican un `limit(<=50)` duro e inviolable para prevenir lecturas ilimitadas.
-- **Índices Compuestos:** Se creó `firestore.indexes.json` con soporte para consultas compuestas multitarget por `orgId`, `phase`, `status`, `createdAt` y `workflowId`, enlazado en `firebase.json`.
-- **Conclusión de Riesgo de Costos FinOps:** Riesgo mitigado exitosamente. La capa de repositorios garantiza la restricción inviolable de costo incremental $0 dentro de los límites del Spark Plan.
+### Métricas Clave y Estado FinOps (Sprint F-C-bis):
+- **Capa Base de Repositorios:** `BaseRepository` implementa `getPaginated()` y `subscribe()` con filtro obligatorio `orgId`, ordenamiento y paginación acotada con `limit(<=50)`.
+- **Topes de Consultas de Repositorio:** 100% de las suscripciones y consultas de páginas en `src/pages/*.tsx` utilizan repositorios con `{ limitCount: 50 }` o consultas acotadas con `limit(50)`.
+- **Listeners ilimitados en `src/pages/*.tsx`:** 0 (Reducido de 32 listeners/queries ilimitados a 0 en Sprint F-C / F-C-bis).
+- **Conclusión de Riesgo de Costos FinOps:** Riesgo de lecturas ilimitadas completamente mitigado. La capa de interfaz y repositorios garantiza la restricción inviolable de costo incremental $0 dentro de los límites del Spark Plan.
 
 ---
 
@@ -30,39 +30,48 @@ Este documento contiene el inventario exhaustivo de todas las consultas directas
 
 | archivo | método | colección | realtime sí/no | filtro organizationId | orderBy | limit | cursor | riesgo de costo (crece sin techo sí/no) |
 |---|---|---|---|---|---|---|---|---|
-| `src/pages/AlertsDetails.tsx` | `onSnapshot` | `alerts` (`organizations/{orgId}/projects/{projId}/alerts`) | sí | sí (jerarquía path) | no | no | no | sí |
-| `src/pages/ApuEstimation.tsx` | `onSnapshot` | `apu_items` (`organizations/{orgId}/projects/{projId}/apu_items`) | sí | sí (jerarquía path) | no | no | no | sí |
-| `src/pages/BudgetDetails.tsx` | `onSnapshot` | `expenses` (`organizations/{orgId}/projects/{projId}/expenses`) | sí | sí (jerarquía path) | no | no | no | sí |
-| `src/pages/BudgetDetails.tsx` | `onSnapshot` | `valuations` (`organizations/{orgId}/projects/{projId}/valuations`) | sí | sí (jerarquía path) | no | no | no | sí |
-| `src/pages/CivilEngineeringRegistry.tsx` | `onSnapshot` | `civil_structures` (`organizations/{orgId}/projects/{projId}/civil_structures`) | sí | sí (jerarquía path) | no | no | no | sí |
-| `src/pages/ClientPortalBuilder.tsx` | `onSnapshot` | `client_portals` | sí | no | no | no | no | sí |
-| `src/pages/ClientPortalView.tsx` | `onSnapshot` | `dossiers` (collectionGroup) | sí | sí (`where('orgId', '==', orgId)`) | no | no | no | sí |
-| `src/pages/Dashboard.tsx` | `onSnapshot` | `tasks` (collectionGroup) | sí | sí (`where('orgId', '==', orgId)`) | no | no | no | sí |
-| `src/pages/Dashboard.tsx` | `onSnapshot` | `expenses` (collectionGroup) | sí | sí (`where('orgId', '==', orgId)`) | no | no | no | sí |
-| `src/pages/Dashboard.tsx` | `onSnapshot` | `valuations` (collectionGroup) | sí | sí (`where('orgId', '==', orgId)`) | no | no | no | sí |
-| `src/pages/Dashboard.tsx` | `onSnapshot` | `siho_ptw` (collectionGroup) | sí | sí (`where('orgId', '==', orgId)`) | no | no | no | sí |
-| `src/pages/Dashboard.tsx` | `onSnapshot` | `weld_joints` (collectionGroup) | sí | sí (`where('orgId', '==', orgId)`) | no | no | no | sí |
-| `src/pages/Dashboard.tsx` | `onSnapshot` | `daily_snapshots` (collectionGroup) | sí | sí (`where('orgId', '==', orgId)`) | no | no | no | sí |
-| `src/pages/EnvironmentalManagement.tsx` | `onSnapshot` | `environmental_aspects` (`organizations/{orgId}/projects/{projId}/environmental_aspects`) | sí | sí (jerarquía path) | no | no | no | sí |
-| `src/pages/EnvironmentalManagement.tsx` | `onSnapshot` | `rasda_manifests` (`organizations/{orgId}/projects/{projId}/rasda_manifests`) | sí | sí (jerarquía path) | no | no | no | sí |
-| `src/pages/EnvironmentalManagement.tsx` | `onSnapshot` | `environmental_inspections` (`organizations/{orgId}/projects/{projId}/environmental_inspections`) | sí | sí (jerarquía path) | no | no | no | sí |
-| `src/pages/HotTapSchemes.tsx` | `onSnapshot` | `hot_taps` (`organizations/{orgId}/projects/{projId}/hot_taps` / collectionGroup) | sí | sí (jerarquía path / orgId) | no | no | no | sí |
-| `src/pages/InstrumentationControl.tsx` | `onSnapshot` | `instrument_loops` (`organizations/{orgId}/projects/{projId}/instrument_loops`) | sí | sí (jerarquía path) | no | no | no | sí |
-| `src/pages/LotoIsolation.tsx` | `onSnapshot` | `loto_isolations` (`organizations/{orgId}/projects/{projId}/loto_isolations`) | sí | sí (jerarquía path) | no | no | no | sí |
-| `src/pages/PersonnelDetails.tsx` | `onSnapshot` | `workers` (`organizations/{orgId}/projects/{projId}/workers`) | sí | sí (jerarquía path) | no | no | no | sí |
-| `src/pages/PersonnelDetails.tsx` | `onSnapshot` | `worker_attendance` (`organizations/{orgId}/projects/{projId}/worker_attendance`) | sí | sí (jerarquía path) | no | no | no | sí |
-| `src/pages/PlatformOwnerConsole.tsx` | `getDocs` | `organizations` | no | no | no | no | no | sí |
-| `src/pages/ProcurementInventory.tsx` | `onSnapshot` | `procurement` (collectionGroup) | sí | sí (`where('orgId', '==', orgId)`) | no | no | no | sí |
-| `src/pages/ProcurementInventory.tsx` | `onSnapshot` | `inventory` (collectionGroup) | sí | sí (`where('orgId', '==', orgId)`) | no | no | no | sí |
-| `src/pages/ProgressDetails.tsx` | `onSnapshot` | `tasks` (`organizations/{orgId}/projects/{projId}/tasks`) | sí | sí (jerarquía path) | no | no | no | sí |
-| `src/pages/ProgressDetails.tsx` | `onSnapshot` | `field_reports` (`organizations/{orgId}/projects/{projId}/field_reports`) | sí | sí (jerarquía path) | no | no | no | sí |
-| `src/pages/Projects.tsx` | `onSnapshot` | `projects` (`organizations/{orgId}/projects`) | sí | sí (jerarquía path) | no | no | no | sí |
-| `src/pages/StandbyMoc.tsx` | `onSnapshot` | `standby_claims` (`organizations/{orgId}/projects/{projId}/standby_claims`) | sí | sí (jerarquía path) | no | no | no | sí |
-| `src/pages/StandbyMoc.tsx` | `onSnapshot` | `moc_requests` (`organizations/{orgId}/projects/{projId}/moc_requests`) | sí | sí (jerarquía path) | no | no | no | sí |
-| `src/pages/Tasks.tsx` | `onSnapshot` | `tasks` (`organizations/{orgId}/projects/{projId}/tasks` / collectionGroup) | sí | sí (jerarquía path / orgId) | no | no | no | sí |
-| `src/pages/Valuations.tsx` | `getDocs` | `tasks` | no | no (`where('projectId', '==', projId)`) | no | no | no | sí |
-| `src/pages/WorkerQrRegistry.tsx` | `onSnapshot` | `workers` (`organizations/{orgId}/projects/{projId}/workers`) | sí | sí (jerarquía path) | no | no | no | sí |
-| `src/pages/WorkerQrRegistry.tsx` | `onSnapshot` | `worker_attendance` (`organizations/{orgId}/projects/{projId}/worker_attendance`) | sí | sí (jerarquía path) | no | no | no | sí |
+| `src/pages/AlertsDetails.tsx` | `alertsRepo.subscribe` | `alerts` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/ApuEstimation.tsx` | `apusRepo.subscribe` | `apus` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/BudgetDetails.tsx` | `expensesRepo.subscribe` | `expenses` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/BudgetDetails.tsx` | `valuationsRepo.subscribe` | `valuations` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/CivilEngineeringRegistry.tsx` | `civilStructuresRepo.subscribe` | `civil_tests` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/ClientPortalBuilder.tsx` | `clientPortalsRepo.subscribe` | `client_portals` | sí | sí (`orgId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/ClientPortalView.tsx` | `dossiersRepo.subscribe` | `dossier_compilations` | sí | sí (`orgId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/Dashboard.tsx` | `tasksRepo.subscribe` | `tasks` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/Dashboard.tsx` | `expensesRepo.subscribe` | `expenses` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/Dashboard.tsx` | `valuationsRepo.subscribe` | `valuations` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/Dashboard.tsx` | `sihoPtwRepo.subscribe` | `siho_ptw` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/Dashboard.tsx` | `weldJointsRepo.subscribe` | `weld_joints` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/Dashboard.tsx` | `wbsSnapshotsRepo.subscribe` | `wbs_snapshots` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/Documents.tsx` | `documentsRepo.subscribe` | `documents` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/EnvironmentalManagement.tsx` | `environmentalAspectsRepo.subscribe` | `environmental_aspects` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/EnvironmentalManagement.tsx` | `rasdaManifestsRepo.subscribe` | `rasda_manifests` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/EnvironmentalManagement.tsx` | `environmentalInspectionsRepo.subscribe` | `environmental_inspections` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/Expenses.tsx` | `expensesRepo.subscribe` | `expenses` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/FieldReports.tsx` | `tasksRepo.subscribe` | `tasks` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/FieldReports.tsx` | `fieldReportsRepo.subscribe` | `field_reports` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/FleetEquipment.tsx` | `fleetEquipmentRepo.subscribe` | `fleet_equipment` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/HotTapSchemes.tsx` | `hotTapsRepo.subscribe` | `hot_tap_interventions` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/InstrumentationControl.tsx` | `instrumentLoopsRepo.subscribe` | `instrument_loops` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/LotoIsolation.tsx` | `lotoIsolationsRepo.subscribe` | `loto_isolations` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/PersonnelDetails.tsx` | `workersRepo.subscribe` | `workers` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/PersonnelDetails.tsx` | `workerAttendanceRepo.subscribe` | `worker_attendance` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/PlatformOwnerConsole.tsx` | `getDocs` | `organizations` | no | no | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/ProcurementInventory.tsx` | `procurementRepo.subscribe` | `procurement` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/ProcurementInventory.tsx` | `inventoryRepo.subscribe` | `inventory` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/ProgressDetails.tsx` | `tasksRepo.subscribe` | `tasks` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/ProgressDetails.tsx` | `fieldReportsRepo.subscribe` | `field_reports` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/Projects.tsx` | `projectsRepo.subscribe` | `projects` | sí | sí (`orgId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/QaQcWelding.tsx` | `weldJointsRepo.subscribe` | `weld_joints` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/SihoPtw.tsx` | `sihoPtwRepo.subscribe` | `siho_ptw` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/StandbyMoc.tsx` | `standbyClaimsRepo.subscribe` | `standby_claims` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/StandbyMoc.tsx` | `mocRequestsRepo.subscribe` | `moc_requests` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/Tasks.tsx` | `tasksRepo.subscribe` | `tasks` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/Valuations.tsx` | `valuationsRepo.subscribe` | `valuations` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/Valuations.tsx` | `fieldReportsRepo.subscribe` | `field_reports` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/Valuations.tsx` | `tasksRepo.getPaginated` | `tasks` | no | sí (`orgId` / `projectId`) | sí (`createdAt`) | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/WorkerQrRegistry.tsx` | `workersRepo.subscribe` | `workers` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
+| `src/pages/WorkerQrRegistry.tsx` | `workerAttendanceRepo.subscribe` | `worker_attendance` | sí | sí (`orgId` / `projectId`) | no | sí (`<= 50`) | no | **no (acotado)** |
 
 ---
 
