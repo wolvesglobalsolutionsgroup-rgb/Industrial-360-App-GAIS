@@ -1,4 +1,4 @@
-import { collection, addDoc, getDocs, query, orderBy } from 'firebase/firestore';
+import { collection, addDoc, getDocs, query, orderBy, limit } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { BaseRepository } from './baseRepo';
 import { FleetEquipmentItem, HorometerLogEntry, FuelLogEntry } from './types';
@@ -43,11 +43,12 @@ export class FleetEquipmentRepository extends BaseRepository<FleetEquipmentItem>
   /**
    * Get horometer logs for an equipment
    */
-  async getHorometerLogs(orgId: string, projectId: string, equipmentId: string): Promise<HorometerLogEntry[]> {
+  async getHorometerLogs(orgId: string, projectId: string, equipmentId: string, maxLimit = 50): Promise<HorometerLogEntry[]> {
     if (!orgId || !projectId || !equipmentId) return [];
+    const safeLimit = Math.min(Math.max(maxLimit, 1), 50);
     const path = `organizations/${orgId}/projects/${projectId}/fleet_equipment/${equipmentId}/horometer_logs`;
     try {
-      const snap = await getDocs(query(collection(db, path), orderBy('createdAt', 'desc')));
+      const snap = await getDocs(query(collection(db, path), orderBy('createdAt', 'desc'), limit(safeLimit)));
       return snap.docs.map(d => ({ id: d.id, ...d.data() } as HorometerLogEntry));
     } catch (err) {
       handleFirestoreError(err, OperationType.GET, `fleet_equipment/${equipmentId}/horometer_logs`);
@@ -90,11 +91,12 @@ export class FleetEquipmentRepository extends BaseRepository<FleetEquipmentItem>
   /**
    * Get fuel logs for an equipment
    */
-  async getFuelLogs(orgId: string, projectId: string, equipmentId: string): Promise<FuelLogEntry[]> {
+  async getFuelLogs(orgId: string, projectId: string, equipmentId: string, maxLimit = 50): Promise<FuelLogEntry[]> {
     if (!orgId || !projectId || !equipmentId) return [];
+    const safeLimit = Math.min(Math.max(maxLimit, 1), 50);
     const path = `organizations/${orgId}/projects/${projectId}/fleet_equipment/${equipmentId}/fuel_logs`;
     try {
-      const snap = await getDocs(query(collection(db, path), orderBy('createdAt', 'desc')));
+      const snap = await getDocs(query(collection(db, path), orderBy('createdAt', 'desc'), limit(safeLimit)));
       return snap.docs.map(d => ({ id: d.id, ...d.data() } as FuelLogEntry));
     } catch (err) {
       handleFirestoreError(err, OperationType.GET, `fleet_equipment/${equipmentId}/fuel_logs`);

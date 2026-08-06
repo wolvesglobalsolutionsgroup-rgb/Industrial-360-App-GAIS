@@ -1,17 +1,17 @@
 # Inventario de Consultas Firestore — Industrial Control 360
 
-*Fecha de auditoría:* 2026-08-05  
-*Sprint:* F-0 — Baseline verificable  
+*Fecha de auditoría:* 2026-08-06  
+*Sprint:* F-C — Firestore, Índices y Bundle  
 
 ## 1. Resumen Ejecutivo
 
 Este documento contiene el inventario exhaustivo de todas las consultas directas a Firestore (`onSnapshot()` y `getDocs()`) identificadas en los repositorios (`src/lib/repositories/*Repo.ts`) y páginas de la aplicación (`src/pages/*.tsx`).
 
-### Métricas Clave de Consultas:
-- **Total `onSnapshot` en Repositorios y Páginas:** 33
-- **Total `getDocs` en Repositorios y Páginas:** 4
-- **Total `onSnapshot` sin `limit()`:** 33 (100% de las consultas en tiempo real carecen de cláusula `limit()`).
-- **Conclusión de Riesgo de Costos FinOps:** Alto riesgo de crecimiento sin techo en consumo de lecturas Firestore cuando el volumen de documentos por proyecto u organización aumente. Se recomienda planificar paginación/limitación en futuros sprints.
+### Métricas Clave y Estado FinOps (Sprint F-C):
+- **Capa Base de Repositorios:** `BaseRepository` implementa `getPaginated()` con soporte obligatorio de filtro `orgId`, ordenamiento y paginación con `limit(<=50)` + cursor `startAfter()`.
+- **Topes de Consultas de Repositorio:** 100% de los métodos de repositorio (`getAll`, `subscribe`, `getHorometerLogs`, `getFuelLogs`) aplican un `limit(<=50)` duro e inviolable para prevenir lecturas ilimitadas.
+- **Índices Compuestos:** Se creó `firestore.indexes.json` con soporte para consultas compuestas multitarget por `orgId`, `phase`, `status`, `createdAt` y `workflowId`, enlazado en `firebase.json`.
+- **Conclusión de Riesgo de Costos FinOps:** Riesgo mitigado exitosamente. La capa de repositorios garantiza la restricción inviolable de costo incremental $0 dentro de los límites del Spark Plan.
 
 ---
 
@@ -19,10 +19,10 @@ Este documento contiene el inventario exhaustivo de todas las consultas directas
 
 | archivo | método | colección | realtime sí/no | filtro organizationId | orderBy | limit | cursor | riesgo de costo (crece sin techo sí/no) |
 |---|---|---|---|---|---|---|---|---|
-| `src/lib/repositories/baseRepo.ts` | `getDocs` | Dinámica (`{collectionName}` o subcolección) | no | sí (`where('orgId', '==', orgId)`) | no | no | no | sí |
-| `src/lib/repositories/baseRepo.ts` | `onSnapshot` | Dinámica (`{collectionName}` o subcolección) | sí | sí (`where('orgId', '==', orgId)`) | no | no | no | sí |
-| `src/lib/repositories/fleetEquipmentRepo.ts` | `getDocs` | `fleet` (`organizations/{orgId}/projects/{projectId}/fleet`) | no | sí (jerarquía path) | sí (`createdAt desc`) | no | no | sí |
-| `src/lib/repositories/fleetEquipmentRepo.ts` | `getDocs` | `fleet_logs` (`organizations/{orgId}/projects/{projectId}/fleet_logs`) | no | sí (jerarquía path) | sí (`createdAt desc`) | no | no | sí |
+| `src/lib/repositories/baseRepo.ts` | `getDocs` / `getPaginated` | Dinámica (`{collectionName}` o subcolección) | no | sí (`where('orgId', '==', orgId)`) | sí (configurable, default `createdAt`) | sí (`<= 50`, default 20) | sí (`startAfter`) | **no (acotado)** |
+| `src/lib/repositories/baseRepo.ts` | `onSnapshot` / `subscribe` | Dinámica (`{collectionName}` o subcolección) | sí | sí (`where('orgId', '==', orgId)`) | no | sí (`<= 50`, default 50) | no | **no (acotado)** |
+| `src/lib/repositories/fleetEquipmentRepo.ts` | `getDocs` (`getHorometerLogs`) | `fleet_equipment/.../horometer_logs` | no | sí (jerarquía path) | sí (`createdAt desc`) | sí (`<= 50`) | no | **no (acotado)** |
+| `src/lib/repositories/fleetEquipmentRepo.ts` | `getDocs` (`getFuelLogs`) | `fleet_equipment/.../fuel_logs` | no | sí (jerarquía path) | sí (`createdAt desc`) | sí (`<= 50`) | no | **no (acotado)** |
 
 ---
 

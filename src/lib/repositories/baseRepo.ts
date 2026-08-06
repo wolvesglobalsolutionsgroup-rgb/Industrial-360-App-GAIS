@@ -1,9 +1,24 @@
 import { 
   collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, 
-  onSnapshot, query, where, collectionGroup 
+  onSnapshot, query, where, collectionGroup, limit, startAfter, orderBy,
+  QueryConstraint, QueryDocumentSnapshot, DocumentSnapshot, DocumentData
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { BaseEntity } from './types';
+
+export interface PaginationOptions {
+  pageSize?: number;
+  lastDoc?: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData> | null;
+  orderByField?: string;
+  orderDirection?: 'asc' | 'desc';
+  additionalFilters?: QueryConstraint[];
+}
+
+export interface PaginatedResult<T> {
+  items: T[];
+  lastDoc: QueryDocumentSnapshot<DocumentData> | DocumentSnapshot<DocumentData> | null;
+  hasMore: boolean;
+}
 
 export class BaseRepository<T extends BaseEntity> {
   constructor(public readonly collectionName: string) {}
@@ -12,12 +27,13 @@ export class BaseRepository<T extends BaseEntity> {
     return `organizations/${orgId}/projects/${projectId}/${this.collectionName}`;
   }
 
-  async getAll(orgId: string, projectId: string): Promise<T[]> {
+  async getAll(orgId: string, projectId: string, maxLimit = 50): Promise<T[]> {
     if (!orgId || !projectId) throw new Error('orgId y projectId son obligatorios.');
+    const safeLimit = Math.min(Math.max(maxLimit, 1), 50);
     try {
       const snap = projectId === 'all'
-        ? await getDocs(query(collectionGroup(db, this.collectionName), where('orgId', '==', orgId)))
-        : await getDocs(collection(db, this.getCollectionPath(orgId, projectId)));
+        ? await getDocs(query(collectionGroup(db, this.collectionName), where('orgId', '==', orgId), limit(safeLimit)))
+        : await getDocs(query(collection(db, this.getCollectionPath(orgId, projectId)), limit(safeLimit)));
       
       const map = new Map<string, T>();
       snap.docs.forEach(d => {
@@ -29,6 +45,56 @@ export class BaseRepository<T extends BaseEntity> {
     } catch (err) {
       handleFirestoreError(err, OperationType.GET, this.collectionName);
       return [];
+    }
+  }
+
+  async getPaginated(
+    orgId: string,
+    projectId: string,
+    options: PaginationOptions = {}
+  ): Promise<PaginatedResult<T>> {
+    if (!orgId || !projectId) throw new Error('orgId y projectId son obligatorios.');
+
+    const pageSize = Math.min(Math.max(options.pageSize || 20, 1), 50);
+    const orderField = options.orderByField || 'createdAt';
+    const orderDir = options.orderDirection || 'desc';
+
+    const constraints: QueryConstraint[] = [];
+
+    if (projectId === 'all') {
+      constraints.push(where('orgId', '==', orgId));
+    }
+
+    if (options.additionalFilters && options.additionalFilters.length > 0) {
+      constraints.push(...options.additionalFilters);
+    }
+
+    constraints.push(orderBy(orderField, orderDir));
+
+    if (options.lastDoc) {
+      constraints.push(startAfter(options.lastDoc));
+    }
+
+    constraints.push(limit(pageSize));
+
+    try {
+      const q = projectId === 'all'
+        ? query(collectionGroup(db, this.collectionName), ...constraints)
+        : query(collection(db, this.getCollectionPath(orgId, projectId)), ...constraints);
+
+      const snap = await getDocs(q);
+      const items: T[] = [];
+      snap.docs.forEach(d => {
+        items.push({ id: d.id, ...d.data() } as T);
+      });
+
+      const lastDoc = snap.docs.length > 0 ? snap.docs[snap.docs.length - 1] : null;
+      const hasMore = snap.docs.length === pageSize;
+
+      return { items, lastDoc, hasMore };
+    } catch (err) {
+      handleFirestoreError(err, OperationType.GET, this.collectionName);
+      return { items: [], lastDoc: null, hasMore: false };
     }
   }
 
@@ -112,16 +178,24 @@ export class BaseRepository<T extends BaseEntity> {
     }
   }
 
-  subscribe(orgId: string, projectId: string, callback: (items: T[]) => void, onError?: (err: any) => void): () => void {
+  subscribe(
+    orgId: string, 
+    projectId: string, 
+    callback: (items: T[]) => void, 
+    onError?: (err: any) => void,
+    options?: { limitCount?: number }
+  ): () => void {
     if (!orgId || !projectId) {
       console.warn('subscribe invocado sin orgId o projectId');
       callback([]);
       return () => {};
     }
 
+    const safeLimit = Math.min(Math.max(options?.limitCount || 50, 1), 50);
+
     const q = projectId === 'all'
-      ? query(collectionGroup(db, this.collectionName), where('orgId', '==', orgId))
-      : query(collection(db, this.getCollectionPath(orgId, projectId)));
+      ? query(collectionGroup(db, this.collectionName), where('orgId', '==', orgId), limit(safeLimit))
+      : query(collection(db, this.getCollectionPath(orgId, projectId)), limit(safeLimit));
 
     return onSnapshot(q, (snap) => {
       const map = new Map<string, T>();

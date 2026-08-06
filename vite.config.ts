@@ -60,6 +60,24 @@ export default defineConfig({
             if (id.includes('exceljs')) {
               return 'excel';
             }
+            if (id.includes('@firebase/auth') || id.includes('firebase/auth')) {
+              return 'firebase-auth';
+            }
+            if (id.includes('@firebase/firestore') || id.includes('firebase/firestore')) {
+              return 'firebase-firestore';
+            }
+            if (id.includes('@firebase/storage') || id.includes('firebase/storage')) {
+              return 'firebase-storage';
+            }
+            if (id.includes('motion')) {
+              return 'motion';
+            }
+            if (id.includes('react-router')) {
+              return 'router';
+            }
+            if (id.includes('lucide-react')) {
+              return 'icons';
+            }
           }
         },
       },
