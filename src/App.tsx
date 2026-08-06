@@ -15,49 +15,74 @@ import { ThemeProvider } from './theme/ThemeContext';
 import { DisplayEnvironmentProvider } from './theme/DisplayEnvironmentContext';
 import ErrorBoundary from './components/ErrorBoundary';
 
+// Resilient lazy loader for Vite dynamic imports
+function lazyWithRetry<T extends React.ComponentType<any>>(
+  factory: () => Promise<{ default: T }>
+) {
+  return lazy(async () => {
+    try {
+      return await factory();
+    } catch (error) {
+      console.warn('Dynamic import failed, retrying...', error);
+      try {
+        return await factory();
+      } catch (retryErr) {
+        const hasReloaded = sessionStorage.getItem('vite_import_retry');
+        if (!hasReloaded) {
+          sessionStorage.setItem('vite_import_retry', 'true');
+          window.location.reload();
+          return new Promise<{ default: T }>(() => {});
+        }
+        sessionStorage.removeItem('vite_import_retry');
+        throw retryErr;
+      }
+    }
+  });
+}
+
 // Lazy loaded page components
-const Landing = lazy(() => import('./pages/Landing'));
-const Login = lazy(() => import('./pages/Login'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const Projects = lazy(() => import('./pages/Projects'));
-const Tasks = lazy(() => import('./pages/Tasks'));
-const ProcurementInventory = lazy(() => import('./pages/ProcurementInventory'));
-const Expenses = lazy(() => import('./pages/Expenses'));
-const Chatbot = lazy(() => import('./pages/Chatbot'));
-const VoiceChat = lazy(() => import('./pages/VoiceChat'));
-const BIMViewer = lazy(() => import('./pages/BIMViewer'));
-const EngineeringTools = lazy(() => import('./pages/EngineeringTools'));
-const Settings = lazy(() => import('./pages/Settings'));
-const ProgressDetails = lazy(() => import('./pages/ProgressDetails'));
-const BudgetDetails = lazy(() => import('./pages/BudgetDetails'));
-const PersonnelDetails = lazy(() => import('./pages/PersonnelDetails'));
-const AlertsDetails = lazy(() => import('./pages/AlertsDetails'));
-const FieldReports = lazy(() => import('./pages/FieldReports'));
-const SyncCenter = lazy(() => import('./pages/SyncCenter'));
-const ProjectBrain = lazy(() => import('./pages/ProjectBrain'));
-const Intelligence = lazy(() => import('./pages/Intelligence'));
-const Documents = lazy(() => import('./pages/Documents'));
-const Valuations = lazy(() => import('./pages/Valuations'));
-const LogisticsMap = lazy(() => import('./pages/LogisticsMap'));
-const SihoPtw = lazy(() => import('./pages/SihoPtw'));
-const QaQcWelding = lazy(() => import('./pages/QaQcWelding'));
-const IntegrityIli = lazy(() => import('./pages/IntegrityIli'));
-const StandbyMoc = lazy(() => import('./pages/StandbyMoc'));
-const FleetEquipment = lazy(() => import('./pages/FleetEquipment'));
-const InteroperabilityEngine = lazy(() => import('./pages/InteroperabilityEngine'));
-const DossierCompiler = lazy(() => import('./pages/DossierCompiler'));
-const ClientPortalBuilder = lazy(() => import('./pages/ClientPortalBuilder'));
-const ClientPortalView = lazy(() => import('./pages/ClientPortalView'));
-const HotTapSchemes = lazy(() => import('./pages/HotTapSchemes'));
-const ApuEstimation = lazy(() => import('./pages/ApuEstimation'));
-const WorkerQrRegistry = lazy(() => import('./pages/WorkerQrRegistry'));
-const EnvironmentalManagement = lazy(() => import('./pages/EnvironmentalManagement'));
-const LotoIsolation = lazy(() => import('./pages/LotoIsolation'));
-const PlatformOwnerConsole = lazy(() => import('./pages/PlatformOwnerConsole'));
-const InstrumentationControl = lazy(() => import('./pages/InstrumentationControl'));
-const CivilEngineeringRegistry = lazy(() => import('./pages/CivilEngineeringRegistry'));
-const WorkflowRunnerPage = lazy(() => import('./pages/WorkflowRunnerPage'));
-const NotFound = lazy(() => import('./pages/NotFound'));
+const Landing = lazyWithRetry(() => import('./pages/Landing'));
+const Login = lazyWithRetry(() => import('./pages/Login'));
+const Dashboard = lazyWithRetry(() => import('./pages/Dashboard'));
+const Projects = lazyWithRetry(() => import('./pages/Projects'));
+const Tasks = lazyWithRetry(() => import('./pages/Tasks'));
+const ProcurementInventory = lazyWithRetry(() => import('./pages/ProcurementInventory'));
+const Expenses = lazyWithRetry(() => import('./pages/Expenses'));
+const Chatbot = lazyWithRetry(() => import('./pages/Chatbot'));
+const VoiceChat = lazyWithRetry(() => import('./pages/VoiceChat'));
+const BIMViewer = lazyWithRetry(() => import('./pages/BIMViewer'));
+const EngineeringTools = lazyWithRetry(() => import('./pages/EngineeringTools'));
+const Settings = lazyWithRetry(() => import('./pages/Settings'));
+const ProgressDetails = lazyWithRetry(() => import('./pages/ProgressDetails'));
+const BudgetDetails = lazyWithRetry(() => import('./pages/BudgetDetails'));
+const PersonnelDetails = lazyWithRetry(() => import('./pages/PersonnelDetails'));
+const AlertsDetails = lazyWithRetry(() => import('./pages/AlertsDetails'));
+const FieldReports = lazyWithRetry(() => import('./pages/FieldReports'));
+const SyncCenter = lazyWithRetry(() => import('./pages/SyncCenter'));
+const ProjectBrain = lazyWithRetry(() => import('./pages/ProjectBrain'));
+const Intelligence = lazyWithRetry(() => import('./pages/Intelligence'));
+const Documents = lazyWithRetry(() => import('./pages/Documents'));
+const Valuations = lazyWithRetry(() => import('./pages/Valuations'));
+const LogisticsMap = lazyWithRetry(() => import('./pages/LogisticsMap'));
+const SihoPtw = lazyWithRetry(() => import('./pages/SihoPtw'));
+const QaQcWelding = lazyWithRetry(() => import('./pages/QaQcWelding'));
+const IntegrityIli = lazyWithRetry(() => import('./pages/IntegrityIli'));
+const StandbyMoc = lazyWithRetry(() => import('./pages/StandbyMoc'));
+const FleetEquipment = lazyWithRetry(() => import('./pages/FleetEquipment'));
+const InteroperabilityEngine = lazyWithRetry(() => import('./pages/InteroperabilityEngine'));
+const DossierCompiler = lazyWithRetry(() => import('./pages/DossierCompiler'));
+const ClientPortalBuilder = lazyWithRetry(() => import('./pages/ClientPortalBuilder'));
+const ClientPortalView = lazyWithRetry(() => import('./pages/ClientPortalView'));
+const HotTapSchemes = lazyWithRetry(() => import('./pages/HotTapSchemes'));
+const ApuEstimation = lazyWithRetry(() => import('./pages/ApuEstimation'));
+const WorkerQrRegistry = lazyWithRetry(() => import('./pages/WorkerQrRegistry'));
+const EnvironmentalManagement = lazyWithRetry(() => import('./pages/EnvironmentalManagement'));
+const LotoIsolation = lazyWithRetry(() => import('./pages/LotoIsolation'));
+const PlatformOwnerConsole = lazyWithRetry(() => import('./pages/PlatformOwnerConsole'));
+const InstrumentationControl = lazyWithRetry(() => import('./pages/InstrumentationControl'));
+const CivilEngineeringRegistry = lazyWithRetry(() => import('./pages/CivilEngineeringRegistry'));
+const WorkflowRunnerPage = lazyWithRetry(() => import('./pages/WorkflowRunnerPage'));
+const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
 
 function AppContent() {
   const [user, loading] = useAppAuthState();
