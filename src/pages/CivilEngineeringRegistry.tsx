@@ -9,7 +9,7 @@ import { db, handleFirestoreError, OperationType } from '../firebase';
 import { civilStructuresRepo } from '../lib/repositories';
 import { useProject } from '../ProjectContext';
 import { queueOfflineOperation } from '../lib/offline/syncEngine';
-import jsPDF from 'jspdf';
+import { createJsPdfInstance } from '../lib/pdfExporter';
 import { drawQualityHeader, drawPhotoEvidences, drawQualityFooter, cleanPdfText } from '../lib/pdfQualityUtils';
 
 export type CivilTestType = 'Densidad_Campo_Cono_Arena' | 'Compresion_Probetas_Concreto';
@@ -280,7 +280,7 @@ export default function CivilEngineeringRegistry() {
 
   // Export Protocol PDF with BrandKit header, clean text, photos, and SHA-256 footer
   const exportProtocolPdf = (rec: CivilTestRecord) => {
-    const docPdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const docPdf = createJsPdfInstance({ unit: 'mm', format: 'a4', orientation: 'portrait' });
 
     // Corporate Header
     const yHeader = drawQualityHeader({

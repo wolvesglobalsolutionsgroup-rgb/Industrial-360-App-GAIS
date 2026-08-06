@@ -1,4 +1,30 @@
 import { BrandKit } from '../ProjectContext';
+import { DocumentViewModel } from './documentViewModel';
+import { pdfDocumentExporter } from './pdfExporter';
+import { docxDocumentExporter } from './docxExporter';
+import { excelDocumentExporter } from './excelExporter';
+import { pptxDocumentExporter } from './pptxExporter';
+
+export interface DocumentExporter {
+  id: string;
+  format: 'pdf' | 'docx' | 'xlsx' | 'pptx';
+  export: (doc: DocumentViewModel) => Promise<Blob>;
+}
+
+export function getDocumentExporter(format: 'pdf' | 'docx' | 'xlsx' | 'pptx'): DocumentExporter {
+  switch (format) {
+    case 'pdf':
+      return pdfDocumentExporter;
+    case 'docx':
+      return docxDocumentExporter;
+    case 'xlsx':
+      return excelDocumentExporter;
+    case 'pptx':
+      return pptxDocumentExporter;
+    default:
+      return pdfDocumentExporter;
+  }
+}
 
 export interface DocumentSignerItem {
   id: string;

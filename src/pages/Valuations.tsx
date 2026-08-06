@@ -9,7 +9,7 @@ import {
   Check, Send, Clock, UserCheck, AlertCircle, FileText, Lock
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import jsPDF from 'jspdf';
+import { createJsPdfInstance } from '../lib/pdfExporter';
 import { useProject } from '../ProjectContext';
 import { 
   Card, CardHeader, CardContent, Button, 
@@ -313,7 +313,7 @@ export default function Valuations() {
 
   // PDF Export Generation for Valuaciones ROE PDVSA
   const exportPDF = (val: ValuationItem) => {
-    const docPdf = new jsPDF('p', 'mm', 'a4');
+    const docPdf = createJsPdfInstance({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const pageWidth = docPdf.internal.pageSize.getWidth();
     
     // Primary header bar with Double Header (Contratista / PROINTECA C.A. - Cliente / PDVSA)

@@ -1,5 +1,7 @@
-import jsPDF from 'jspdf';
 import { BrandKit, Project } from '../ProjectContext';
+import { createJsPdfInstance } from './pdfExporter';
+
+type PdfDoc = ReturnType<typeof createJsPdfInstance>;
 
 /**
  * Clean text strings for PDF generation by removing HTML escape entities and corrupt quote marks
@@ -65,7 +67,7 @@ export function generateRecordSha256(recordId: string, code: string, date: strin
 }
 
 export interface DrawQualityPdfOptions {
-  docPdf: jsPDF;
+  docPdf: PdfDoc;
   brandKit?: BrandKit;
   project?: Project | null;
   documentTitle?: string;
@@ -150,7 +152,7 @@ export function drawQualityHeader(options: DrawQualityPdfOptions): number {
 /**
  * Draw Field Photo Evidence Section
  */
-export function drawPhotoEvidences(docPdf: jsPDF, photos: string[] = [], startY: number): number {
+export function drawPhotoEvidences(docPdf: PdfDoc, photos: string[] = [], startY: number): number {
   let y = startY;
 
   // Title Box

@@ -8,7 +8,7 @@ import {
   ShieldCheck, Activity, LayoutDashboard, AlertTriangle, Building, ChevronRight, BrainCircuit
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
-import jsPDF from 'jspdf';
+import { createJsPdfInstance } from '../lib/pdfExporter';
 import { 
   tasksRepo, expensesRepo, valuationsRepo, sihoPtwRepo, weldJointsRepo, wbsSnapshotsRepo 
 } from '../lib/repositories';
@@ -162,7 +162,7 @@ export default function Dashboard() {
         filter: filter as any
       });
       
-      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdf = createJsPdfInstance({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const pdfWidth = pdf.internal.pageSize.getWidth();
       
       const img = new Image();

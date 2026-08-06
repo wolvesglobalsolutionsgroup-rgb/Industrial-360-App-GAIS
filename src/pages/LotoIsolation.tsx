@@ -9,7 +9,7 @@ import { db, handleFirestoreError, OperationType } from '../firebase';
 import { lotoIsolationsRepo } from '../lib/repositories';
 import { useProject } from '../ProjectContext';
 import { queueOfflineOperation } from '../lib/offline/syncEngine';
-import jsPDF from 'jspdf';
+import { createJsPdfInstance } from '../lib/pdfExporter';
 
 export type EnergyType = 'Eléctrica' | 'Mecánica' | 'Hidráulica' | 'Neumática' | 'Química';
 
@@ -262,7 +262,7 @@ export default function LotoIsolation() {
 
   // Generate PDVSA SI-S-28 LOTO Certificate PDF
   const exportLotoCertificatePdf = (point: LotoPoint) => {
-    const docPdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const docPdf = createJsPdfInstance({ unit: 'mm', format: 'a4', orientation: 'portrait' });
 
     // Company Header
     docPdf.setFillColor(11, 34, 57); // Primary Brand

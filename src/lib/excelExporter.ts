@@ -2,6 +2,22 @@ import ExcelJS from 'exceljs';
 import { TakeoffItem } from '../components/engineering/QuantityTakeoff';
 import { ApuItem, calculateApuUnitCost } from './engineering/apuCalculator';
 import { DocumentViewModel, DocumentTableCell } from './documentViewModel';
+import { DocumentExporter } from './documentPolicy';
+
+/**
+ * Concrete instance of DocumentExporter contract for Excel XLSX format.
+ */
+export const excelDocumentExporter: DocumentExporter = {
+  id: 'excel-canonical',
+  format: 'xlsx',
+  export: async (doc: DocumentViewModel): Promise<Blob> => {
+    const workbook = buildDocumentViewModelWorkbook(doc);
+    const buffer = await workbook.xlsx.writeBuffer();
+    return new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+  },
+};
 
 /**
  * Utility to download ExcelJS Workbook buffer in browser

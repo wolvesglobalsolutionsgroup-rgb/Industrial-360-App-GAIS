@@ -1,4 +1,4 @@
-import { jsPDF } from 'jspdf';
+import { createJsPdfInstance } from '../pdfExporter';
 import { IsometricDrawing } from './isometricTypes';
 
 export async function generateAsBuiltPdf(
@@ -7,7 +7,7 @@ export async function generateAsBuiltPdf(
   projectName: string = 'Proyecto Tuberías y Recipientes PDVSA',
   liberatedBy: string = 'Ing. Manuel Silva (QA/QC Manager)'
 ): Promise<{ pdfBlob: Blob; hashSha256: string }> {
-  const doc = new jsPDF({
+  const doc = createJsPdfInstance({
     orientation: 'portrait',
     unit: 'mm',
     format: 'a4'

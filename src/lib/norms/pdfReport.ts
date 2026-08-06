@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+import { createJsPdfInstance } from '../pdfExporter';
 import { NormCalculator, NormResult } from './types';
 
 /**
@@ -12,7 +12,7 @@ export function generateNormCalculationPDF(
   projectName: string = 'PROYECTO INDUSTRIAL O&G',
   engineerName: string = 'Ingeniero de Inspección y Sostenibilidad'
 ): void {
-  const doc = new jsPDF({
+  const doc = createJsPdfInstance({
     orientation: 'portrait',
     unit: 'mm',
     format: 'a4'

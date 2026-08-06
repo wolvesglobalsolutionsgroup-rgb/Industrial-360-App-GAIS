@@ -10,7 +10,7 @@ import { db, handleFirestoreError, OperationType } from '../firebase';
 import { workersRepo, workerAttendanceRepo } from '../lib/repositories';
 import { useProject } from '../ProjectContext';
 import { queueOfflineOperation } from '../lib/offline/syncEngine';
-import jsPDF from 'jspdf';
+import { createJsPdfInstance } from '../lib/pdfExporter';
 import QRCode from 'qrcode';
 import {
   generateOpaqueCredentialId,
@@ -537,7 +537,7 @@ export default function WorkerQrRegistry() {
 
   // Generate PVC ID Card PDF with Dynamic Rotative QR
   const printWorkerCardPdf = async (worker: FieldWorker) => {
-    const doc = new jsPDF({
+    const doc = createJsPdfInstance({
       orientation: 'landscape',
       unit: 'mm',
       format: [85.6, 54] // Standard PVC ID card format (CR80)

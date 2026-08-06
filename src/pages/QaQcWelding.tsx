@@ -12,7 +12,7 @@ import { useProject } from '../ProjectContext';
 import { weldJointsRepo } from '../lib/repositories';
 
 import IsometricViewer from '../components/engineering/IsometricViewer';
-import jsPDF from 'jspdf';
+import { createJsPdfInstance } from '../lib/pdfExporter';
 import { drawQualityHeader, drawPhotoEvidences, drawQualityFooter, cleanPdfText } from '../lib/pdfQualityUtils';
 import { DualHeader } from '../components/common/DualHeader';
 import { DocumentSeal } from '../components/common/DocumentSeal';
@@ -204,7 +204,7 @@ export default function QaQcWelding() {
 
   // Export NDT Report PDF
   const exportNdtReportPdf = (joint: WeldJoint) => {
-    const docPdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const docPdf = createJsPdfInstance({ unit: 'mm', format: 'a4', orientation: 'portrait' });
 
     // Corporate Header with BrandKit
     const yHeader = drawQualityHeader({

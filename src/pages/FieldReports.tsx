@@ -12,7 +12,7 @@ import { db, handleFirestoreError, OperationType, getAuthUser } from '../firebas
 import { useProject } from '../ProjectContext';
 import { queueOfflineOperation } from '../lib/offline/syncEngine';
 import { motion } from 'motion/react';
-import jsPDF from 'jspdf';
+import { createJsPdfInstance } from '../lib/pdfExporter';
 import { 
   Card, CardHeader, CardContent, Button, 
   StatusBadge, Dialog, Input, Skeleton, EmptyState,
@@ -322,7 +322,7 @@ Responde de forma ejecutiva, concisa y profesional.`;
 
   // PDF Export Generation for Field Report
   const exportFieldReportPDF = (rep: FieldReportItem) => {
-    const pdfDoc = new jsPDF('p', 'mm', 'a4');
+    const pdfDoc = createJsPdfInstance({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     const pageWidth = pdfDoc.internal.pageSize.getWidth();
 
     // Top Header with Double Header (Contratista / PROINTECA C.A. - Cliente / PDVSA)

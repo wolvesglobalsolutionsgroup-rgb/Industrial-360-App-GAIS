@@ -1,5 +1,22 @@
 import PptxGenJS from 'pptxgenjs';
 import { DocumentViewModel } from './documentViewModel';
+import { DocumentExporter } from './documentPolicy';
+
+/**
+ * Concrete instance of DocumentExporter contract for PPTX format.
+ */
+export const pptxDocumentExporter: DocumentExporter = {
+  id: 'pptx-canonical',
+  format: 'pptx',
+  export: async (doc: DocumentViewModel): Promise<Blob> => {
+    const pptx = await buildPptxPresentation(doc);
+    const result = await pptx.write({ outputType: 'arraybuffer' });
+    const buffer = typeof result === 'string' ? new TextEncoder().encode(result) : (result as ArrayBuffer);
+    return new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    });
+  },
+};
 
 /**
  * PPTX_LAYOUT: Widescreen 16:9 — estándar corporativo IC360

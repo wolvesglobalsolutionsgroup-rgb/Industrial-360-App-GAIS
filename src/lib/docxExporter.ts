@@ -14,6 +14,21 @@ import {
   HeadingLevel
 } from 'docx';
 import { DocumentViewModel } from './documentViewModel';
+import { DocumentExporter } from './documentPolicy';
+
+/**
+ * Concrete instance of DocumentExporter contract for DOCX format.
+ */
+export const docxDocumentExporter: DocumentExporter = {
+  id: 'docx-canonical',
+  format: 'docx',
+  export: async (doc: DocumentViewModel): Promise<Blob> => {
+    const buffer = await generateDocxBuffer(doc);
+    return new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    });
+  },
+};
 
 /**
  * Generates a DOCX Document instance from a DocumentViewModel (S19)

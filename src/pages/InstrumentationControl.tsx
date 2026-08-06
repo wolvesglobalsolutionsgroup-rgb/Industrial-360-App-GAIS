@@ -9,7 +9,7 @@ import { db, handleFirestoreError, OperationType } from '../firebase';
 import { instrumentLoopsRepo } from '../lib/repositories';
 import { useProject } from '../ProjectContext';
 import { queueOfflineOperation } from '../lib/offline/syncEngine';
-import jsPDF from 'jspdf';
+import { createJsPdfInstance } from '../lib/pdfExporter';
 import { drawQualityHeader, drawPhotoEvidences, drawQualityFooter, cleanPdfText } from '../lib/pdfQualityUtils';
 
 export type InstrumentType = 'PT' | 'TT' | 'FT' | 'LT' | 'PSV' | 'CV'; // Presión, Temp, Flujo, Nivel, Válvula Alivio, Control
@@ -283,7 +283,7 @@ export default function InstrumentationControl() {
 
   // Export Calibration Certificate PDF
   const exportCalibrationPdf = (loop: InstrumentLoop) => {
-    const docPdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const docPdf = createJsPdfInstance({ unit: 'mm', format: 'a4', orientation: 'portrait' });
 
     // Header with BrandKit
     const yHeader = drawQualityHeader({

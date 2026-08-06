@@ -1,4 +1,4 @@
-import jsPDF from 'jspdf';
+import { createJsPdfInstance } from '../pdfExporter';
 import { ASMEB31GCalculator } from './b31g';
 import { NormCalculator, NormField, NormResult, NORM_DISCLAIMER } from './types';
 
@@ -375,7 +375,7 @@ export function generateApi1163IliReportPDF(
   engineerName: string = 'Ing. Inspector de Integridad',
   clientName: string = 'PDVSA / Petrocedeño'
 ) {
-  const doc = new jsPDF({
+  const doc = createJsPdfInstance({
     orientation: 'portrait',
     unit: 'mm',
     format: 'a4'

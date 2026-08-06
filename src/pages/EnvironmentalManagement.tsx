@@ -12,7 +12,7 @@ import { useRequiredProject } from '../hooks/useRequiredProject';
 import { generateRegulatoryCode } from '../lib/regulatoryIdsClient';
 
 import { queueOfflineOperation } from '../lib/offline/syncEngine';
-import jsPDF from 'jspdf';
+import { createJsPdfInstance } from '../lib/pdfExporter';
 
 export interface EnvironmentalAspect {
   id: string;
@@ -287,7 +287,7 @@ export default function EnvironmentalManagement() {
 
   // Export RASDA Manifest PDF
   const exportManifestPdf = (m: RasdaManifest) => {
-    const doc = new jsPDF('p', 'mm', 'a4');
+    const doc = createJsPdfInstance({ orientation: 'portrait', unit: 'mm', format: 'a4' });
     
     // Header
     doc.setFillColor(15, 23, 42);
