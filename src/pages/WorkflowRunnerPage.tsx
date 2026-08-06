@@ -20,7 +20,10 @@ import {
   Eye,
   X,
   Lock,
+  ArrowLeft,
+  HardHat,
 } from 'lucide-react';
+import { getPhaseByNumber } from '../components/navigation/phaseNavigation';
 
 export default function WorkflowRunnerPage() {
   ensureWorkflowsRegistered();
@@ -210,16 +213,28 @@ export default function WorkflowRunnerPage() {
 
   const CaptureComp = definition.captureComponent;
 
+  const phaseInfo = getPhaseByNumber(definition.phase);
+
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
       {/* Top Header & Selector */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface border border-border rounded-xl p-6 shadow-sm">
-        <div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-            <Layers className="w-4 h-4 text-brand-500" />
-            <span>Plugin-Kernel / WorkflowRegistry</span>
-            <ChevronRight className="w-3 h-3" />
-            <span className="font-mono text-brand-500 font-semibold">{definition.id}</span>
+        <div className="space-y-1">
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mb-1">
+            <button
+              onClick={() => navigate(phaseInfo?.modules[0]?.path || '/')}
+              className="flex items-center gap-1 font-bold text-brand-500 hover:text-brand-600 transition-colors cursor-pointer"
+            >
+              <ArrowLeft size={14} />
+              <span>Volver a {phaseInfo?.shortTitle || `Fase ${definition.phase}`}</span>
+            </button>
+            <span>•</span>
+            <span className="px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-500 dark:text-emerald-400 font-extrabold uppercase text-[10px] border border-brand-500/20">
+              {phaseInfo?.shortTitle || `Fase ${definition.phase}`}
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-surface-2 text-ink font-bold text-[10px] border border-line">
+              Estado: {currentState.toUpperCase()}
+            </span>
           </div>
           <h1 className="text-2xl font-black text-ink">{definition.title}</h1>
           <p className="text-xs text-muted-foreground mt-1 max-w-3xl">{definition.description}</p>

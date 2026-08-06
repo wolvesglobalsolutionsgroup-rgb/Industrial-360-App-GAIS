@@ -11,6 +11,7 @@ import { getPendingOfflineOperations, flushOfflineQueue } from '../lib/offline/s
 import { useTheme } from '../theme/ThemeContext';
 import { THEME_PRESETS, ThemePresetId } from '../theme/themePresets';
 import { useDisplayEnvironment, DisplayEnvironment } from '../theme/DisplayEnvironmentContext';
+import Breadcrumbs from './navigation/Breadcrumbs';
 
 export default function TopContextBar({ 
   isSidebarOpen, 
@@ -184,7 +185,11 @@ export default function TopContextBar({
           </div>
         </div>
 
-        {/* User Simulation Role Badge */}
+        {/* Dynamic Phase Breadcrumbs Navigation */}
+        <div className="hidden md:flex items-center mx-2 flex-1 max-w-xl">
+          <Breadcrumbs />
+        </div>
+
         {/* Verified Role Badge */}
         <div className="relative hidden xl:block">
           <div
