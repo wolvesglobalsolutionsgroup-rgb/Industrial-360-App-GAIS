@@ -56,6 +56,7 @@ const LotoIsolation = lazy(() => import('./pages/LotoIsolation'));
 const PlatformOwnerConsole = lazy(() => import('./pages/PlatformOwnerConsole'));
 const InstrumentationControl = lazy(() => import('./pages/InstrumentationControl'));
 const CivilEngineeringRegistry = lazy(() => import('./pages/CivilEngineeringRegistry'));
+const WorkflowRunnerPage = lazy(() => import('./pages/WorkflowRunnerPage'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 function AppContent() {
@@ -217,6 +218,11 @@ function AppContent() {
               </ProtectedRoute>
             } />
             <Route path="civil" element={<Navigate to="/civil-engineering" replace />} />
+
+            {/* Rutas Dinámicas del Kernel de Workflows (Plugin-Kernel) */}
+            <Route path="workflows/:workflowId/:instanceId" element={<WorkflowRunnerPage />} />
+            <Route path="workflows/:workflowId" element={<WorkflowRunnerPage />} />
+            <Route path="workflows" element={<WorkflowRunnerPage />} />
 
             <Route path="alerts-details" element={<AlertsDetails />} />
             <Route path="dashboard" element={<Navigate to="/" replace />} />

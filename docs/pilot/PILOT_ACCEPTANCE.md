@@ -88,6 +88,12 @@ La corrida de inspección de herramienta inteligente (Pig MFL + UT Combo) identi
 - [x] Acceso verificado para `usr_cliente_prointeca` con rol `cliente`.
 - [x] Visualización de informe consolidado, avance físico de 68% y valuaciones certificadas.
 
+#### Paso 8: Extensión Kernel de Workflows (Sprint F-D — Escalabilidad a 100+ Workflows)
+*Nota de Extensión de Arquitectura:* Los procedimientos operativos del piloto PROINTECA C.A. ahora pueden ejecutarse a través de la infraestructura Plugin-Kernel (`WorkflowRegistry`), permitiendo agregar nuevos formularios de inspección y permisos de campo de forma dinámica sin modificar páginas estáticas.
+- [x] **Piloto 1 (`wf-042-inspeccion-izaje`):** Inspección de Grúas y Aparejos bajo norma ASME B30.5 con Hard Gate de pestillo de gancho.
+- [x] **Piloto 2 (`wf-043-aprobacion-ptw`):** Permiso de Trabajo Seguro PTW SIHO-A con Hard Gate de prueba atmosférica (0% LEL, 0 PPM H2S).
+- [x] **Piloto 3 (`wf-044-reporte-tabular`):** Reporte Tabular NDT de trazabilidad de soldaduras con generación de `DocumentViewModel`.
+
 ---
 
 ### 5. Comandos de Verificación y Pruebas
