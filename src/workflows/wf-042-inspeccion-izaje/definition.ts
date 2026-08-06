@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { WorkflowDefinition } from '../../lib/workflows/contracts';
 import { createDocumentViewModel } from '../../lib/documentViewModel';
+import { freezeDocumentMetadata } from '../../lib/documentPolicy';
 import { CraneInspectionCapture, CraneInspectionData } from './components/CraneInspectionCapture';
 
 export const CraneInspectionSchema = z.object({
@@ -66,20 +67,26 @@ export const wf042Definition: WorkflowDefinition<CraneInspectionData> = {
         operatorBrand: context.operatorBrand,
         signers: [
           {
-            role: 'INSPECTOR_NDT',
+            id: 'sig-042-1',
+            role: 'INSPECTOR',
             name: context.user.email,
             title: 'Inspector Certificado de Izaje ASME B30.5',
-            verified: true,
+            organization: 'PROINTECA C.A.',
+            status: 'SIGNED',
+            signedAt: new Date().toISOString(),
           },
         ],
-        metadata: {
-          projectCode: context.projectId,
-          clientName: 'PDVSA / Consorcio Operador',
-          contractorName: 'PROINTECA C.A.',
-          location: 'Frente de Trabajo / Patio de Manejo',
-          securityHash: `SHA256-${Date.now()}-IZAJE`,
-          systemVersion: 'IC360-v2026.1',
-        },
+        metadata: freezeDocumentMetadata([
+          {
+            id: 'sig-042-1',
+            role: 'INSPECTOR',
+            name: context.user.email,
+            title: 'Inspector Certificado de Izaje ASME B30.5',
+            organization: 'PROINTECA C.A.',
+            status: 'SIGNED',
+            signedAt: new Date().toISOString(),
+          },
+        ]),
         sections: [
           {
             id: 'sec-1',

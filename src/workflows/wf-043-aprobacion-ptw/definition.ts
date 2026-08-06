@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { WorkflowDefinition } from '../../lib/workflows/contracts';
 import { createDocumentViewModel } from '../../lib/documentViewModel';
+import { freezeDocumentMetadata } from '../../lib/documentPolicy';
 import { PtwApprovalCapture, PtwApprovalData } from './components/PtwApprovalCapture';
 
 export const PtwApprovalSchema = z.object({
@@ -102,26 +103,40 @@ export const wf043Definition: WorkflowDefinition<PtwApprovalData> = {
         operatorBrand: context.operatorBrand,
         signers: [
           {
-            role: 'SUPERVISOR_SIHO',
+            id: 'sig-043-1',
+            role: 'CONTRACTOR',
             name: data.supervisorName,
             title: 'Supervisor Emisor / Solicitante SIHO-A',
-            verified: true,
+            organization: 'PROINTECA C.A.',
+            status: 'SIGNED',
           },
           {
-            role: 'INSPECTOR_SIHO',
+            id: 'sig-043-2',
+            role: 'INSPECTOR',
             name: data.safetyInspectorName,
             title: 'Inspector Custodio / Aprobador SIHO-A',
-            verified: data.status === 'safety_approved',
+            organization: 'PDVSA SIHO-A',
+            status: data.status === 'safety_approved' ? 'SIGNED' : 'PENDING',
           },
         ],
-        metadata: {
-          projectCode: context.projectId,
-          clientName: 'PDVSA Refinación / Consorcio Operador',
-          contractorName: 'PROINTECA C.A.',
-          location: 'Planta / Ducto / Área de Proceso',
-          securityHash: `SHA256-${Date.now()}-PTW`,
-          systemVersion: 'IC360-v2026.1',
-        },
+        metadata: freezeDocumentMetadata([
+          {
+            id: 'sig-043-1',
+            role: 'CONTRACTOR',
+            name: data.supervisorName,
+            title: 'Supervisor Emisor / Solicitante SIHO-A',
+            organization: 'PROINTECA C.A.',
+            status: 'SIGNED',
+          },
+          {
+            id: 'sig-043-2',
+            role: 'INSPECTOR',
+            name: data.safetyInspectorName,
+            title: 'Inspector Custodio / Aprobador SIHO-A',
+            organization: 'PDVSA SIHO-A',
+            status: data.status === 'safety_approved' ? 'SIGNED' : 'PENDING',
+          },
+        ]),
         sections: [
           {
             id: 'sec-ptw-1',

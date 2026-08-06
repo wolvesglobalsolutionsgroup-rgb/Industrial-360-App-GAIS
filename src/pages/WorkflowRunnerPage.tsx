@@ -53,10 +53,20 @@ export default function WorkflowRunnerPage() {
     },
     contractorBrand: brandKit,
     operatorBrand: {
-      brandName: 'PDVSA / Consorcio Operador',
+      companyName: 'PDVSA / Consorcio Operador',
+      taxId: 'RIF J-00000000-0',
+      address: 'Faja Petrolífera del Orinoco',
+      phone: '+58 (212) 000-0000',
+      email: 'operaciones@pdvsa.com',
+      website: 'www.pdvsa.com',
       logoUrl: '',
       primaryColor: '#003366',
       secondaryColor: '#cc0000',
+      headerText: 'PDVSA OPERACIONES',
+      footerText: 'DRAFT',
+      digitalSignatureUrl: '',
+      authorizedSignerName: 'Inspector PDVSA',
+      authorizedSignerTitle: 'Inspección General',
     },
   };
 

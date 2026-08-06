@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { WorkflowDefinition } from '../../lib/workflows/contracts';
 import { createDocumentViewModel, DocumentTable } from '../../lib/documentViewModel';
+import { freezeDocumentMetadata } from '../../lib/documentPolicy';
 import { TabularReportCapture, TabularReportData } from './components/TabularReportCapture';
 
 export const TabularJointItemSchema = z.object({
@@ -89,20 +90,24 @@ export const wf044Definition: WorkflowDefinition<TabularReportData> = {
         operatorBrand: context.operatorBrand,
         signers: [
           {
-            role: 'INSPECTOR_NDT',
+            id: 'sig-044-1',
+            role: 'INSPECTOR',
             name: data.inspectorName,
             title: 'Inspector NDT Nivel II (API 1104 / ASNT)',
-            verified: true,
+            organization: 'PROINTECA C.A.',
+            status: 'SIGNED',
           },
         ],
-        metadata: {
-          projectCode: context.projectId,
-          clientName: 'PDVSA / Consorcio Operador',
-          contractorName: 'PROINTECA C.A.',
-          location: 'Trazado de Tubería / Tramo de Ducto',
-          securityHash: `SHA256-${Date.now()}-NDT-TAB`,
-          systemVersion: 'IC360-v2026.1',
-        },
+        metadata: freezeDocumentMetadata([
+          {
+            id: 'sig-044-1',
+            role: 'INSPECTOR',
+            name: data.inspectorName,
+            title: 'Inspector NDT Nivel II (API 1104 / ASNT)',
+            organization: 'PROINTECA C.A.',
+            status: 'SIGNED',
+          },
+        ]),
         sections: [
           {
             id: 'sec-summary',
