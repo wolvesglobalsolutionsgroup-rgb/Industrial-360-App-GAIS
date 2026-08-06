@@ -618,10 +618,10 @@ export function getBreadcrumbsForPath(
 
   if (workflowId && workflowTitle) {
     breadcrumbs.push({
-      label: workflowTitle,
+      label: module ? module.title : workflowTitle,
       isCurrent: true,
-      badge: workflowState || 'Workflow Active',
-      iconName: 'ShieldCheck',
+      badge: workflowState || (module?.badge ?? 'Workflow Active'),
+      iconName: module?.iconName || 'ShieldCheck',
     });
   } else if (module) {
     breadcrumbs.push({
@@ -685,6 +685,15 @@ export function searchNavigation(
       }
     }
   }
+
+  const matchPriority: Record<'title' | 'workflowId' | 'description' | 'phase', number> = {
+    title: 1,
+    workflowId: 1,
+    description: 2,
+    phase: 3,
+  };
+
+  results.sort((a, b) => matchPriority[a.matchType] - matchPriority[b.matchType]);
 
   return results;
 }

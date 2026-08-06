@@ -20,7 +20,7 @@ export const wf043Definition: WorkflowDefinition<PtwApprovalData> = {
   id: 'wf-043-aprobacion-ptw',
   title: 'Permiso de Trabajo Seguro (PTW SIHO-A PDVSA SI-S-04)',
   description: 'Flujo de aprobación multinivel para la emisión autorizada de permisos de trabajo seguro en áreas operativas de riesgo.',
-  phase: 2,
+  phase: 4,
   rolesAllowed: ['superadmin', 'gerente', 'supervisor', 'inspector'],
   captureComponent: PtwApprovalCapture,
   schema: PtwApprovalSchema,
