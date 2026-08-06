@@ -97,6 +97,14 @@ describe('Sprint F-A — Pruebas Negativas de Seguridad Residual', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    requestCounts.clear();
+    mockVerifyIdToken.mockReset();
+    mockVerifyIdToken.mockResolvedValue({
+      uid: 'usr_test',
+      email: 'test@prointeca.com',
+      role: 'gerente',
+      orgId: 'org_test',
+    });
   });
 
   describe('1. Petición sin token -> 401', () => {

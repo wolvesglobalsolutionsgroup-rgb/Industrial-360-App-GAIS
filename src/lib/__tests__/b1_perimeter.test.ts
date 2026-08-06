@@ -61,6 +61,15 @@ import { sendEmail } from '../../../functions/src/index';
 describe('Perímetro Backend de Seguridad IA y Correo (Sprint B1 & B1.1)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockVerifyIdToken.mockReset();
+    mockVerifyIdToken.mockResolvedValue({
+      uid: 'usr_test',
+      email: 'test@prointeca.com',
+      role: 'gerente',
+      orgId: 'org_test',
+    });
+    mockUserDocGet.mockReset();
+    mockUserDocGet.mockResolvedValue({ exists: false });
   });
 
   describe('1. Verificación de Autenticación Express (verifyFirebaseToken)', () => {
