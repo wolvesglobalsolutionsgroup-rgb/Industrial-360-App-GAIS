@@ -11,8 +11,12 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      'firebase-admin/app': path.resolve(__dirname, './node_modules/firebase-admin/lib/esm/app/index.js'),
+      'firebase-admin/auth': path.resolve(__dirname, './node_modules/firebase-admin/lib/esm/auth/index.js'),
+      'firebase-admin/firestore': path.resolve(__dirname, './node_modules/firebase-admin/lib/esm/firestore/index.js'),
+      'firebase-admin': path.resolve(__dirname, './node_modules/firebase-admin/lib/esm/index.js'),
     },
-    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react-dom/client'],
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'react-dom/client', 'firebase-admin'],
   },
   optimizeDeps: {
     include: [
