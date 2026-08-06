@@ -4,8 +4,9 @@ import {
   XCircle, Plus, Search, Filter, FileText, Download, UserCheck, Key, 
   RefreshCw, CheckSquare, Clock, ShieldAlert, Cpu, Activity
 } from 'lucide-react';
-import { collection, onSnapshot, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
+import { lotoIsolationsRepo } from '../lib/repositories';
 import { useProject } from '../ProjectContext';
 import { queueOfflineOperation } from '../lib/offline/syncEngine';
 import jsPDF from 'jspdf';
@@ -134,23 +135,17 @@ export default function LotoIsolation() {
   const [chkZeroEnergyVerified, setChkZeroEnergyVerified] = useState(false);
   const [chkSignaturesApproved, setChkSignaturesApproved] = useState(false);
 
-  // Firestore Sync
+  // Firestore Sync via Repository (limit(50))
   useEffect(() => {
     if (!currentProject || currentProject.id === 'all') return;
 
-    const path = `organizations/${orgId}/projects/${currentProject.id}/loto_isolations`;
-    const unsubscribe = onSnapshot(collection(db, path), (snapshot) => {
-      if (!snapshot.empty) {
-        const loaded: LotoPoint[] = snapshot.docs.map(docSnap => ({
-          id: docSnap.id,
-          ...docSnap.data()
-        } as LotoPoint));
+    const unsubscribe = lotoIsolationsRepo.subscribe(orgId, currentProject.id, (items) => {
+      if (items.length > 0) {
+        const loaded = items as unknown as LotoPoint[];
         setLotoPoints(loaded);
         if (loaded.length > 0) setSelectedPoint(loaded[0]);
       }
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, path);
-    });
+    }, undefined, { limitCount: 50 });
 
     return () => unsubscribe();
   }, [currentProject, orgId]);

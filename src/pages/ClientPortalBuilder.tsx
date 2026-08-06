@@ -29,6 +29,7 @@ import {
 import { collection, doc, deleteDoc, onSnapshot, query } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functionsInstance, handleFirestoreError, OperationType } from '../firebase';
+import { clientPortalsRepo } from '../lib/repositories';
 import { useProject } from '../ProjectContext';
 import { sendNotificationEmail, buildPortalInviteHtml } from '../lib/emailService';
 
@@ -166,15 +167,11 @@ export default function ClientPortalBuilder() {
     showValuations: false,
   });
 
-  // Subscribe to organization portals
+  // Subscribe to organization portals via Repository (limit(50))
   useEffect(() => {
-    const portalsRef = collection(db, 'organizations', orgId, 'client_portals');
-    const q = query(portalsRef);
-
-    const unsub = onSnapshot(q, (snapshot) => {
-      const list = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as ClientPortalConfig));
-      setPortals(list);
-    }, (err) => handleFirestoreError(err, OperationType.GET, `organizations/${orgId}/client_portals`));
+    const unsub = clientPortalsRepo.subscribe(orgId, 'all', (items) => {
+      setPortals(items as unknown as ClientPortalConfig[]);
+    }, undefined, { limitCount: 50 });
 
     return () => unsub();
   }, [orgId]);

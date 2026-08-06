@@ -12,3 +12,17 @@ export * from './apusRepo';
 export * from './workersRepo';
 export * from './expensesRepo';
 export * from './fleetEquipmentRepo';
+export * from './projectsRepo';
+export * from './wbsSnapshotsRepo';
+export * from './procurementRepo';
+export * from './workerAttendanceRepo';
+export * from './alertsRepo';
+export * from './civilStructuresRepo';
+export * from './environmentalRepo';
+export * from './hotTapsRepo';
+export * from './instrumentLoopsRepo';
+export * from './lotoIsolationsRepo';
+export * from './standbyMocRepo';
+export * from './clientPortalsRepo';
+export * from './dossiersRepo';
+

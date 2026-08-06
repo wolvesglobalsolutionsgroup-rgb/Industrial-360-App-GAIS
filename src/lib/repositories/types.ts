@@ -8,6 +8,7 @@ export interface BaseEntity {
   projectId: string;
   createdAt?: string;
   updatedAt?: string;
+  [key: string]: any;
 }
 
 export interface TaskItem extends BaseEntity {

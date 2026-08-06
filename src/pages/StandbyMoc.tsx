@@ -4,8 +4,9 @@ import {
   Send, Plus, CheckCircle2, XCircle, ChevronRight, Calculator, 
   Building2, UserCheck, Scale, Sparkles, FileCheck, Layers, FileSpreadsheet, Download
 } from 'lucide-react';
-import { collection, query, onSnapshot, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
+import { standbyClaimsRepo, mocRequestsRepo } from '../lib/repositories';
 import { useProject } from '../ProjectContext';
 
 export interface StandbyEvent {
@@ -166,48 +167,32 @@ export default function StandbyMoc() {
   const [letterContractRef, setLetterContractRef] = useState('Contrato N° IC360-2026-CT-049');
   const [generatedLetter, setGeneratedLetter] = useState('');
 
-  // Firestore Sync for Standby Claims
+  // Firestore Sync for Standby Claims via Repository (limit(50))
   useEffect(() => {
     if (!currentProject?.orgId || !currentProject?.id) return;
 
-    const claimsPath = `organizations/${currentProject.orgId}/projects/${currentProject.id}/standby_claims`;
-    const q = query(collection(db, claimsPath));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (!snapshot.empty) {
-        const loaded: StandbyEvent[] = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        } as StandbyEvent));
+    const unsubscribe = standbyClaimsRepo.subscribe(currentProject.orgId, currentProject.id, (items) => {
+      if (items.length > 0) {
+        const loaded = items as unknown as StandbyEvent[];
         setEvents(loaded);
         if (!selectedEvent && loaded.length > 0) setSelectedEvent(loaded[0]);
       }
-    }, (error) => {
-      handleFirestoreError(error, 'read', claimsPath);
-    });
+    }, undefined, { limitCount: 50 });
 
     return () => unsubscribe();
   }, [currentProject?.orgId, currentProject?.id]);
 
-  // Firestore Sync for MOC Requests
+  // Firestore Sync for MOC Requests via Repository (limit(50))
   useEffect(() => {
     if (!currentProject?.orgId || !currentProject?.id) return;
 
-    const mocPath = `organizations/${currentProject.orgId}/projects/${currentProject.id}/moc_requests`;
-    const q = query(collection(db, mocPath));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      if (!snapshot.empty) {
-        const loaded: MocRequest[] = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        } as MocRequest));
+    const unsubscribe = mocRequestsRepo.subscribe(currentProject.orgId, currentProject.id, (items) => {
+      if (items.length > 0) {
+        const loaded = items as unknown as MocRequest[];
         setMocList(loaded);
         if (!selectedMoc && loaded.length > 0) setSelectedMoc(loaded[0]);
       }
-    }, (error) => {
-      handleFirestoreError(error, 'read', mocPath);
-    });
+    }, undefined, { limitCount: 50 });
 
     return () => unsubscribe();
   }, [currentProject?.orgId, currentProject?.id]);

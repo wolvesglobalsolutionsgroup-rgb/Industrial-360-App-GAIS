@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { useProject } from '../ProjectContext';
 import { db } from '../firebase';
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, query, where, addDoc, serverTimestamp } from 'firebase/firestore';
 import { 
   ComposedChart, LineChart, Line, Scatter, XAxis, YAxis, CartesianGrid, 
   Tooltip, ResponsiveContainer, ReferenceLine, Legend 

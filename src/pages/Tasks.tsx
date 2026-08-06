@@ -3,6 +3,7 @@ import {
   collection, query, onSnapshot, addDoc, updateDoc, doc, deleteDoc, where, collectionGroup 
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType, getAuthUser } from '../firebase';
+import { tasksRepo } from '../lib/repositories';
 import { 
   Plus, ClipboardList, HardHat, AlertTriangle, Sparkles, X, 
   KanbanSquare, Table2, Calendar, Search, Activity,
@@ -141,21 +142,14 @@ export default function Tasks() {
       setLoading(false);
     }, 1000);
 
-    const tasksPath = currentProject.id !== 'all'
-      ? `organizations/${orgId}/projects/${currentProject.id}/tasks`
-      : null;
+    const projId = currentProject.id || 'all';
 
-    const q = tasksPath
-      ? query(collection(db, tasksPath))
-      : query(collectionGroup(db, 'tasks'), where('orgId', '==', orgId));
-
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribe = tasksRepo.subscribe(orgId, projId, (items) => {
       const taskMap = new Map<string, TaskItem>();
-      snapshot.docs.forEach(docSnap => {
-        if (!taskMap.has(docSnap.id)) {
-          const d = docSnap.data();
-          taskMap.set(docSnap.id, {
-            id: docSnap.id,
+      items.forEach(d => {
+        if (!taskMap.has(d.id)) {
+          taskMap.set(d.id, {
+            id: d.id,
             projectId: d.projectId || currentProject.id,
             wbsCode: d.wbsCode || d.code || 'WBS-1.0',
             title: d.title || d.name || 'Partida sin nombre',

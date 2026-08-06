@@ -5,8 +5,8 @@ import {
   AlertCircle, RefreshCw, Clock, Filter, UserX, CheckCircle2, XCircle
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { collection, onSnapshot } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
+import { workersRepo, workerAttendanceRepo } from '../lib/repositories';
 import { useProject } from '../ProjectContext';
 
 interface WorkerDoc {
@@ -64,45 +64,21 @@ export default function PersonnelDetails() {
     setLoading(true);
     setError(null);
 
-    const workersPath = `organizations/${orgId}/projects/${projId}/workers`;
-    const attendancePath = `organizations/${orgId}/projects/${projId}/worker_attendance`;
+    const unsubWorkers = workersRepo.subscribe(orgId, projId, (items) => {
+      setWorkers(items as WorkerDoc[]);
+      setLoading(false);
+    }, (err) => {
+      setError(`Error al cargar personal (${err.code || err.message})`);
+      setLoading(false);
+    }, { limitCount: 50 });
 
-    let unsubAttendance: (() => void) | null = null;
-
-    const unsubWorkers = onSnapshot(
-      collection(db, workersPath),
-      (snapshot) => {
-        const docs: WorkerDoc[] = snapshot.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
-        }));
-        setWorkers(docs);
-        setLoading(false);
-      },
-      (err) => {
-        handleFirestoreError(err, OperationType.LIST, workersPath);
-        setError(`Error al cargar personal (${err.code || err.message})`);
-        setLoading(false);
-      }
-    );
-
-    unsubAttendance = onSnapshot(
-      collection(db, attendancePath),
-      (snapshot) => {
-        const attDocs: AttendanceDoc[] = snapshot.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
-        }));
-        setAttendance(attDocs);
-      },
-      (err) => {
-        handleFirestoreError(err, OperationType.LIST, attendancePath);
-      }
-    );
+    const unsubAttendance = workerAttendanceRepo.subscribe(orgId, projId, (items) => {
+      setAttendance(items as AttendanceDoc[]);
+    }, undefined, { limitCount: 50 });
 
     return () => {
       unsubWorkers();
-      if (unsubAttendance) unsubAttendance();
+      unsubAttendance();
     };
   }, [orgId, projId]);
 

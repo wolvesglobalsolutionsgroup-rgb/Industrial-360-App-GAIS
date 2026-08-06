@@ -5,8 +5,8 @@ import {
   Bell, RefreshCw, Filter, Calendar, ShieldAlert
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { collection, onSnapshot } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
+import { alertsRepo } from '../lib/repositories';
 import { useProject } from '../ProjectContext';
 
 interface AlertDoc {
@@ -50,24 +50,13 @@ export default function AlertsDetails() {
     setLoading(true);
     setError(null);
 
-    const alertsPath = `organizations/${orgId}/projects/${projId}/alerts`;
-
-    const unsubAlerts = onSnapshot(
-      collection(db, alertsPath),
-      (snapshot) => {
-        const docs: AlertDoc[] = snapshot.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
-        }));
-        setAlerts(docs);
-        setLoading(false);
-      },
-      (err) => {
-        handleFirestoreError(err, OperationType.LIST, alertsPath);
-        setError(`Error al cargar el centro de alertas (${err.code || err.message})`);
-        setLoading(false);
-      }
-    );
+    const unsubAlerts = alertsRepo.subscribe(orgId, projId, (items) => {
+      setAlerts(items as AlertDoc[]);
+      setLoading(false);
+    }, (err) => {
+      setError(`Error al cargar el centro de alertas (${err.code || err.message})`);
+      setLoading(false);
+    }, { limitCount: 50 });
 
     return () => unsubAlerts();
   }, [orgId, projId]);

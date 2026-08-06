@@ -5,8 +5,9 @@ import {
   Calendar, Award, Camera, RefreshCw, Printer, ShieldAlert, Filter,
   Upload, Image as ImageIcon, RotateCw, AlertOctagon, FileText, KeyRound
 } from 'lucide-react';
-import { collection, onSnapshot, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
+import { workersRepo, workerAttendanceRepo } from '../lib/repositories';
 import { useProject } from '../ProjectContext';
 import { queueOfflineOperation } from '../lib/offline/syncEngine';
 import jsPDF from 'jspdf';
@@ -248,28 +249,18 @@ export default function WorkerQrRegistry() {
     const workersPath = `organizations/${orgId}/projects/${currentProject.id}/workers`;
     const attendancePath = `organizations/${orgId}/projects/${currentProject.id}/worker_attendance`;
 
-    const unsubWorkers = onSnapshot(collection(db, workersPath), (snapshot) => {
-      const loaded: FieldWorker[] = snapshot.docs.map(docSnap => ({
-        id: docSnap.id,
-        ...docSnap.data()
-      } as FieldWorker));
+    const unsubWorkers = workersRepo.subscribe(orgId, currentProject.id, (items) => {
+      const loaded = items as unknown as FieldWorker[];
       if (loaded.length > 0) {
         setWorkers(loaded);
         setSelectedWorker(loaded[0]);
       }
-    }, (err) => {
-      handleFirestoreError(err, OperationType.GET, workersPath);
-    });
+    }, undefined, { limitCount: 50 });
 
-    const unsubAttendance = onSnapshot(collection(db, attendancePath), (snapshot) => {
-      const loaded: AttendanceRecord[] = snapshot.docs.map(docSnap => ({
-        id: docSnap.id,
-        ...docSnap.data()
-      } as AttendanceRecord));
+    const unsubAttendance = workerAttendanceRepo.subscribe(orgId, currentProject.id, (items) => {
+      const loaded = items as unknown as AttendanceRecord[];
       setAttendanceLogs(loaded);
-    }, (err) => {
-      handleFirestoreError(err, OperationType.GET, attendancePath);
-    });
+    }, undefined, { limitCount: 50 });
 
     return () => {
       unsubWorkers();

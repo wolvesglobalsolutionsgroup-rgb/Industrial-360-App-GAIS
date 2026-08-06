@@ -9,8 +9,9 @@ import {
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import jsPDF from 'jspdf';
-import { collection, query, onSnapshot, where, collectionGroup } from 'firebase/firestore';
-import { db, handleFirestoreError, OperationType } from '../firebase';
+import { 
+  tasksRepo, expensesRepo, valuationsRepo, sihoPtwRepo, weldJointsRepo, wbsSnapshotsRepo 
+} from '../lib/repositories';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { useProject } from '../ProjectContext';
@@ -46,7 +47,7 @@ export default function Dashboard() {
   const [weldJoints, setWeldJoints] = useState<any[]>([]);
   const [wbsSnapshots, setWbsSnapshots] = useState<any[]>([]);
 
-  // Subscribe to Firestore Collections (Multi-tenant)
+  // Subscribe to Firestore Collections via Repositories (Multi-tenant, limit(50))
   useEffect(() => {
     setIsLoadingData(true);
     setErrorState(null);
@@ -57,111 +58,42 @@ export default function Dashboard() {
       return;
     }
 
-    const isSingle = currentProject && currentProject.id !== 'all' && currentProject.id !== undefined;
-    const projId = currentProject?.id;
+    const projId = currentProject?.id || 'all';
 
     const timer = setTimeout(() => {
       setIsLoadingData(false);
     }, 1000);
     
     try {
-      const tasksPath = isSingle ? `organizations/${orgId}/projects/${projId}/tasks` : null;
-      const tasksQ = tasksPath 
-        ? query(collection(db, tasksPath))
-        : query(collectionGroup(db, 'tasks'), where('orgId', '==', orgId));
-
-      const unsubTasks = onSnapshot(tasksQ, (snap) => {
-        const uniqueMap = new Map<string, any>();
-        snap.docs.forEach(d => {
-          if (!uniqueMap.has(d.id)) {
-            uniqueMap.set(d.id, { id: d.id, ...d.data() });
-          }
-        });
-        setTasks(Array.from(uniqueMap.values()));
+      const unsubTasks = tasksRepo.subscribe(orgId, projId, (items) => {
+        setTasks(items);
         setIsLoadingData(false);
         clearTimeout(timer);
-      }, (err) => {
-        handleFirestoreError(err, OperationType.GET, tasksPath || 'tasks');
+      }, () => {
         setIsLoadingData(false);
         clearTimeout(timer);
-      });
+      }, { limitCount: 50 });
 
-      const expensesPath = isSingle ? `organizations/${orgId}/projects/${projId}/expenses` : null;
-      const expensesQ = expensesPath
-        ? query(collection(db, expensesPath))
-        : query(collectionGroup(db, 'expenses'), where('orgId', '==', orgId));
+      const unsubExpenses = expensesRepo.subscribe(orgId, projId, (items) => {
+        setExpenses(items);
+      }, undefined, { limitCount: 50 });
 
-      const unsubExpenses = onSnapshot(expensesQ, (snap) => {
-        const uniqueMap = new Map<string, any>();
-        snap.docs.forEach(d => {
-          if (!uniqueMap.has(d.id)) {
-            uniqueMap.set(d.id, { id: d.id, ...d.data() });
-          }
-        });
-        setExpenses(Array.from(uniqueMap.values()));
-      }, (err) => handleFirestoreError(err, OperationType.GET, expensesPath || 'expenses'));
+      const unsubValuations = valuationsRepo.subscribe(orgId, projId, (items) => {
+        setValuations(items);
+      }, undefined, { limitCount: 50 });
 
-      const valsPath = isSingle ? `organizations/${orgId}/projects/${projId}/valuations` : null;
-      const valsQ = valsPath
-        ? query(collection(db, valsPath))
-        : query(collectionGroup(db, 'valuations'), where('orgId', '==', orgId));
+      const unsubPtw = sihoPtwRepo.subscribe(orgId, projId, (items) => {
+        setPtwList(items);
+      }, undefined, { limitCount: 50 });
 
-      const unsubValuations = onSnapshot(valsQ, (snap) => {
-        const uniqueMap = new Map<string, any>();
-        snap.docs.forEach(d => {
-          if (!uniqueMap.has(d.id)) {
-            uniqueMap.set(d.id, { id: d.id, ...d.data() });
-          }
-        });
-        setValuations(Array.from(uniqueMap.values()));
-      }, (err) => handleFirestoreError(err, OperationType.GET, valsPath || 'valuations'));
+      const unsubWelds = weldJointsRepo.subscribe(orgId, projId, (items) => {
+        setWeldJoints(items);
+      }, undefined, { limitCount: 50 });
 
-      const ptwPath = isSingle ? `organizations/${orgId}/projects/${projId}/siho_ptw` : null;
-      const ptwQ = ptwPath
-        ? query(collection(db, ptwPath))
-        : query(collectionGroup(db, 'siho_ptw'), where('orgId', '==', orgId));
-
-      const unsubPtw = onSnapshot(ptwQ, (snap) => {
-        const uniqueMap = new Map<string, any>();
-        snap.docs.forEach(d => {
-          if (!uniqueMap.has(d.id)) {
-            uniqueMap.set(d.id, { id: d.id, ...d.data() });
-          }
-        });
-        setPtwList(Array.from(uniqueMap.values()));
-      }, (err) => handleFirestoreError(err, OperationType.GET, ptwPath || 'siho_ptw'));
-
-      const weldsPath = isSingle ? `organizations/${orgId}/projects/${projId}/weld_joints` : null;
-      const weldsQ = weldsPath
-        ? query(collection(db, weldsPath))
-        : query(collectionGroup(db, 'weld_joints'), where('orgId', '==', orgId));
-
-      const unsubWelds = onSnapshot(weldsQ, (snap) => {
-        const uniqueMap = new Map<string, any>();
-        snap.docs.forEach(d => {
-          if (!uniqueMap.has(d.id)) {
-            uniqueMap.set(d.id, { id: d.id, ...d.data() });
-          }
-        });
-        setWeldJoints(Array.from(uniqueMap.values()));
-      }, (err) => handleFirestoreError(err, OperationType.GET, weldsPath || 'weld_joints'));
-
-      const snapshotsPath = isSingle ? `organizations/${orgId}/projects/${projId}/wbs_snapshots` : null;
-      const snapshotsQ = snapshotsPath
-        ? query(collection(db, snapshotsPath))
-        : query(collectionGroup(db, 'wbs_snapshots'), where('orgId', '==', orgId));
-
-      const unsubSnapshots = onSnapshot(snapshotsQ, (snap) => {
-        const uniqueMap = new Map<string, any>();
-        snap.docs.forEach(d => {
-          if (!uniqueMap.has(d.id)) {
-            uniqueMap.set(d.id, { id: d.id, ...d.data() });
-          }
-        });
-        const list = Array.from(uniqueMap.values());
-        list.sort((a, b) => (a.createdAt || a.date || '').localeCompare(b.createdAt || b.date || ''));
-        setWbsSnapshots(list);
-      }, (err) => handleFirestoreError(err, OperationType.GET, snapshotsPath || 'wbs_snapshots'));
+      const unsubSnapshots = wbsSnapshotsRepo.subscribe(orgId, projId, (items) => {
+        const sorted = [...items].sort((a, b) => (a.createdAt || a.date || '').localeCompare(b.createdAt || b.date || ''));
+        setWbsSnapshots(sorted);
+      }, undefined, { limitCount: 50 });
 
       return () => {
         clearTimeout(timer);

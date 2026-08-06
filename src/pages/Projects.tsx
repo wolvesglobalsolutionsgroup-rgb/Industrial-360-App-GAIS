@@ -3,6 +3,7 @@ import {
   collection, query, onSnapshot, addDoc, updateDoc, doc, deleteDoc 
 } from 'firebase/firestore';
 import { db, getAuthUser, handleFirestoreError, OperationType } from '../firebase';
+import { projectsRepo } from '../lib/repositories';
 import { useProject } from '../ProjectContext';
 import { 
   Plus, Search, Building2, DollarSign, TrendingUp, Edit2, Trash2, CheckCircle2, FileSpreadsheet, Loader2, Calendar, Sparkles 
@@ -81,20 +82,15 @@ export default function Projects() {
       setIsLoading(false);
     }, 1000);
 
-    const q = query(collection(db, projectsPath));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const projs = snapshot.docs.map(docSnap => ({
-        id: docSnap.id,
-        ...docSnap.data()
-      })) as ProjectItem[];
-      setProjects(projs);
+    const unsubscribe = projectsRepo.subscribe(orgId, 'all', (items) => {
+      setProjects(items as unknown as ProjectItem[]);
       setIsLoading(false);
       clearTimeout(timer);
     }, (error) => {
       handleFirestoreError(error, OperationType.GET, projectsPath);
       setIsLoading(false);
       clearTimeout(timer);
-    });
+    }, { limitCount: 50 });
 
     return () => {
       clearTimeout(timer);

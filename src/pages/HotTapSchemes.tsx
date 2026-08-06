@@ -6,6 +6,7 @@ import {
 import { useProject } from '../ProjectContext';
 import { useRequiredProject } from '../hooks/useRequiredProject';
 import { db } from '../firebase';
+import { hotTapsRepo } from '../lib/repositories';
 import { collection, query, where, onSnapshot, addDoc, serverTimestamp, collectionGroup } from 'firebase/firestore';
 
 export type HotTapType = 'HOT_TAP' | 'STOPPLE' | 'LINE_STOP' | 'FREEZE' | 'BYPASS';
@@ -77,27 +78,17 @@ export default function HotTapSchemes() {
 
   const { orgId, projectId: projId } = useRequiredProject();
 
-  // Load Saved Interventions from Firestore
+  // Load Saved Interventions via Repository (limit(50))
   useEffect(() => {
     setLoading(true);
-    const isSingle = projId !== 'all';
-    const q = isSingle
-      ? collection(db, 'organizations', orgId, 'projects', projId, 'hot_tap_interventions')
-      : query(collectionGroup(db, 'hot_tap_interventions'), where('orgId', '==', orgId));
 
-    const unsub = onSnapshot(q, (snap) => {
-      const map = new Map<string, HotTapIntervention>();
-      snap.docs.forEach(doc => {
-        if (!map.has(doc.id)) {
-          map.set(doc.id, { id: doc.id, ...doc.data() } as HotTapIntervention);
-        }
-      });
-      setInterventions(Array.from(map.values()));
+    const unsub = hotTapsRepo.subscribe(orgId, projId, (items) => {
+      setInterventions(items as unknown as HotTapIntervention[]);
       setLoading(false);
     }, (err) => {
       console.warn("Error fetching hot tap interventions:", err);
       setLoading(false);
-    });
+    }, { limitCount: 50 });
 
     return () => unsub();
   }, [orgId, projId]);

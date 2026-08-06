@@ -24,7 +24,7 @@ import { doc, onSnapshot, collection, query, where, addDoc, collectionGroup } fr
 import { db } from '../firebase';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { ClientPortalConfig } from './ClientPortalBuilder';
-import { tasksRepo, valuationsRepo, sihoPtwRepo, weldJointsRepo, fieldReportsRepo } from '../lib/repositories';
+import { tasksRepo, valuationsRepo, sihoPtwRepo, weldJointsRepo, fieldReportsRepo, dossiersRepo } from '../lib/repositories';
 
 export default function ClientPortalView() {
   const { portalId } = useParams<{ portalId: string }>();
@@ -118,12 +118,10 @@ export default function ClientPortalView() {
     });
 
 
-    // Dossiers Query
-    const dossiersQ = query(collectionGroup(db, 'dossier_compilations'), where('orgId', '==', portalOrgId));
-    const unsubDossiers = onSnapshot(dossiersQ, (snap) => {
-      const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Dossiers Subscription via Repo (limit(50))
+    const unsubDossiers = dossiersRepo.subscribe(portalOrgId, 'all', (all) => {
       setDossiers(all.filter((item: any) => !item.projectId || projIds.includes(item.projectId)));
-    }, err => console.warn('Dossiers query error:', err));
+    }, err => console.warn('Dossiers query error:', err), { limitCount: 50 });
 
     return () => {
       unsubTasks();

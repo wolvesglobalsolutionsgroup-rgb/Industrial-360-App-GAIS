@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { collection, onSnapshot, addDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
+import { environmentalAspectsRepo, rasdaManifestsRepo, environmentalInspectionsRepo } from '../lib/repositories';
 import { useProject } from '../ProjectContext';
 import { useRequiredProject } from '../hooks/useRequiredProject';
 import { generateRegulatoryCode } from '../lib/regulatoryIdsClient';
@@ -184,37 +185,21 @@ export default function EnvironmentalManagement() {
   const [spillTrayOk, setSpillTrayOk] = useState(true);
   const [oilLeaksOk, setOilLeaksOk] = useState(true);
 
-  // Fetch Firestore Data
+  // Fetch Firestore Data via Repositories (limit(50))
   useEffect(() => {
     if (!currentProject || currentProject.id === 'all') return;
 
-    const envPath = `organizations/${orgId}/projects/${currentProject.id}/environmental_aspects`;
-    const rasdaPath = `organizations/${orgId}/projects/${currentProject.id}/rasda_manifests`;
-    const inspPath = `organizations/${orgId}/projects/${currentProject.id}/environmental_inspections`;
+    const unsubAspects = environmentalAspectsRepo.subscribe(orgId, currentProject.id, (items) => {
+      setAspects(items as unknown as EnvironmentalAspect[]);
+    }, undefined, { limitCount: 50 });
 
-    const unsubAspects = onSnapshot(collection(db, envPath), (snapshot) => {
-      const loaded: EnvironmentalAspect[] = snapshot.docs.map(docSnap => ({
-        id: docSnap.id,
-        ...docSnap.data()
-      } as EnvironmentalAspect));
-      setAspects(loaded); // Automatically turns off mock data when Firestore returns
-    }, (err) => handleFirestoreError(err, OperationType.GET, envPath));
+    const unsubManifests = rasdaManifestsRepo.subscribe(orgId, currentProject.id, (items) => {
+      setManifests(items as unknown as RasdaManifest[]);
+    }, undefined, { limitCount: 50 });
 
-    const unsubManifests = onSnapshot(collection(db, rasdaPath), (snapshot) => {
-      const loaded: RasdaManifest[] = snapshot.docs.map(docSnap => ({
-        id: docSnap.id,
-        ...docSnap.data()
-      } as RasdaManifest));
-      setManifests(loaded);
-    }, (err) => handleFirestoreError(err, OperationType.GET, rasdaPath));
-
-    const unsubInspections = onSnapshot(collection(db, inspPath), (snapshot) => {
-      const loaded: EquipmentInspection[] = snapshot.docs.map(docSnap => ({
-        id: docSnap.id,
-        ...docSnap.data()
-      } as EquipmentInspection));
-      setInspections(loaded);
-    }, (err) => handleFirestoreError(err, OperationType.GET, inspPath));
+    const unsubInspections = environmentalInspectionsRepo.subscribe(orgId, currentProject.id, (items) => {
+      setInspections(items as unknown as EquipmentInspection[]);
+    }, undefined, { limitCount: 50 });
 
     return () => {
       unsubAspects();

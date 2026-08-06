@@ -4,8 +4,9 @@ import {
   Filter, FileText, Download, RefreshCw, Scale, ShieldCheck, Layers, 
   Ruler, Activity, XCircle, Droplets, Calendar, Camera, Image
 } from 'lucide-react';
-import { collection, onSnapshot, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
+import { civilStructuresRepo } from '../lib/repositories';
 import { useProject } from '../ProjectContext';
 import { queueOfflineOperation } from '../lib/offline/syncEngine';
 import jsPDF from 'jspdf';
@@ -172,23 +173,17 @@ export default function CivilEngineeringRegistry() {
     }
   };
 
-  // Firestore Listen
+  // Firestore Listen via Repository (limit(50))
   useEffect(() => {
     if (!currentProject || currentProject.id === 'all') return;
 
-    const path = `organizations/${orgId}/projects/${currentProject.id}/civil_tests`;
-    const unsubscribe = onSnapshot(collection(db, path), (snapshot) => {
-      if (!snapshot.empty) {
-        const loaded: CivilTestRecord[] = snapshot.docs.map(docSnap => ({
-          id: docSnap.id,
-          ...docSnap.data()
-        } as CivilTestRecord));
+    const unsubscribe = civilStructuresRepo.subscribe(orgId, currentProject.id, (items) => {
+      if (items.length > 0) {
+        const loaded = items as unknown as CivilTestRecord[];
         setRecords(loaded);
         if (loaded.length > 0) setSelectedRecord(loaded[0]);
       }
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, path);
-    });
+    }, undefined, { limitCount: 50 });
 
     return () => unsubscribe();
   }, [currentProject, orgId]);

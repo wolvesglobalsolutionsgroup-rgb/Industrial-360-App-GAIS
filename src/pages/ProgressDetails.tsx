@@ -5,8 +5,8 @@ import {
   AlertCircle, RefreshCw, Filter, CheckCircle2, BarChart2
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { collection, onSnapshot } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
+import { tasksRepo, fieldReportsRepo } from '../lib/repositories';
 import { useProject } from '../ProjectContext';
 
 interface TaskDoc {
@@ -70,45 +70,21 @@ export default function ProgressDetails() {
     setLoading(true);
     setError(null);
 
-    const tasksPath = `organizations/${orgId}/projects/${projId}/tasks`;
-    const reportsPath = `organizations/${orgId}/projects/${projId}/field_reports`;
+    const unsubTasks = tasksRepo.subscribe(orgId, projId, (items) => {
+      setTasks(items as TaskDoc[]);
+      setLoading(false);
+    }, (err) => {
+      setError(`Error al cargar partidas de avance (${err.code || err.message})`);
+      setLoading(false);
+    }, { limitCount: 50 });
 
-    let unsubReports: (() => void) | null = null;
-
-    const unsubTasks = onSnapshot(
-      collection(db, tasksPath),
-      (snapshot) => {
-        const docs: TaskDoc[] = snapshot.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
-        }));
-        setTasks(docs);
-        setLoading(false);
-      },
-      (err) => {
-        handleFirestoreError(err, OperationType.LIST, tasksPath);
-        setError(`Error al cargar partidas de avance (${err.code || err.message})`);
-        setLoading(false);
-      }
-    );
-
-    unsubReports = onSnapshot(
-      collection(db, reportsPath),
-      (snapshot) => {
-        const rDocs: FieldReportDoc[] = snapshot.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
-        }));
-        setFieldReports(rDocs);
-      },
-      (err) => {
-        handleFirestoreError(err, OperationType.LIST, reportsPath);
-      }
-    );
+    const unsubReports = fieldReportsRepo.subscribe(orgId, projId, (items) => {
+      setFieldReports(items as FieldReportDoc[]);
+    }, undefined, { limitCount: 50 });
 
     return () => {
       unsubTasks();
-      if (unsubReports) unsubReports();
+      unsubReports();
     };
   }, [orgId, projId]);
 

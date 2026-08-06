@@ -4,8 +4,9 @@ import {
   Filter, FileText, Download, RefreshCw, Layers, ShieldCheck, Zap, Gauge, 
   Settings, CheckSquare, XCircle, Wrench, ArrowRight, Camera
 } from 'lucide-react';
-import { collection, onSnapshot, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
+import { instrumentLoopsRepo } from '../lib/repositories';
 import { useProject } from '../ProjectContext';
 import { queueOfflineOperation } from '../lib/offline/syncEngine';
 import jsPDF from 'jspdf';
@@ -157,23 +158,17 @@ export default function InstrumentationControl() {
   const [p75, setP75] = useState(750);
   const [p100, setP100] = useState(1000);
 
-  // Firestore Listen
+  // Firestore Listen via Repository (limit(50))
   useEffect(() => {
     if (!currentProject || currentProject.id === 'all') return;
 
-    const path = `organizations/${orgId}/projects/${currentProject.id}/instrument_loops`;
-    const unsubscribe = onSnapshot(collection(db, path), (snapshot) => {
-      if (!snapshot.empty) {
-        const loaded: InstrumentLoop[] = snapshot.docs.map(docSnap => ({
-          id: docSnap.id,
-          ...docSnap.data()
-        } as InstrumentLoop));
+    const unsubscribe = instrumentLoopsRepo.subscribe(orgId, currentProject.id, (items) => {
+      if (items.length > 0) {
+        const loaded = items as unknown as InstrumentLoop[];
         setLoops(loaded);
         if (loaded.length > 0) setSelectedLoop(loaded[0]);
       }
-    }, (error) => {
-      handleFirestoreError(error, OperationType.LIST, path);
-    });
+    }, undefined, { limitCount: 50 });
 
     return () => unsubscribe();
   }, [currentProject, orgId]);

@@ -10,6 +10,7 @@ import {
   where 
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
+import { procurementRepo, inventoryRepo } from '../lib/repositories';
 import { useProject } from '../ProjectContext';
 import { useRequiredProject } from '../hooks/useRequiredProject';
 import { 
@@ -374,41 +375,23 @@ export default function ProcurementInventory() {
     notes: ''
   });
 
-  // Listen to Firestore procurement & inventory collections
+  // Listen to Firestore procurement & inventory collections via Repositories (limit(50))
   useEffect(() => {
     // 1. RFQs
-    const rfqQ = query(collectionGroup(db, 'procurement'), where('orgId', '==', orgId));
-    const unsubRfq = onSnapshot(rfqQ, (snap) => {
-      const map = new Map<string, MaterialRFQ>();
-      snap.docs.forEach(d => {
-        if (!map.has(d.id)) {
-          map.set(d.id, { id: d.id, ...d.data() } as MaterialRFQ);
-        }
-      });
-      const all = Array.from(map.values());
-      const filtered = projId === 'all' ? all : all.filter(r => r.projectId === projId);
-      setRfqs(filtered.length > 0 ? filtered : getDemoRfqs(orgId, projId));
-    }, (err) => {
-      handleFirestoreError(err, OperationType.GET, 'procurement');
+    const unsubRfq = procurementRepo.subscribe(orgId, projId, (items) => {
+      const all = items as unknown as MaterialRFQ[];
+      setRfqs(all.length > 0 ? all : getDemoRfqs(orgId, projId));
+    }, () => {
       setRfqs(getDemoRfqs(orgId, projId));
-    });
+    }, { limitCount: 50 });
 
     // 2. Inventory / Materials
-    const invQ = query(collectionGroup(db, 'inventory'), where('orgId', '==', orgId));
-    const unsubInv = onSnapshot(invQ, (snap) => {
-      const map = new Map<string, InventoryItemMTR>();
-      snap.docs.forEach(d => {
-        if (!map.has(d.id)) {
-          map.set(d.id, { id: d.id, ...d.data() } as InventoryItemMTR);
-        }
-      });
-      const all = Array.from(map.values());
-      const filtered = projId === 'all' ? all : all.filter(i => i.projectId === projId);
-      setInventoryItems(filtered.length > 0 ? filtered : getDemoInventory(orgId, projId));
-    }, (err) => {
-      handleFirestoreError(err, OperationType.GET, 'inventory');
+    const unsubInv = inventoryRepo.subscribe(orgId, projId, (items) => {
+      const all = items as unknown as InventoryItemMTR[];
+      setInventoryItems(all.length > 0 ? all : getDemoInventory(orgId, projId));
+    }, () => {
       setInventoryItems(getDemoInventory(orgId, projId));
-    });
+    }, { limitCount: 50 });
 
     // POs and Dispatches fallback to state initialized with demo items if not present
     setPos(getDemoPos(orgId, projId));

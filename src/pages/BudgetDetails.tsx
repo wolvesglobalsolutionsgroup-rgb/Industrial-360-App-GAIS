@@ -6,8 +6,8 @@ import {
   FileCheck
 } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { collection, onSnapshot } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
+import { expensesRepo, valuationsRepo } from '../lib/repositories';
 import { useProject } from '../ProjectContext';
 
 interface ExpenseDoc {
@@ -69,45 +69,21 @@ export default function BudgetDetails() {
     setLoading(true);
     setError(null);
 
-    const expensesPath = `organizations/${orgId}/projects/${projId}/expenses`;
-    const valuationsPath = `organizations/${orgId}/projects/${projId}/valuations`;
+    const unsubExpenses = expensesRepo.subscribe(orgId, projId, (items) => {
+      setExpenses(items as ExpenseDoc[]);
+      setLoading(false);
+    }, (err) => {
+      setError(`Error al cargar registro de gastos (${err.code || err.message})`);
+      setLoading(false);
+    }, { limitCount: 50 });
 
-    let unsubValuations: (() => void) | null = null;
-
-    const unsubExpenses = onSnapshot(
-      collection(db, expensesPath),
-      (snapshot) => {
-        const eDocs: ExpenseDoc[] = snapshot.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
-        }));
-        setExpenses(eDocs);
-        setLoading(false);
-      },
-      (err) => {
-        handleFirestoreError(err, OperationType.LIST, expensesPath);
-        setError(`Error al cargar registro de gastos (${err.code || err.message})`);
-        setLoading(false);
-      }
-    );
-
-    unsubValuations = onSnapshot(
-      collection(db, valuationsPath),
-      (snapshot) => {
-        const vDocs: ValuationDoc[] = snapshot.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
-        }));
-        setValuations(vDocs);
-      },
-      (err) => {
-        handleFirestoreError(err, OperationType.LIST, valuationsPath);
-      }
-    );
+    const unsubValuations = valuationsRepo.subscribe(orgId, projId, (items) => {
+      setValuations(items as ValuationDoc[]);
+    }, undefined, { limitCount: 50 });
 
     return () => {
       unsubExpenses();
-      if (unsubValuations) unsubValuations();
+      unsubValuations();
     };
   }, [orgId, projId]);
 

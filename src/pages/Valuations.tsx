@@ -18,7 +18,7 @@ import {
 } from '../components/ui';
 import StatCard from '../components/common/StatCard';
 import PageHeader from '../components/common/PageHeader';
-import { valuationsRepo, fieldReportsRepo } from '../lib/repositories';
+import { valuationsRepo, fieldReportsRepo, tasksRepo } from '../lib/repositories';
 import { DualHeader } from '../components/common/DualHeader';
 import { DocumentSeal } from '../components/common/DocumentSeal';
 import { DocumentSigner } from '../components/common/DocumentSigner';
@@ -155,13 +155,11 @@ export default function Valuations() {
     if (!currentProject) return;
     setIsCalculating(true);
     try {
-      const q = query(collection(db, 'tasks'), where('projectId', '==', currentProject.id));
-      const snap = await getDocs(q);
+      const result = await tasksRepo.getPaginated(orgId, currentProject.id, { pageSize: 50 });
       let calculatedGross = 0;
       let countPartidas = 0;
 
-      snap.docs.forEach(docSnap => {
-        const t = docSnap.data();
+      result.items.forEach(t => {
         const execVal = Number(t.executedQuantity || 0) * Number(t.unitCost || 0);
         calculatedGross += execVal;
         if (Number(t.executedQuantity || 0) > 0) {
@@ -176,7 +174,7 @@ export default function Valuations() {
       setNewValuation(prev => ({
         ...prev,
         grossAmount: periodValuation > 0 ? periodValuation.toFixed(2) : '15000.00',
-        description: prev.description || `Valuación ROE correspondiente al Avance Físico del Período (${countPartidas > 0 ? countPartidas : snap.docs.length} partidas de obra ejecutadas)`
+        description: prev.description || `Valuación ROE correspondiente al Avance Físico del Período (${countPartidas > 0 ? countPartidas : result.items.length} partidas de obra ejecutadas)`
       }));
     } catch (err) {
       console.error("Error al calcular monto bruto desde partidas:", err);

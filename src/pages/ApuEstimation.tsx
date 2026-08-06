@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { collection, query, where, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../firebase';
+import { apusRepo } from '../lib/repositories';
 import { useProject } from '../ProjectContext';
 import QuantityTakeoff from '../components/engineering/QuantityTakeoff';
 import { parseBc3File } from '../lib/parsers/bc3Parser';
@@ -122,13 +123,8 @@ export default function ApuEstimation() {
       return;
     }
 
-    const apuRef = collection(db, 'organizations', currentProject.orgId, 'projects', currentProject.id, 'apus');
-    const unsubscribe = onSnapshot(apuRef, (snapshot) => {
-      const docsData: ApuItem[] = [];
-      snapshot.forEach((docSnap) => {
-        docsData.push({ id: docSnap.id, ...docSnap.data() } as ApuItem);
-      });
-
+    const unsubscribe = apusRepo.subscribe(currentProject.orgId, currentProject.id, (items) => {
+      const docsData = items as ApuItem[];
       if (docsData.length > 0) {
         setApusList(docsData);
       } else {
@@ -138,7 +134,7 @@ export default function ApuEstimation() {
     }, (error) => {
       handleFirestoreError(error, OperationType.LIST, 'APUs');
       setLoading(false);
-    });
+    }, { limitCount: 50 });
 
     return () => unsubscribe();
   }, [currentProject?.id, currentProject?.orgId]);

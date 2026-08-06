@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, limit } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { db, functionsInstance, auth } from '../firebase';
 import { 
@@ -180,7 +180,7 @@ export default function PlatformOwnerConsole() {
   useEffect(() => {
     async function fetchRealOrganizations() {
       try {
-        const snap = await getDocs(collection(db, 'organizations'));
+        const snap = await getDocs(query(collection(db, 'organizations'), limit(50)));
         if (!snap.empty) {
           const loadedTenants: TenantSummary[] = snap.docs.map(docSnap => {
             const data = docSnap.data();
