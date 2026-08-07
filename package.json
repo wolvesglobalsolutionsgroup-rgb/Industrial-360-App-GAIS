@@ -60,7 +60,6 @@
     "leaflet-draw": "^1.0.4",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
-    "pptxgenjs": "^4.0.1",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -84,6 +83,7 @@
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.28.1",
     "fake-indexeddb": "^6.2.5",
+    "pptxgenjs": "^4.0.1",
     "tailwindcss": "^4.1.14",
     "tsx": "^4.21.0",
     "typescript": "~5.8.2",
@@ -97,6 +97,8 @@
     "react-router-dom": "^7.18.2",
     "minimist": "^1.2.8",
     "minimatch": "^9.0.5",
-    "uuid": "^11.1.1"
+    "uuid": "^11.1.1",
+    "image-size": "^1.2.1",
+    "nanoid": "^5.1.6"
   }
 }
