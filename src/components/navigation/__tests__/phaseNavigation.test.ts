@@ -69,7 +69,7 @@ describe('Sprint F-UX Phase Navigation Unit Tests', () => {
     expect(breadcrumbs).toHaveLength(3);
     expect(breadcrumbs[0].label).toBe('Gasoducto Anaco-Barinas');
     expect(breadcrumbs[1].label).toContain('Fase 4');
-    expect(breadcrumbs[2].label).toContain('Inspección Izaje');
+    expect(breadcrumbs[2].label).toContain('Izaje');
     expect(breadcrumbs[2].badge).toBe('BORRADOR');
   });
 

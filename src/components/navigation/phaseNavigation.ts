@@ -634,7 +634,7 @@ export function getBreadcrumbsForPath(
 
   if (workflowId && workflowTitle) {
     breadcrumbs.push({
-      label: module ? module.title : workflowTitle,
+      label: workflowTitle || (module ? module.title : 'Workflow Kernel'),
       isCurrent: true,
       badge: workflowState || (module?.badge ?? 'Workflow Active'),
       iconName: module?.iconName || 'ShieldCheck',
