@@ -9,7 +9,6 @@ import { useAppAuthState } from './firebase';
 import AppLayout from './components/layout/AppLayout';
 import ProtectedRoute from './components/ProtectedRoute';
 import { PageSkeleton } from './components/ui/PageSkeleton';
-import { CommandPalette } from './components/CommandPalette';
 import { ProjectProvider } from './ProjectContext';
 import { ThemeProvider } from './theme/ThemeContext';
 import { DisplayEnvironmentProvider } from './theme/DisplayEnvironmentContext';
@@ -83,6 +82,9 @@ const InstrumentationControl = lazyWithRetry(() => import('./pages/Instrumentati
 const CivilEngineeringRegistry = lazyWithRetry(() => import('./pages/CivilEngineeringRegistry'));
 const WorkflowRunnerPage = lazyWithRetry(() => import('./pages/WorkflowRunnerPage'));
 const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
+const CommandPalette = lazyWithRetry(() =>
+  import('./components/CommandPalette').then((m) => ({ default: m.CommandPalette }))
+);
 
 function AppContent() {
   const [user, loading] = useAppAuthState();
@@ -113,7 +115,9 @@ function AppContent() {
 
   return (
     <ProjectProvider>
-      <CommandPalette />
+      <Suspense fallback={null}>
+        <CommandPalette />
+      </Suspense>
       <ErrorBoundary>
         <Suspense fallback={<PageSkeleton />}>
           <Routes>

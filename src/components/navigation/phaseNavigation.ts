@@ -1,7 +1,6 @@
 import { UserRole } from '../../ProjectContext';
 import { getWorkflow, listWorkflows } from '../../lib/workflows/registry';
 import { WorkflowPhase } from '../../lib/workflows/contracts';
-import { ensureWorkflowsRegistered } from '../../workflows';
 
 export interface PhaseModule {
   id: string;
@@ -38,6 +37,11 @@ export interface NavigationSearchResult {
   phase: ProjectPhase;
   module: PhaseModule;
   matchType: 'title' | 'description' | 'phase' | 'workflowId';
+}
+
+export async function ensureWorkflowsRegisteredAsync(): Promise<void> {
+  const { ensureWorkflowsRegistered } = await import('../../workflows');
+  ensureWorkflowsRegistered();
 }
 
 /**
@@ -546,8 +550,6 @@ export function getPhaseForPath(pathname: string): {
   workflowId?: string;
   workflowTitle?: string;
 } {
-  ensureWorkflowsRegistered();
-
   // 1. Check dynamic workflow routes (/workflows/:workflowId/...)
   if (pathname.startsWith('/workflows')) {
     const parts = pathname.split('/').filter(Boolean);
@@ -565,6 +567,20 @@ export function getPhaseForPath(pathname: string): {
           workflowId: registeredWf.id,
           workflowTitle: registeredWf.title,
         };
+      }
+
+      // If registeredWf is deferred, search in PROJECT_PHASES by module.workflowId or path
+      for (const phase of PROJECT_PHASES) {
+        for (const mod of phase.modules) {
+          if (mod.workflowId === wfIdFromUrl || mod.path.endsWith(wfIdFromUrl) || mod.id === wfIdFromUrl) {
+            return {
+              phase,
+              module: mod,
+              workflowId: mod.workflowId || wfIdFromUrl,
+              workflowTitle: mod.title,
+            };
+          }
+        }
       }
     }
   }
@@ -627,7 +643,7 @@ export function getBreadcrumbsForPath(
     breadcrumbs.push({
       label: module.title,
       isCurrent: true,
-      badge: module.badge,
+      badge: workflowState || module.badge,
       iconName: module.iconName,
     });
   }
@@ -642,7 +658,6 @@ export function searchNavigation(
   query: string,
   userRole?: string
 ): NavigationSearchResult[] {
-  ensureWorkflowsRegistered();
   const cleanQuery = query.trim().toLowerCase();
   if (!cleanQuery) return [];
 

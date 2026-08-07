@@ -9,7 +9,7 @@
 | `firebase-firestore-aDcxgE1i.js` | 1.06 MB (1,116,446 B) | 248.69 KB (254,663 B) | 2026-08-06 |
 | `pdf-D9qmTyuK.js` | 946.73 KB (969,456 B) | 228.94 KB (234,433 B) | 2026-08-06 |
 | `excel-BZuQIRcn.js` | 925.67 KB (947,887 B) | 251.79 KB (257,831 B) | 2026-08-06 |
-| `index-BR9p6nSE.js` | 759.23 KB (777,452 B) | 150.89 KB (154,513 B) | 2026-08-06 |
+| `index-Ckl_Y1JC.js` | 760.81 KB (779,069 B) | 151.12 KB (154,746 B) | 2026-08-07 |
 | `Chatbot-Cyn6caCt.js` | 515.52 KB (527,894 B) | 110.45 KB (113,096 B) | 2026-08-06 |
 | `maps-Cj52gCsu.js` | 485.78 KB (497,439 B) | 115.21 KB (117,978 B) | 2026-08-06 |
 | `motion-BcrZJxL0.js` | 407.01 KB (416,775 B) | 98.97 KB (101,344 B) | 2026-08-06 |
@@ -85,6 +85,7 @@
 
 
 ## Resumen de Entrada (Entrypoint)
-- **Chunk Principal (Entry point):** `index-BR9p6nSE.js`
-- **Tamaño Raw:** 759.23 KB
-- **Tamaño Gzip:** 150.89 KB
+- **Chunk Principal (Entry point):** `index-Ckl_Y1JC.js`
+- **Tamaño Raw:** 760.81 KB (779,069 B)
+- **Tamaño Gzip:** 151.12 KB
+- **Optimización Sprint F-H2:** Desacople dinámico de `ensureWorkflowsRegistered()` y CommandPalette fuera del bundle inicial. Cierre de regresión de bundle (reducción de ~1.52 MB a 760.81 KB, cumpliendo < 800 KB). Verificado 0 `modulepreload` headers en `dist/index.html` para chunks pesados (`pdf`, `excel`, `charts`, `3d`, `firebase-firestore`).

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ensureWorkflowsRegistered } from '../workflows';
 import { getWorkflow, listWorkflows } from '../lib/workflows/registry';
 import { WorkflowRunner } from '../lib/workflows/runner';
 import { WorkflowRouteContext, WorkflowState } from '../lib/workflows/contracts';
@@ -30,7 +29,11 @@ interface WorkflowRunnerPageProps {
 }
 
 export default function WorkflowRunnerPage({ overrideWorkflowId }: WorkflowRunnerPageProps = {}) {
-  ensureWorkflowsRegistered();
+  useEffect(() => {
+    import('../workflows').then(({ ensureWorkflowsRegistered }) => {
+      ensureWorkflowsRegistered();
+    });
+  }, []);
 
   const { workflowId: paramWorkflowId = 'wf-042-inspeccion-izaje', instanceId = 'inst-001' } = useParams<{
     workflowId: string;

@@ -115,36 +115,33 @@ export const wf050Definition: WorkflowDefinition<CivilTestingData> = {
     factory: (context, data) => {
       const recordsList = data.records || [];
 
+      if (recordsList.length === 0) {
+        throw new Error(
+          'Error de Dominio: No se pueden generar entregables de ensayos civiles sin registros de pruebas de laboratorio o campo.'
+        );
+      }
+
+      const signers = [
+        {
+          id: 'sig-050-1',
+          role: 'INSPECTOR' as const,
+          name: context.user.email,
+          title: 'Inspector de Calidad Civil / Laboratorio Geotécnico',
+          organization: 'PROINTECA C.A.',
+          status: 'PENDING' as const,
+        },
+      ];
+
       return createDocumentViewModel({
         documentId: `INF-CIV-${Date.now().toString().slice(-5)}`,
         title: 'INFORME TÉCNICO CERTIFICADO DE ENSAYOS CIVILES Y SUELOS',
         code: `CERT-CIV-COVENIN-${context.projectId}`,
         date: new Date().toISOString().split('T')[0],
-        status: 'APPROVED',
+        status: 'DRAFT',
         contractorBrand: context.contractorBrand,
         operatorBrand: context.operatorBrand,
-        signers: [
-          {
-            id: 'sig-050-1',
-            role: 'INSPECTOR',
-            name: context.user.email,
-            title: 'Inspector de Calidad Civil / Laboratorio Geotécnico',
-            organization: 'PROINTECA C.A.',
-            status: 'SIGNED',
-            signedAt: new Date().toISOString(),
-          },
-        ],
-        metadata: freezeDocumentMetadata([
-          {
-            id: 'sig-050-1',
-            role: 'INSPECTOR',
-            name: context.user.email,
-            title: 'Inspector de Calidad Civil / Laboratorio Geotécnico',
-            organization: 'PROINTECA C.A.',
-            status: 'SIGNED',
-            signedAt: new Date().toISOString(),
-          },
-        ]),
+        signers,
+        metadata: freezeDocumentMetadata(signers),
         sections: [
           {
             id: 'sec-1',

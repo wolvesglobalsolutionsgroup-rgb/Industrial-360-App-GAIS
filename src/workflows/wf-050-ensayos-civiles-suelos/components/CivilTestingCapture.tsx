@@ -63,51 +63,7 @@ export function CivilTestingCapture({
   onChange,
   isReadOnly = false,
 }: WorkflowComponentProps<CivilTestingData>) {
-  const records = data?.records || [
-    {
-      id: 'civ_001',
-      testCode: 'ENS-SUELO-2026-041',
-      testType: 'Densidad_Campo_Cono_Arena',
-      testDate: '2026-07-22',
-      normRef: 'COVENIN 2000-92 / ASTM D1556',
-      inspectorName: 'Ing. Roberto Silva',
-      laboratoryName: 'Laboratorio Geotécnico Monagas C.A.',
-      status: 'Aprobado',
-      sandConeData: {
-        location: 'Fundación Pedestal Turbocompresor K-101 (Capa 2)',
-        layerDepthCm: 30,
-        moisturePercent: 8.2,
-        wetDensityGcm3: 2.16,
-        dryDensityGcm3: 2.0,
-        proctorMaxDryDensityGcm3: 2.05,
-        compactionPercent: 97.5,
-        requiredCompactionPercent: 95.0,
-        passed: true,
-      },
-      notes: 'Ensayo de densidad de campo conforme a especificaciones.',
-    },
-    {
-      id: 'civ_002',
-      testCode: 'ENS-CONC-2026-089',
-      testType: 'Compresion_Probetas_Concreto',
-      testDate: '2026-07-28',
-      normRef: 'COVENIN 1753 / ACI 318',
-      inspectorName: 'Ing. Carlos Parra',
-      laboratoryName: 'Laboratorio de Materiales Oriente',
-      status: 'Aprobado',
-      concreteData: {
-        structureName: 'Pedestal Bomba B-101 / Concreto f\'c=280 kg/cm2',
-        batchNumber: 'MEZCLA-2026-104',
-        fcDesignKgcm2: 280,
-        ageDays: 7,
-        measuredStrengthKgcm2: 205,
-        expectedPercentAtAge: 65,
-        attainedPercentOfFc: 73.2,
-        passed: true,
-      },
-      notes: 'Probeta probada a 7 días. Alcanza 73.2% de f\'c diseño (supera 65%).',
-    },
-  ];
+  const records = data?.records ?? [];
 
   const updateRecords = (newRecords: CivilTestRecord[]) => {
     onChange({ records: newRecords, summaryNotes: data?.summaryNotes || '' });
@@ -116,25 +72,25 @@ export function CivilTestingCapture({
   const handleAddSandCone = () => {
     const newRec: CivilTestRecord = {
       id: `civ_${Date.now()}`,
-      testCode: `ENS-SUELO-2026-${Math.floor(100 + Math.random() * 900)}`,
+      testCode: '',
       testType: 'Densidad_Campo_Cono_Arena',
       testDate: new Date().toISOString().split('T')[0],
       normRef: 'COVENIN 2000-92 / ASTM D1556',
       inspectorName: context.user.email,
-      laboratoryName: 'Laboratorio Geotécnico Central',
-      status: 'Aprobado',
+      laboratoryName: '',
+      status: 'En Proceso',
       sandConeData: {
-        location: 'Terraplén de Acceso / Vía Principal',
+        location: '',
         layerDepthCm: 30,
-        moisturePercent: 8.0,
-        wetDensityGcm3: 2.12,
-        dryDensityGcm3: 1.96,
-        proctorMaxDryDensityGcm3: 2.02,
-        compactionPercent: 97.0,
+        moisturePercent: 0,
+        wetDensityGcm3: 0,
+        dryDensityGcm3: 0,
+        proctorMaxDryDensityGcm3: 0,
+        compactionPercent: 0,
         requiredCompactionPercent: 95.0,
-        passed: true,
+        passed: false,
       },
-      notes: 'Ensayo de compactación de suelos.',
+      notes: '',
     };
     updateRecords([...records, newRec]);
   };
@@ -142,24 +98,24 @@ export function CivilTestingCapture({
   const handleAddConcrete = () => {
     const newRec: CivilTestRecord = {
       id: `civ_${Date.now()}`,
-      testCode: `ENS-CONC-2026-${Math.floor(100 + Math.random() * 900)}`,
+      testCode: '',
       testType: 'Compresion_Probetas_Concreto',
       testDate: new Date().toISOString().split('T')[0],
       normRef: 'COVENIN 1753 / ACI 318',
       inspectorName: context.user.email,
-      laboratoryName: 'Laboratorio de Materiales Oriente',
-      status: 'Aprobado',
+      laboratoryName: '',
+      status: 'En Proceso',
       concreteData: {
-        structureName: 'Pedestal Estructural de Tubería',
-        batchNumber: `MEZCLA-${Math.floor(100 + Math.random() * 900)}`,
+        structureName: '',
+        batchNumber: '',
         fcDesignKgcm2: 280,
         ageDays: 28,
-        measuredStrengthKgcm2: 295,
+        measuredStrengthKgcm2: 0,
         expectedPercentAtAge: 100,
-        attainedPercentOfFc: 105.3,
-        passed: true,
+        attainedPercentOfFc: 0,
+        passed: false,
       },
-      notes: 'Ruptura de probeta cilindrica de concreto.',
+      notes: '',
     };
     updateRecords([...records, newRec]);
   };
@@ -202,116 +158,269 @@ export function CivilTestingCapture({
         )}
       </div>
 
-      {/* Ensayos Cards */}
-      <div className="space-y-4">
-        {records.map((rec, idx) => (
-          <div
-            key={rec.id}
-            className="p-4 bg-surface border border-line rounded-xl space-y-3 relative"
-          >
-            <div className="flex items-center justify-between gap-2 border-b border-line pb-2">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-xs font-bold text-brand-500">{rec.testCode}</span>
-                <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-surface-2 text-ink">
-                  {rec.testType === 'Densidad_Campo_Cono_Arena'
-                    ? 'Densidad de Campo (Cono de Arena)'
-                    : 'Compresión Probetas Concreto'}
-                </span>
-              </div>
-              <span
-                className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${
-                  rec.status === 'Aprobado'
-                    ? 'bg-emerald-500/15 text-emerald-600 border border-emerald-500/30'
-                    : 'bg-rose-500/15 text-rose-600 border border-rose-500/30'
-                }`}
-              >
-                {rec.status}
-              </span>
-            </div>
-
-            {rec.sandConeData && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs bg-surface-2/50 p-3 rounded-lg">
-                <div>
-                  <span className="text-ink-faint block">Ubicación:</span>
-                  <span className="font-bold text-ink">{rec.sandConeData.location}</span>
-                </div>
-                <div>
-                  <span className="text-ink-faint block">Humedad / Espesor:</span>
-                  <span className="font-bold text-ink">
-                    {rec.sandConeData.moisturePercent}% | {rec.sandConeData.layerDepthCm} cm
-                  </span>
-                </div>
-                <div>
-                  <span className="text-ink-faint block">Densidad Seca:</span>
-                  <span className="font-bold text-ink">
-                    {rec.sandConeData.dryDensityGcm3} g/cm³ (Proctor {rec.sandConeData.proctorMaxDryDensityGcm3})
-                  </span>
-                </div>
-                <div>
-                  <span className="text-ink-faint block">Compactación Alcanzada:</span>
-                  <span
-                    className={`font-bold ${
-                      rec.sandConeData.compactionPercent >= rec.sandConeData.requiredCompactionPercent
-                        ? 'text-emerald-600 dark:text-emerald-400'
-                        : 'text-rose-600'
-                    }`}
-                  >
-                    {rec.sandConeData.compactionPercent}% (Req: {rec.sandConeData.requiredCompactionPercent}%)
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {rec.concreteData && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs bg-surface-2/50 p-3 rounded-lg">
-                <div>
-                  <span className="text-ink-faint block">Estructura / Batch:</span>
-                  <span className="font-bold text-ink">
-                    {rec.concreteData.structureName} ({rec.concreteData.batchNumber})
-                  </span>
-                </div>
-                <div>
-                  <span className="text-ink-faint block">f'c Diseño:</span>
-                  <span className="font-bold text-ink">{rec.concreteData.fcDesignKgcm2} kg/cm²</span>
-                </div>
-                <div>
-                  <span className="text-ink-faint block">Edad / Esfuerzo:</span>
-                  <span className="font-bold text-ink">
-                    {rec.concreteData.ageDays} días | {rec.concreteData.measuredStrengthKgcm2} kg/cm²
-                  </span>
-                </div>
-                <div>
-                  <span className="text-ink-faint block">% Resistencia f'c:</span>
-                  <span
-                    className={`font-bold ${
-                      rec.concreteData.attainedPercentOfFc >= rec.concreteData.expectedPercentAtAge
-                        ? 'text-emerald-600 dark:text-emerald-400'
-                        : 'text-rose-600'
-                    }`}
-                  >
-                    {rec.concreteData.attainedPercentOfFc}% (Req: {rec.concreteData.expectedPercentAtAge}%)
-                  </span>
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between text-xs text-ink-faint pt-1">
-              <span>
-                Lab: {rec.laboratoryName} | Inspector: {rec.inspectorName} | Fecha: {rec.testDate}
-              </span>
-              {!isReadOnly && (
-                <button
-                  type="button"
-                  onClick={() => updateRecords(records.filter((r) => r.id !== rec.id))}
-                  className="text-ink-faint hover:text-rose-500 transition-colors p-1"
-                >
-                  <Trash2 size={16} />
-                </button>
-              )}
-            </div>
+      {/* Ensayos Cards / EmptyState */}
+      {records.length === 0 ? (
+        <div className="p-8 text-center bg-surface border border-dashed border-line rounded-xl space-y-3">
+          <div className="p-3 bg-sky-500/10 text-sky-600 rounded-full w-fit mx-auto">
+            <Building2 size={32} />
           </div>
-        ))}
-      </div>
+          <h4 className="font-bold text-ink text-sm">Sin ensayos civiles registrados</h4>
+          <p className="text-xs text-ink-soft max-w-md mx-auto">
+            No se han ingresado resultados de densidad de campo (Cono de Arena) ni resistencia de probetas de concreto.
+          </p>
+          {!isReadOnly && (
+            <div className="flex items-center justify-center gap-2">
+              <button
+                type="button"
+                onClick={handleAddSandCone}
+                className="px-4 py-2 bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs rounded-lg transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <Plus size={15} />
+                Crear ensayo Densidad Suelo
+              </button>
+              <button
+                type="button"
+                onClick={handleAddConcrete}
+                className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs rounded-lg transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <Plus size={15} />
+                Crear ensayo Probeta Concreto
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {records.map((rec, idx) => (
+            <div
+              key={rec.id}
+              className="p-4 bg-surface border border-line rounded-xl space-y-3 relative"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2 border-b border-line pb-2">
+                <div>
+                  <label className="text-[10px] font-bold text-ink-faint">Código Ensayo:</label>
+                  <input
+                    type="text"
+                    value={rec.testCode}
+                    disabled={isReadOnly}
+                    onChange={(e) => {
+                      const updated = [...records];
+                      updated[idx].testCode = e.target.value;
+                      updateRecords(updated);
+                    }}
+                    placeholder="ENS-SUELO-2026-XXX"
+                    className="w-full p-1.5 bg-surface-2 border border-line rounded text-xs text-ink font-mono font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-ink-faint">Laboratorio / Inspector:</label>
+                  <input
+                    type="text"
+                    value={rec.laboratoryName}
+                    disabled={isReadOnly}
+                    onChange={(e) => {
+                      const updated = [...records];
+                      updated[idx].laboratoryName = e.target.value;
+                      updateRecords(updated);
+                    }}
+                    placeholder="Laboratorio Geotécnico"
+                    className="w-full p-1.5 bg-surface-2 border border-line rounded text-xs text-ink"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold text-ink-faint">Estado Ensayo:</label>
+                  <select
+                    value={rec.status}
+                    disabled={isReadOnly}
+                    onChange={(e) => {
+                      const updated = [...records];
+                      updated[idx].status = e.target.value as any;
+                      updateRecords(updated);
+                    }}
+                    className="w-full p-1.5 bg-surface-2 border border-line rounded text-xs text-ink font-bold"
+                  >
+                    <option value="En Proceso">En Proceso</option>
+                    <option value="Aprobado">Aprobado</option>
+                    <option value="Rechazado">Rechazado</option>
+                  </select>
+                </div>
+              </div>
+
+              {rec.sandConeData && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs bg-surface-2/50 p-3 rounded-lg">
+                  <div>
+                    <label className="text-[10px] font-bold text-ink-faint">Ubicación:</label>
+                    <input
+                      type="text"
+                      value={rec.sandConeData.location}
+                      disabled={isReadOnly}
+                      onChange={(e) => {
+                        const updated = [...records];
+                        if (updated[idx].sandConeData) {
+                          updated[idx].sandConeData!.location = e.target.value;
+                        }
+                        updateRecords(updated);
+                      }}
+                      placeholder="Ubicación de ensayo"
+                      className="w-full p-1 bg-surface border border-line rounded text-xs text-ink"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-ink-faint">Densidad Seca / Proctor:</label>
+                    <div className="flex gap-1">
+                      <input
+                        type="number"
+                        value={rec.sandConeData.dryDensityGcm3 || ''}
+                        disabled={isReadOnly}
+                        onChange={(e) => {
+                          const updated = [...records];
+                          if (updated[idx].sandConeData) {
+                            updated[idx].sandConeData!.dryDensityGcm3 = Number(e.target.value);
+                          }
+                          updateRecords(updated);
+                        }}
+                        placeholder="Seca g/cm³"
+                        className="w-1/2 p-1 bg-surface border border-line rounded text-xs text-ink font-bold"
+                      />
+                      <input
+                        type="number"
+                        value={rec.sandConeData.proctorMaxDryDensityGcm3 || ''}
+                        disabled={isReadOnly}
+                        onChange={(e) => {
+                          const updated = [...records];
+                          if (updated[idx].sandConeData) {
+                            updated[idx].sandConeData!.proctorMaxDryDensityGcm3 = Number(e.target.value);
+                          }
+                          updateRecords(updated);
+                        }}
+                        placeholder="Proctor g/cm³"
+                        className="w-1/2 p-1 bg-surface border border-line rounded text-xs text-ink"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-ink-faint">% Compactación Alcanzada / Requerida:</label>
+                    <div className="flex gap-1">
+                      <input
+                        type="number"
+                        value={rec.sandConeData.compactionPercent || ''}
+                        disabled={isReadOnly}
+                        onChange={(e) => {
+                          const updated = [...records];
+                          if (updated[idx].sandConeData) {
+                            const val = Number(e.target.value);
+                            updated[idx].sandConeData!.compactionPercent = val;
+                            updated[idx].sandConeData!.passed = val >= updated[idx].sandConeData!.requiredCompactionPercent;
+                          }
+                          updateRecords(updated);
+                        }}
+                        placeholder="% Alc"
+                        className="w-1/2 p-1 bg-surface border border-line rounded text-xs text-ink font-bold"
+                      />
+                      <input
+                        type="number"
+                        value={rec.sandConeData.requiredCompactionPercent || 95}
+                        disabled={isReadOnly}
+                        onChange={(e) => {
+                          const updated = [...records];
+                          if (updated[idx].sandConeData) {
+                            updated[idx].sandConeData!.requiredCompactionPercent = Number(e.target.value);
+                          }
+                          updateRecords(updated);
+                        }}
+                        placeholder="% Req"
+                        className="w-1/2 p-1 bg-surface border border-line rounded text-xs text-ink"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {rec.concreteData && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs bg-surface-2/50 p-3 rounded-lg">
+                  <div>
+                    <label className="text-[10px] font-bold text-ink-faint">Estructura / Batch:</label>
+                    <input
+                      type="text"
+                      value={rec.concreteData.structureName}
+                      disabled={isReadOnly}
+                      onChange={(e) => {
+                        const updated = [...records];
+                        if (updated[idx].concreteData) {
+                          updated[idx].concreteData!.structureName = e.target.value;
+                        }
+                        updateRecords(updated);
+                      }}
+                      placeholder="Pedestal / Elemento"
+                      className="w-full p-1 bg-surface border border-line rounded text-xs text-ink"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-ink-faint">f'c Diseño / Medido (kg/cm²):</label>
+                    <div className="flex gap-1">
+                      <input
+                        type="number"
+                        value={rec.concreteData.fcDesignKgcm2 || ''}
+                        disabled={isReadOnly}
+                        onChange={(e) => {
+                          const updated = [...records];
+                          if (updated[idx].concreteData) {
+                            updated[idx].concreteData!.fcDesignKgcm2 = Number(e.target.value);
+                          }
+                          updateRecords(updated);
+                        }}
+                        placeholder="f'c Dis"
+                        className="w-1/2 p-1 bg-surface border border-line rounded text-xs text-ink"
+                      />
+                      <input
+                        type="number"
+                        value={rec.concreteData.measuredStrengthKgcm2 || ''}
+                        disabled={isReadOnly}
+                        onChange={(e) => {
+                          const updated = [...records];
+                          if (updated[idx].concreteData) {
+                            const val = Number(e.target.value);
+                            updated[idx].concreteData!.measuredStrengthKgcm2 = val;
+                            const fc = updated[idx].concreteData!.fcDesignKgcm2 || 280;
+                            const att = Math.round((val / fc) * 1000) / 10;
+                            updated[idx].concreteData!.attainedPercentOfFc = att;
+                            updated[idx].concreteData!.passed = att >= updated[idx].concreteData!.expectedPercentAtAge;
+                          }
+                          updateRecords(updated);
+                        }}
+                        placeholder="Medido kg/cm²"
+                        className="w-1/2 p-1 bg-surface border border-line rounded text-xs text-ink font-bold"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-ink-faint">% f'c Logrado:</label>
+                    <div className="p-1 bg-surface border border-line rounded text-xs text-ink font-bold">
+                      {rec.concreteData.attainedPercentOfFc || 0}% (Req: {rec.concreteData.expectedPercentAtAge}%)
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between text-xs text-ink-faint pt-1">
+                <span>
+                  Inspector: {rec.inspectorName} | Fecha: {rec.testDate}
+                </span>
+                {!isReadOnly && (
+                  <button
+                    type="button"
+                    onClick={() => updateRecords(records.filter((r) => r.id !== rec.id))}
+                    className="text-ink-faint hover:text-rose-500 transition-colors p-1"
+                    title="Eliminar ensayo"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* Summary Notes */}
       <div className="space-y-1.5">

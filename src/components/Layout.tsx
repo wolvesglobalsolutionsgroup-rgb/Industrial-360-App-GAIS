@@ -90,6 +90,13 @@ export default function Layout() {
     [activePhaseInfo.phase.id]: true,
   });
 
+  // Deferred background registration of kernel workflows
+  useEffect(() => {
+    import('./navigation/phaseNavigation').then(({ ensureWorkflowsRegisteredAsync }) => {
+      ensureWorkflowsRegisteredAsync();
+    });
+  }, []);
+
   // Auto expand phase accordion when active route changes
   useEffect(() => {
     if (activePhaseInfo.phase?.id) {

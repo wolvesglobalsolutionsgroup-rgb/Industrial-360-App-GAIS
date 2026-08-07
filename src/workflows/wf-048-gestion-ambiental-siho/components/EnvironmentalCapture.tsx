@@ -56,47 +56,8 @@ export function EnvironmentalCapture({
 }: WorkflowComponentProps<EnvironmentalData>) {
   const [activeTab, setActiveTab] = useState<'aspects' | 'manifests'>('aspects');
 
-  const aspects = data?.aspects || [
-    {
-      id: 'pga_1',
-      activity: 'Limpieza e Inspección de Trampas de Grasa en Taller',
-      aspect: 'Generación de lodos de hidrocarburo retenidos',
-      environmentalImpact: 'Riesgo de infiltración en subsuelo y freático',
-      significance: 'Alto',
-      mitigationMeasure: 'Extracción programada con camión vacum y retención temporal en tanques cónicos RASDA',
-      normRef: 'PDVSA MA-01-02-12 Secc 4.2',
-      responsible: 'Ing. Gustavo Alarcón (Ambiente)',
-      status: 'Implementado',
-    },
-    {
-      id: 'pga_2',
-      activity: 'Cambio de Lubricante y Filtros en Flota Pesada',
-      aspect: 'Generación de filtros usados y estopas impregnadas',
-      environmentalImpact: 'Contaminación por residuos peligrosos sólidos',
-      significance: 'Alto',
-      mitigationMeasure: 'Segregación en tambores identificados con código de color y despacho a gestor RASDA',
-      normRef: 'Ley de Sustancias, Materiales y Desechos Peligrosos Art. 45',
-      responsible: 'Mecánico Jefe Ramos',
-      status: 'Implementado',
-    },
-  ];
-
-  const manifests = data?.manifests || [
-    {
-      id: 'rasda_101',
-      manifestNumber: 'RASDA-2026-0041',
-      wasteType: 'Aceite Usado',
-      volumeAmount: 2400,
-      unit: 'Litros',
-      rasdaGenerator: 'RASDA-G-MONAGAS-9812',
-      transporterName: 'Transportes Ecológicos Yaguare C.A.',
-      rasdaTransporter: 'RASDA-T-2026-104',
-      disposalSite: 'Relleno Sanitario e Incinerador Industrial Jusepín',
-      disposalCertificateNo: 'CERT-DISP-JUS-2026-88',
-      dispatchDate: '2026-07-25',
-      status: 'Dispuesto y Certificado',
-    },
-  ];
+  const aspects = data?.aspects ?? [];
+  const manifests = data?.manifests ?? [];
 
   const updateAspects = (newAspects: EnvironmentalAspect[]) => {
     onChange({ aspects: newAspects, manifests, summaryNotes: data?.summaryNotes || '' });
@@ -109,14 +70,14 @@ export function EnvironmentalCapture({
   const handleAddAspect = () => {
     const newAspect: EnvironmentalAspect = {
       id: `pga_${Date.now()}`,
-      activity: 'Nueva Actividad Operativa',
-      aspect: 'Aspecto Ambiental Identificado',
-      environmentalImpact: 'Impacto Potencial sobre Medio Receptor',
+      activity: '',
+      aspect: '',
+      environmentalImpact: '',
       significance: 'Medio',
-      mitigationMeasure: 'Medida de Control Ambiental Preventiva',
+      mitigationMeasure: '',
       normRef: 'PDVSA MA-01-02-12',
       responsible: context.user.email,
-      status: 'En Proceso',
+      status: 'Pendiente',
     };
     updateAspects([...aspects, newAspect]);
   };
@@ -124,15 +85,15 @@ export function EnvironmentalCapture({
   const handleAddManifest = () => {
     const newMan: RasdaManifest = {
       id: `rasda_${Date.now()}`,
-      manifestNumber: `RASDA-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+      manifestNumber: '',
       wasteType: 'Aceite Usado',
-      volumeAmount: 1000,
+      volumeAmount: 0,
       unit: 'Litros',
-      rasdaGenerator: 'RASDA-G-MONAGAS-9812',
-      transporterName: 'TransEcológicos C.A.',
-      rasdaTransporter: 'RASDA-T-2026-001',
-      disposalSite: 'Planta Tratamiento Industrial Jusepín',
-      disposalCertificateNo: 'CERT-DISP-PENDING',
+      rasdaGenerator: '',
+      transporterName: '',
+      rasdaTransporter: '',
+      disposalSite: '',
+      disposalCertificateNo: '',
       dispatchDate: new Date().toISOString().split('T')[0],
       status: 'Emitido',
     };
@@ -201,57 +162,181 @@ export function EnvironmentalCapture({
             )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {aspects.map((asp, idx) => (
-              <div
-                key={asp.id}
-                className="p-4 bg-surface border border-line rounded-xl space-y-3 relative group"
-              >
-                <div className="flex items-center justify-between gap-2 border-b border-line pb-2">
-                  <span className="text-xs font-bold text-brand-500">
-                    #{idx + 1} - {asp.activity}
-                  </span>
-                  <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      asp.significance === 'Alto'
-                        ? 'bg-rose-500/15 text-rose-600 border border-rose-500/30'
-                        : asp.significance === 'Medio'
-                        ? 'bg-amber-500/15 text-amber-600 border border-amber-500/30'
-                        : 'bg-emerald-500/15 text-emerald-600 border border-emerald-500/30'
-                    }`}
-                  >
-                    Significancia: {asp.significance}
-                  </span>
-                </div>
-
-                <div className="space-y-1.5 text-xs text-ink-soft">
-                  <p>
-                    <strong className="text-ink">Aspecto:</strong> {asp.aspect}
-                  </p>
-                  <p>
-                    <strong className="text-ink">Impacto:</strong> {asp.environmentalImpact}
-                  </p>
-                  <p>
-                    <strong className="text-ink">Mitigación:</strong> {asp.mitigationMeasure}
-                  </p>
-                  <p className="text-[11px] text-ink-faint">
-                    Norma: {asp.normRef} | Resp: {asp.responsible}
-                  </p>
-                </div>
-
-                {!isReadOnly && (
-                  <button
-                    type="button"
-                    onClick={() => updateAspects(aspects.filter((a) => a.id !== asp.id))}
-                    className="absolute top-3 right-3 text-ink-faint hover:text-rose-500 transition-colors p-1"
-                    title="Eliminar aspecto"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                )}
+          {aspects.length === 0 ? (
+            <div className="p-8 text-center bg-surface border border-dashed border-line rounded-xl space-y-3">
+              <div className="p-3 bg-emerald-500/10 text-emerald-600 rounded-full w-fit mx-auto">
+                <Trees size={32} />
               </div>
-            ))}
-          </div>
+              <h4 className="font-bold text-ink text-sm">Sin aspectos ambientales registrados</h4>
+              <p className="text-xs text-ink-soft max-w-md mx-auto">
+                No se han ingresado aspectos ni impactos ambientales para la matriz PGA de este proyecto.
+              </p>
+              {!isReadOnly && (
+                <button
+                  type="button"
+                  onClick={handleAddAspect}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <Plus size={15} />
+                  Crear registro de Aspecto PGA
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {aspects.map((asp, idx) => (
+                <div
+                  key={asp.id}
+                  className="p-4 bg-surface border border-line rounded-xl space-y-3 relative group"
+                >
+                  <div className="flex items-center justify-between gap-2 border-b border-line pb-2">
+                    <span className="text-xs font-bold text-brand-500">
+                      #{idx + 1} - {asp.activity || 'Nueva Actividad'}
+                    </span>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        asp.significance === 'Alto'
+                          ? 'bg-rose-500/15 text-rose-600 border border-rose-500/30'
+                          : asp.significance === 'Medio'
+                          ? 'bg-amber-500/15 text-amber-600 border border-amber-500/30'
+                          : 'bg-emerald-500/15 text-emerald-600 border border-emerald-500/30'
+                      }`}
+                    >
+                      Significancia: {asp.significance}
+                    </span>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-bold text-ink-faint">Actividad Operativa:</label>
+                        <input
+                          type="text"
+                          value={asp.activity}
+                          disabled={isReadOnly}
+                          onChange={(e) => {
+                            const updated = [...aspects];
+                            updated[idx].activity = e.target.value;
+                            updateAspects(updated);
+                          }}
+                          placeholder="Ej: Limpieza de Trampas de Grasa"
+                          className="w-full p-1.5 bg-surface-2 border border-line rounded text-xs text-ink"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-ink-faint">Aspecto Ambiental:</label>
+                        <input
+                          type="text"
+                          value={asp.aspect}
+                          disabled={isReadOnly}
+                          onChange={(e) => {
+                            const updated = [...aspects];
+                            updated[idx].aspect = e.target.value;
+                            updateAspects(updated);
+                          }}
+                          placeholder="Ej: Generación de lodos"
+                          className="w-full p-1.5 bg-surface-2 border border-line rounded text-xs text-ink"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] font-bold text-ink-faint">Impacto Ambiental:</label>
+                        <input
+                          type="text"
+                          value={asp.environmentalImpact}
+                          disabled={isReadOnly}
+                          onChange={(e) => {
+                            const updated = [...aspects];
+                            updated[idx].environmentalImpact = e.target.value;
+                            updateAspects(updated);
+                          }}
+                          placeholder="Ej: Riesgo de infiltración"
+                          className="w-full p-1.5 bg-surface-2 border border-line rounded text-xs text-ink"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-ink-faint">Medida de Mitigación:</label>
+                        <input
+                          type="text"
+                          value={asp.mitigationMeasure}
+                          disabled={isReadOnly}
+                          onChange={(e) => {
+                            const updated = [...aspects];
+                            updated[idx].mitigationMeasure = e.target.value;
+                            updateAspects(updated);
+                          }}
+                          placeholder="Ej: Extracción con camión vacum"
+                          className="w-full p-1.5 bg-surface-2 border border-line rounded text-xs text-ink"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <label className="text-[10px] font-bold text-ink-faint">Significancia:</label>
+                        <select
+                          value={asp.significance}
+                          disabled={isReadOnly}
+                          onChange={(e) => {
+                            const updated = [...aspects];
+                            updated[idx].significance = e.target.value as 'Alto' | 'Medio' | 'Bajo';
+                            updateAspects(updated);
+                          }}
+                          className="w-full p-1.5 bg-surface-2 border border-line rounded text-xs text-ink"
+                        >
+                          <option value="Alto">Alto</option>
+                          <option value="Medio">Medio</option>
+                          <option value="Bajo">Bajo</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-ink-faint">Norma Ref:</label>
+                        <input
+                          type="text"
+                          value={asp.normRef}
+                          disabled={isReadOnly}
+                          onChange={(e) => {
+                            const updated = [...aspects];
+                            updated[idx].normRef = e.target.value;
+                            updateAspects(updated);
+                          }}
+                          className="w-full p-1.5 bg-surface-2 border border-line rounded text-xs text-ink"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-bold text-ink-faint">Estado:</label>
+                        <select
+                          value={asp.status}
+                          disabled={isReadOnly}
+                          onChange={(e) => {
+                            const updated = [...aspects];
+                            updated[idx].status = e.target.value as 'Implementado' | 'En Proceso' | 'Pendiente';
+                            updateAspects(updated);
+                          }}
+                          className="w-full p-1.5 bg-surface-2 border border-line rounded text-xs text-ink"
+                        >
+                          <option value="Pendiente">Pendiente</option>
+                          <option value="En Proceso">En Proceso</option>
+                          <option value="Implementado">Implementado</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {!isReadOnly && (
+                    <button
+                      type="button"
+                      onClick={() => updateAspects(aspects.filter((a) => a.id !== asp.id))}
+                      className="absolute top-3 right-3 text-ink-faint hover:text-rose-500 transition-colors p-1"
+                      title="Eliminar aspecto"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -275,50 +360,162 @@ export function EnvironmentalCapture({
             )}
           </div>
 
-          <div className="space-y-3">
-            {manifests.map((man) => (
-              <div
-                key={man.id}
-                className="p-4 bg-surface border border-line rounded-xl flex flex-wrap items-center justify-between gap-4"
-              >
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="font-mono text-xs font-bold text-ink">{man.manifestNumber}</span>
-                    <span className="text-xs px-2 py-0.5 rounded-md bg-surface-2 font-bold text-ink-soft">
-                      {man.wasteType}
-                    </span>
+          {manifests.length === 0 ? (
+            <div className="p-8 text-center bg-surface border border-dashed border-line rounded-xl space-y-3">
+              <div className="p-3 bg-brand-500/10 text-brand-500 rounded-full w-fit mx-auto">
+                <Truck size={32} />
+              </div>
+              <h4 className="font-bold text-ink text-sm">Sin manifiestos RASDA registrados</h4>
+              <p className="text-xs text-ink-soft max-w-md mx-auto">
+                No se han registrado manifiestos de transporte y disposición de desechos peligrosos bajo RASDA.
+              </p>
+              {!isReadOnly && (
+                <button
+                  type="button"
+                  onClick={handleAddManifest}
+                  className="px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs rounded-lg transition-colors inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  <Plus size={15} />
+                  Emitir Manifiesto RASDA
+                </button>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {manifests.map((man, idx) => (
+                <div
+                  key={man.id}
+                  className="p-4 bg-surface border border-line rounded-xl space-y-3 relative"
+                >
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 w-full">
+                    <div>
+                      <label className="text-[10px] font-bold text-ink-faint">Nº Manifiesto:</label>
+                      <input
+                        type="text"
+                        value={man.manifestNumber}
+                        disabled={isReadOnly}
+                        onChange={(e) => {
+                          const updated = [...manifests];
+                          updated[idx].manifestNumber = e.target.value;
+                          updateManifests(updated);
+                        }}
+                        placeholder="RASDA-2026-XXXX"
+                        className="w-full p-1.5 bg-surface-2 border border-line rounded text-xs text-ink font-mono font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-ink-faint">Tipo Desecho:</label>
+                      <select
+                        value={man.wasteType}
+                        disabled={isReadOnly}
+                        onChange={(e) => {
+                          const updated = [...manifests];
+                          updated[idx].wasteType = e.target.value as any;
+                          updateManifests(updated);
+                        }}
+                        className="w-full p-1.5 bg-surface-2 border border-line rounded text-xs text-ink"
+                      >
+                        <option value="Aceite Usado">Aceite Usado</option>
+                        <option value="Lodos de Perforación / Trampa">Lodos de Perforación / Trampa</option>
+                        <option value="Aguas de Producción">Aguas de Producción</option>
+                        <option value="Trapos/Filtros Impregnados">Trapos/Filtros Impregnados</option>
+                        <option value="Desechos Sólidos Industriales">Desechos Sólidos Industriales</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-ink-faint">Volumen / Cantidad:</label>
+                      <div className="flex gap-1">
+                        <input
+                          type="number"
+                          value={man.volumeAmount || ''}
+                          disabled={isReadOnly}
+                          onChange={(e) => {
+                            const updated = [...manifests];
+                            updated[idx].volumeAmount = Number(e.target.value);
+                            updateManifests(updated);
+                          }}
+                          className="w-2/3 p-1.5 bg-surface-2 border border-line rounded text-xs text-ink font-bold"
+                        />
+                        <select
+                          value={man.unit}
+                          disabled={isReadOnly}
+                          onChange={(e) => {
+                            const updated = [...manifests];
+                            updated[idx].unit = e.target.value as any;
+                            updateManifests(updated);
+                          }}
+                          className="w-1/3 p-1.5 bg-surface-2 border border-line rounded text-xs text-ink"
+                        >
+                          <option value="Litros">Litros</option>
+                          <option value="m³">m³</option>
+                          <option value="Tambores (208L)">Tambores (208L)</option>
+                          <option value="Kg">Kg</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-ink-faint">Transportista:</label>
+                      <input
+                        type="text"
+                        value={man.transporterName}
+                        disabled={isReadOnly}
+                        onChange={(e) => {
+                          const updated = [...manifests];
+                          updated[idx].transporterName = e.target.value;
+                          updateManifests(updated);
+                        }}
+                        placeholder="Empresa Transportista"
+                        className="w-full p-1.5 bg-surface-2 border border-line rounded text-xs text-ink"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-ink-faint">Sitio Disposición:</label>
+                      <input
+                        type="text"
+                        value={man.disposalSite}
+                        disabled={isReadOnly}
+                        onChange={(e) => {
+                          const updated = [...manifests];
+                          updated[idx].disposalSite = e.target.value;
+                          updateManifests(updated);
+                        }}
+                        placeholder="Sitio Certificado RASDA"
+                        className="w-full p-1.5 bg-surface-2 border border-line rounded text-xs text-ink"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-ink-faint">Estado Manifiesto:</label>
+                      <select
+                        value={man.status}
+                        disabled={isReadOnly}
+                        onChange={(e) => {
+                          const updated = [...manifests];
+                          updated[idx].status = e.target.value as any;
+                          updateManifests(updated);
+                        }}
+                        className="w-full p-1.5 bg-surface-2 border border-line rounded text-xs text-ink font-bold"
+                      >
+                        <option value="Emitido">Emitido</option>
+                        <option value="En Tránsito">En Tránsito</option>
+                        <option value="Dispuesto y Certificado">Dispuesto y Certificado</option>
+                      </select>
+                    </div>
                   </div>
-                  <p className="text-xs text-ink-soft">
-                    Volumen: <strong className="text-ink">{man.volumeAmount} {man.unit}</strong> | Transportista: {man.transporterName} ({man.rasdaTransporter})
-                  </p>
-                  <p className="text-[11px] text-ink-faint">
-                    Sitio Disposición: {man.disposalSite} | Certificado: {man.disposalCertificateNo}
-                  </p>
-                </div>
 
-                <div className="flex items-center gap-3">
-                  <span
-                    className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
-                      man.status === 'Dispuesto y Certificado'
-                        ? 'bg-emerald-500/15 text-emerald-600 border border-emerald-500/30'
-                        : 'bg-amber-500/15 text-amber-600 border border-amber-500/30'
-                    }`}
-                  >
-                    {man.status}
-                  </span>
                   {!isReadOnly && (
                     <button
                       type="button"
                       onClick={() => updateManifests(manifests.filter((m) => m.id !== man.id))}
-                      className="text-ink-faint hover:text-rose-500 transition-colors p-1"
+                      className="absolute top-3 right-3 text-ink-faint hover:text-rose-500 transition-colors p-1"
+                      title="Eliminar manifiesto"
                     >
                       <Trash2 size={16} />
                     </button>
                   )}
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

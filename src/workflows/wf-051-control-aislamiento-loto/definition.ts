@@ -94,36 +94,33 @@ export const wf051Definition: WorkflowDefinition<LotoIsolationData> = {
     factory: (context, data) => {
       const points = data.lotoPoints || [];
 
+      if (points.length === 0) {
+        throw new Error(
+          'Error de Dominio: No se pueden generar certificados LOTO sin puntos de aislamiento o bloqueo registrados.'
+        );
+      }
+
+      const signers = [
+        {
+          id: 'sig-051-1',
+          role: 'INSPECTOR' as const,
+          name: context.user.email,
+          title: 'Inspector SIHO-A / Custodio de Aislamiento LOTO',
+          organization: 'PROINTECA C.A.',
+          status: 'PENDING' as const,
+        },
+      ];
+
       return createDocumentViewModel({
         documentId: `CERT-LOTO-${Date.now().toString().slice(-5)}`,
         title: 'CERTIFICADO DE AISLAMIENTO Y PRUEBA DE ENERGÍA CERO (LOTO)',
         code: `PDVSA-SI-S-28-${context.projectId}`,
         date: new Date().toISOString().split('T')[0],
-        status: 'APPROVED',
+        status: 'DRAFT',
         contractorBrand: context.contractorBrand,
         operatorBrand: context.operatorBrand,
-        signers: [
-          {
-            id: 'sig-051-1',
-            role: 'INSPECTOR',
-            name: context.user.email,
-            title: 'Inspector SIHO-A / Custodio de Aislamiento LOTO',
-            organization: 'PROINTECA C.A.',
-            status: 'SIGNED',
-            signedAt: new Date().toISOString(),
-          },
-        ],
-        metadata: freezeDocumentMetadata([
-          {
-            id: 'sig-051-1',
-            role: 'INSPECTOR',
-            name: context.user.email,
-            title: 'Inspector SIHO-A / Custodio de Aislamiento LOTO',
-            organization: 'PROINTECA C.A.',
-            status: 'SIGNED',
-            signedAt: new Date().toISOString(),
-          },
-        ]),
+        signers,
+        metadata: freezeDocumentMetadata(signers),
         sections: [
           {
             id: 'sec-1',

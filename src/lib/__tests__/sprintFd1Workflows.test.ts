@@ -2,7 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { getWorkflow, listWorkflows } from '../workflows/registry';
 import { WorkflowRunner } from '../workflows/runner';
 import { exportDocument } from '../exporters/exportDocument';
-import '../../workflows'; // Ensures all workflows are registered
+import { ensureWorkflowsRegistered } from '../../workflows';
+ensureWorkflowsRegistered();
 
 describe('Sprint F-D1 — Prioritized Workflows (7 Workflows)', () => {
 

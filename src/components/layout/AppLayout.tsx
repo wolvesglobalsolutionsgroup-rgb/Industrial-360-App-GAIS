@@ -13,6 +13,13 @@ export const AppLayout: React.FC = () => {
   const [isModulePanelOpen, setIsModulePanelOpen] = useState(false);
   const { currentOrganization } = useProject();
 
+  // Deferred background registration of kernel workflows
+  React.useEffect(() => {
+    import('../../workflows').then(({ ensureWorkflowsRegistered }) => {
+      ensureWorkflowsRegistered();
+    });
+  }, []);
+
   const toggleModules = () => setIsModulePanelOpen(prev => !prev);
 
   return (

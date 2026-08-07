@@ -46,8 +46,7 @@ export function ensureWorkflowsRegistered(): void {
   }
 }
 
-// Auto-register on import
-ensureWorkflowsRegistered();
+// Registration must be invoked explicitly on demand via ensureWorkflowsRegistered()
 
 export {
   wf042Definition,

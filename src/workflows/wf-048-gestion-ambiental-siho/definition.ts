@@ -109,36 +109,33 @@ export const wf048Definition: WorkflowDefinition<EnvironmentalData> = {
       const manifestsList = data.manifests || [];
       const aspectsList = data.aspects || [];
 
+      if (manifestsList.length === 0 && aspectsList.length === 0) {
+        throw new Error(
+          'Error de Dominio: No se pueden generar entregables de gestión ambiental sin aspectos o manifiestos RASDA registrados.'
+        );
+      }
+
+      const signers = [
+        {
+          id: 'sig-048-1',
+          role: 'INSPECTOR' as const,
+          name: context.user.email,
+          title: 'Inspector de Calidad Ambiental PDVSA MA-01',
+          organization: 'PROINTECA C.A.',
+          status: 'PENDING' as const,
+        },
+      ];
+
       return createDocumentViewModel({
         documentId: `MAN-AMB-RASDA-${Date.now().toString().slice(-5)}`,
         title: 'MANIFIESTO Y CERTIFICADO DE GESTIÓN AMBIENTAL RASDA',
         code: `PDVSA-MA-01-RASDA-${context.projectId}`,
         date: new Date().toISOString().split('T')[0],
-        status: 'APPROVED',
+        status: 'DRAFT',
         contractorBrand: context.contractorBrand,
         operatorBrand: context.operatorBrand,
-        signers: [
-          {
-            id: 'sig-048-1',
-            role: 'INSPECTOR',
-            name: context.user.email,
-            title: 'Inspector de Calidad Ambiental PDVSA MA-01',
-            organization: 'PROINTECA C.A.',
-            status: 'SIGNED',
-            signedAt: new Date().toISOString(),
-          },
-        ],
-        metadata: freezeDocumentMetadata([
-          {
-            id: 'sig-048-1',
-            role: 'INSPECTOR',
-            name: context.user.email,
-            title: 'Inspector de Calidad Ambiental PDVSA MA-01',
-            organization: 'PROINTECA C.A.',
-            status: 'SIGNED',
-            signedAt: new Date().toISOString(),
-          },
-        ]),
+        signers,
+        metadata: freezeDocumentMetadata(signers),
         sections: [
           {
             id: 'sec-1',

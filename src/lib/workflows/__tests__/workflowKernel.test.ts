@@ -74,16 +74,16 @@ describe('Plugin-Kernel / WorkflowRegistry Engine (Sprint F-D)', () => {
 
     it('1.3 Filtra workflows correctamente por Fase (1-7)', () => {
       WorkflowRegistry.registerWorkflow(wf042Definition); // Phase 4
-      WorkflowRegistry.registerWorkflow(wf043Definition); // Phase 2
+      WorkflowRegistry.registerWorkflow(wf043Definition); // Phase 4
       WorkflowRegistry.registerWorkflow(wf044Definition); // Phase 5
 
       const phase4 = WorkflowRegistry.listWorkflowsByPhase(4);
-      expect(phase4.length).toBe(1);
-      expect(phase4[0].id).toBe('wf-042-inspeccion-izaje');
+      expect(phase4.length).toBe(2);
+      expect(phase4.map((w) => w.id)).toEqual(['wf-042-inspeccion-izaje', 'wf-043-aprobacion-ptw']);
 
-      const phase2 = WorkflowRegistry.listWorkflowsByPhase(2);
-      expect(phase2.length).toBe(1);
-      expect(phase2[0].id).toBe('wf-043-aprobacion-ptw');
+      const phase5 = WorkflowRegistry.listWorkflowsByPhase(5);
+      expect(phase5.length).toBe(1);
+      expect(phase5[0].id).toBe('wf-044-reporte-tabular');
 
       const all = WorkflowRegistry.listWorkflows();
       expect(all.length).toBe(3);
