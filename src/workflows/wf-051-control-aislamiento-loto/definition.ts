@@ -5,20 +5,23 @@ import { freezeDocumentMetadata } from '../../lib/documentPolicy';
 import {
   LotoIsolationCapture,
   LotoIsolationData,
+  LOTO_ENERGY_TYPES,
+  LOTO_LOCK_COLORS,
+  LOTO_STATUS_TYPES,
 } from './components/LotoIsolationCapture';
 
 export const LotoPointSchema = z.object({
   id: z.string(),
   tagEquipment: z.string().min(3),
   systemName: z.string(),
-  energyType: z.enum(['Eléctrica', 'Mecánica', 'Hidráulica', 'Neumática', 'Química']),
+  energyType: z.enum(LOTO_ENERGY_TYPES),
   isolationMethod: z.string().min(3),
   lockTagId: z.string().min(3),
-  lockColor: z.enum(['Rojo - Personal', 'Amarillo - Grupo', 'Azul - Operaciones']),
+  lockColor: z.enum(LOTO_LOCK_COLORS),
   ptwNumber: z.string(),
   responsibleSupervisor: z.string(),
   isolationDate: z.string(),
-  status: z.enum(['Aislado & Bloqueado', 'Prueba Cero Realizada', 'Desbloqueado / Normalizado']),
+  status: z.enum(LOTO_STATUS_TYPES),
   chkDeenergized: z.boolean(),
   chkPhysicalLock: z.boolean(),
   chkTagPlaced: z.boolean(),

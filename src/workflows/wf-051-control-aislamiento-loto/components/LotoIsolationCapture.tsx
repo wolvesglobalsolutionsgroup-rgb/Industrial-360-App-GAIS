@@ -18,9 +18,33 @@ import {
 } from 'lucide-react';
 import { WorkflowComponentProps } from '../../../lib/workflows/contracts';
 
-export type EnergyType = 'Eléctrica' | 'Mecánica' | 'Hidráulica' | 'Neumática' | 'Química';
+export const LOTO_ENERGY_TYPES = [
+  'Eléctrica',
+  'Neumática',
+  'Hidráulica',
+  'Mecánica',
+  'Térmica',
+  'Química',
+  'Presión Almacenada',
+] as const;
 
-export type LockColor = 'Rojo - Personal' | 'Amarillo - Grupo' | 'Azul - Operaciones';
+export type EnergyType = typeof LOTO_ENERGY_TYPES[number];
+
+export const LOTO_LOCK_COLORS = [
+  'Rojo - Personal',
+  'Amarillo - Grupo',
+  'Azul - Operaciones',
+] as const;
+
+export type LockColor = typeof LOTO_LOCK_COLORS[number];
+
+export const LOTO_STATUS_TYPES = [
+  'Aislado & Bloqueado',
+  'Prueba Cero Realizada',
+  'Desbloqueado / Normalizado',
+] as const;
+
+export type LotoStatus = typeof LOTO_STATUS_TYPES[number];
 
 export interface LotoPoint {
   id: string;
@@ -33,7 +57,7 @@ export interface LotoPoint {
   ptwNumber: string;
   responsibleSupervisor: string;
   isolationDate: string;
-  status: 'Aislado & Bloqueado' | 'Prueba Cero Realizada' | 'Desbloqueado / Normalizado';
+  status: LotoStatus;
   chkDeenergized: boolean;
   chkPhysicalLock: boolean;
   chkTagPlaced: boolean;
@@ -179,14 +203,16 @@ export function LotoIsolationCapture({
                     disabled={isReadOnly}
                     onChange={(e) => {
                       const updated = [...lotoPoints];
-                      updated[idx].status = e.target.value as any;
+                      updated[idx].status = e.target.value as LotoStatus;
                       updatePoints(updated);
                     }}
                     className="w-full p-1.5 bg-surface-2 border border-line rounded text-xs text-ink font-bold"
                   >
-                    <option value="Aislado & Bloqueado">Aislado & Bloqueado</option>
-                    <option value="Prueba Cero Realizada">Prueba Cero Realizada</option>
-                    <option value="Normalizado / Desbloqueado">Normalizado / Desbloqueado</option>
+                    {LOTO_STATUS_TYPES.map((st) => (
+                      <option key={st} value={st}>
+                        {st}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -199,18 +225,16 @@ export function LotoIsolationCapture({
                     disabled={isReadOnly}
                     onChange={(e) => {
                       const updated = [...lotoPoints];
-                      updated[idx].energyType = e.target.value as any;
+                      updated[idx].energyType = e.target.value as EnergyType;
                       updatePoints(updated);
                     }}
                     className="w-full p-1.5 bg-surface-2 border border-line rounded text-xs text-ink"
                   >
-                    <option value="Eléctrica">Eléctrica</option>
-                    <option value="Neumática">Neumática</option>
-                    <option value="Hidráulica">Hidráulica</option>
-                    <option value="Mecánica / Cinética">Mecánica / Cinética</option>
-                    <option value="Térmica">Térmica</option>
-                    <option value="Química">Química</option>
-                    <option value="Presión Almacenada">Presión Almacenada</option>
+                    {LOTO_ENERGY_TYPES.map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div>

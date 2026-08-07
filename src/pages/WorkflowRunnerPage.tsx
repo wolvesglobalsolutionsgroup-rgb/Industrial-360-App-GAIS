@@ -6,6 +6,7 @@ import { WorkflowRouteContext, WorkflowState } from '../lib/workflows/contracts'
 import { useProject } from '../ProjectContext';
 import { useAppAuthState } from '../firebase';
 import { DocumentViewModel } from '../lib/documentViewModel';
+import { Skeleton } from '../components/ui/Skeleton';
 import {
   ShieldAlert,
   ShieldCheck,
@@ -29,10 +30,26 @@ interface WorkflowRunnerPageProps {
 }
 
 export default function WorkflowRunnerPage({ overrideWorkflowId }: WorkflowRunnerPageProps = {}) {
+  const [registryReady, setRegistryReady] = useState(false);
+
   useEffect(() => {
-    import('../workflows').then(({ ensureWorkflowsRegistered }) => {
-      ensureWorkflowsRegistered();
-    });
+    let mounted = true;
+    import('../workflows')
+      .then(({ ensureWorkflowsRegistered }) => {
+        ensureWorkflowsRegistered();
+        if (mounted) {
+          setRegistryReady(true);
+        }
+      })
+      .catch((err) => {
+        console.error('Error al registrar workflows:', err);
+        if (mounted) {
+          setRegistryReady(true);
+        }
+      });
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const { workflowId: paramWorkflowId = 'wf-042-inspeccion-izaje', instanceId = 'inst-001' } = useParams<{
@@ -46,8 +63,8 @@ export default function WorkflowRunnerPage({ overrideWorkflowId }: WorkflowRunne
   const { currentProject, brandKit } = useProject();
   const [user] = useAppAuthState();
 
-  const definition = getWorkflow(workflowId);
-  const allWorkflows = listWorkflows();
+  const definition = registryReady ? getWorkflow(workflowId) : undefined;
+  const allWorkflows = registryReady ? listWorkflows() : [];
 
   // Derive active user role (defaulting to supervisor if missing for dev fallback)
   const userRole = (user as any)?.role || 'supervisor';
@@ -125,24 +142,39 @@ export default function WorkflowRunnerPage({ overrideWorkflowId }: WorkflowRunne
   };
 
   const [formData, setFormData] = useState<any>(() => getInitialData(workflowId));
-  const [currentState, setCurrentState] = useState<WorkflowState>(
-    definition?.initialState || 'draft'
-  );
+  const [currentState, setCurrentState] = useState<WorkflowState>('draft');
 
   const [gateResults, setGateResults] = useState<any | null>(null);
   const [deliverableDoc, setDeliverableDoc] = useState<DocumentViewModel | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showDocModal, setShowDocModal] = useState(false);
 
-  // Re-sync data when workflowId route changes
+  // Re-sync data when workflowId route changes or registry becomes ready
   useEffect(() => {
+    if (!registryReady) return;
     setFormData(getInitialData(workflowId));
     const def = getWorkflow(workflowId);
     setCurrentState(def?.initialState || 'draft');
     setGateResults(null);
     setDeliverableDoc(null);
     setErrorMessage(null);
-  }, [workflowId]);
+  }, [workflowId, registryReady]);
+
+  if (!registryReady) {
+    return (
+      <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6" data-testid="workflow-runner-loading">
+        <div className="p-6 bg-surface border border-border rounded-xl space-y-3">
+          <Skeleton className="h-6 w-1/4" />
+          <Skeleton className="h-8 w-2/3" />
+          <Skeleton className="h-4 w-1/2" />
+        </div>
+        <div className="p-6 bg-surface border border-border rounded-xl space-y-4">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+      </div>
+    );
+  }
 
   if (!definition) {
     return (
