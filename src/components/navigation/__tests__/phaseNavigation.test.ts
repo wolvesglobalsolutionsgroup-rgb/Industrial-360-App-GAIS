@@ -1,4 +1,5 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll } from 'vitest';
+import { ensureWorkflowsRegistered } from '../../../workflows';
 import {
   PROJECT_PHASES,
   getPhaseByNumber,
@@ -8,6 +9,9 @@ import {
 } from '../phaseNavigation';
 
 describe('Sprint F-UX Phase Navigation Unit Tests', () => {
+  beforeAll(() => {
+    ensureWorkflowsRegistered();
+  });
   it('should define exactly 7 canonical industrial project phases', () => {
     expect(PROJECT_PHASES).toHaveLength(7);
     const phaseNumbers = PROJECT_PHASES.map((p) => p.phaseNumber);

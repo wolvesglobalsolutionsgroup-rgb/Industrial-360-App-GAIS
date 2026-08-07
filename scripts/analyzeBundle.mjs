@@ -53,7 +53,20 @@ function analyze() {
   });
 
   markdown += `\n\n## Resumen de Entrada (Entrypoint)\n`;
-  const entryChunk = results.find(r => r.chunk.startsWith('index-') && r.chunk.endsWith('.js'));
+  let entryChunkName = null;
+  const indexHtmlPath = './dist/index.html';
+  if (fs.existsSync(indexHtmlPath)) {
+    const htmlContent = fs.readFileSync(indexHtmlPath, 'utf8');
+    const match = htmlContent.match(/src=["']\/?assets\/([^"']+\.js)["']/);
+    if (match) {
+      entryChunkName = match[1];
+    }
+  }
+
+  const entryChunk = entryChunkName
+    ? results.find(r => r.chunk === entryChunkName)
+    : results.find(r => r.chunk.startsWith('index-') && r.chunk.endsWith('.js'));
+
   if (entryChunk) {
     markdown += `- **Chunk Principal (Entry point):** \`${entryChunk.chunk}\`\n`;
     markdown += `- **Tamaño Raw:** ${entryChunk.rawFormatted}\n`;
