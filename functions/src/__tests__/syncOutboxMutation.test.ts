@@ -291,6 +291,6 @@ describe('S14.3 — Outbox e Idempotencia Transaccional Server-Side', () => {
     expect(result.success).toBe(true);
     expect(result.status).toBe('applied');
     expect(result.version).toBe(1);
-    expect(mockSet).toHaveBeenCalledTimes(3);
+    expect(mockSet).toHaveBeenCalledTimes(4);
   });
 });

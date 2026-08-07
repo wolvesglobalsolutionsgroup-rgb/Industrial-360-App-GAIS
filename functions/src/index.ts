@@ -9,6 +9,7 @@ import { rateLimit, checkRateLimit } from './middleware/rateLimit';
 import { authorizeServerSideRequest } from './middleware/authorizer';
 import { logger } from './logger';
 import { validatePortalLink, escapeHtmlAttr } from '../../server';
+import { reserveQuota } from './finops/quotaService';
 
 if (!getApps().length) {
   initializeApp();
@@ -17,6 +18,7 @@ if (!getApps().length) {
 export { requireAuth } from './middleware/requireAuth';
 export { rateLimit, checkRateLimit } from './middleware/rateLimit';
 export { authorizeServerSideRequest } from './middleware/authorizer';
+export { reserveQuota } from './finops/quotaService';
 
 // HTTPS Cloud Function endpoint export style (Firebase Functions compatible)
 export const callGeminiProxy = async (req: any, res: any) => {
@@ -59,6 +61,36 @@ export const callGeminiProxy = async (req: any, res: any) => {
 
   if (res.headersSent) return;
 
+  // 3. Reserva e Inspección de Cuota FinOps Serverless (IA_INVOCATION)
+  const requestId = (req.headers && (req.headers['x-request-id'] as string)) || req.body?.requestId || crypto.randomUUID();
+  try {
+    const quotaResult = await reserveQuota({
+      orgId,
+      operation: 'IA_INVOCATION',
+      increment: 1,
+      requestId,
+      throwOnExceeded: false,
+    });
+
+    if (!quotaResult.allowed) {
+      logger.warn(`[AUDIT AI FUNCTION QUOTA EXCEEDED] uid=${uid} role=${userRole} orgId=${orgId} usage=${quotaResult.currentUsage}/${quotaResult.limit}`);
+      res.status(429).json({
+        error: `Excedido el límite de cuota de IA para la organización '${orgId}'. (Uso: ${quotaResult.currentUsage}/${quotaResult.limit})`,
+        code: 'QUOTA_EXCEEDED',
+        quotaError: {
+          operation: 'IA_INVOCATION',
+          limit: quotaResult.limit,
+          currentUsage: quotaResult.currentUsage,
+          orgId,
+          recoverable: true,
+        },
+      });
+      return;
+    }
+  } catch (quotaErr: any) {
+    logger.error(`[AUDIT AI FUNCTION QUOTA ERROR] orgId=${orgId} err=${quotaErr?.message}`);
+  }
+
   try {
     const result = await handleGeminiProxy(req.body || {});
     logger.info(`[AUDIT AI FUNCTION] uid=${uid} role=${userRole} orgId=${orgId} status=200`);
@@ -71,6 +103,75 @@ export const callGeminiProxy = async (req: any, res: any) => {
     } else {
       res.status(500).json({ error: 'Error interno al procesar la solicitud de inteligencia artificial.' });
     }
+  }
+};
+
+/**
+ * HTTPS Cloud Function para reserva y verificación de cuota de exportación de documentos (PDF, XLSX, DOCX, PPTX).
+ */
+export const reserveExportQuotaProxy = async (req: any, res: any) => {
+  // CORS Handling
+  const allowed = ['https://industrial-360.vercel.app'];
+  const origin = req.headers?.origin;
+  if (origin && allowed.includes(origin)) {
+    res.set('Access-Control-Allow-Origin', origin);
+  }
+  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+
+  // 1. Middleware requireAuth
+  await new Promise<void>((resolve, reject) => {
+    requireAuth(req, res, (err?: any) => {
+      if (err) reject(err);
+      else resolve();
+    });
+  });
+
+  if (res.headersSent) return;
+
+  const uid = req.user?.uid || 'unknown';
+  const orgId = req.user?.orgId || 'unassigned';
+  const requestId = (req.headers && (req.headers['x-request-id'] as string)) || req.body?.requestId || crypto.randomUUID();
+  const formats = req.body?.formats || ['pdf'];
+  const increment = Array.isArray(formats) ? formats.length : 1;
+
+  try {
+    const quotaResult = await reserveQuota({
+      orgId,
+      operation: 'EXPORT_DOCUMENT',
+      increment,
+      requestId,
+      throwOnExceeded: false,
+    });
+
+    if (!quotaResult.allowed) {
+      logger.warn(`[ExportQuota EXCEEDED] uid=${uid} orgId=${orgId} usage=${quotaResult.currentUsage}/${quotaResult.limit}`);
+      res.status(429).json({
+        error: `Excedido el límite de cuota de exportación para la organización '${orgId}'. (Uso: ${quotaResult.currentUsage}/${quotaResult.limit})`,
+        code: 'QUOTA_EXCEEDED',
+        quotaError: {
+          operation: 'EXPORT_DOCUMENT',
+          limit: quotaResult.limit,
+          currentUsage: quotaResult.currentUsage,
+          orgId,
+          recoverable: true,
+        },
+      });
+      return;
+    }
+
+    res.status(200).json({
+      success: true,
+      quotaResult,
+    });
+  } catch (error: any) {
+    logger.error(`[ExportQuota ERROR] uid=${uid} orgId=${orgId} msg=${error?.message}`);
+    res.status(500).json({ error: 'Error interno al reservar cuota de exportación.' });
   }
 };
 
@@ -1258,6 +1359,22 @@ export const syncOutboxMutation = functions.https.onCall(
           "El rol 'campo' no puede marcar entidades como aprobadas o cerradas."
         );
       }
+    }
+
+    // Reserva e inspección de cuotas FinOps Serverless (FIRESTORE_WRITE)
+    const writeQuotaResult = await reserveQuota({
+      orgId,
+      operation: 'FIRESTORE_WRITE',
+      increment: 1,
+      requestId: operationId,
+      throwOnExceeded: false,
+    });
+
+    if (!writeQuotaResult.allowed) {
+      throw new functions.https.HttpsError(
+        'resource-exhausted',
+        `Cuota de escrituras Firestore excedida para la organización '${orgId}'. (${writeQuotaResult.currentUsage}/${writeQuotaResult.limit})`
+      );
     }
 
     const dbAdmin = getFirestore();

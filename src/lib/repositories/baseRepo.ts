@@ -5,6 +5,7 @@ import {
 } from 'firebase/firestore';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { BaseEntity } from './types';
+import { guardFirestoreWrite, QuotaExceededError } from '../finops/platformMetricsEngine';
 
 export interface PaginationOptions {
   pageSize?: number;
@@ -111,6 +112,19 @@ export class BaseRepository<T extends BaseEntity> {
     }
   }
 
+  /**
+   * Hook de integración FinOps para verificación y reserva de cuota de escritura.
+   */
+  public async checkQuotaBeforeWrite(orgId: string, count: number = 1): Promise<void> {
+    try {
+      guardFirestoreWrite(orgId, count);
+    } catch (err) {
+      if (err instanceof QuotaExceededError) {
+        throw err;
+      }
+    }
+  }
+
   async create(
     orgId: string, 
     projectId: string, 
@@ -118,6 +132,8 @@ export class BaseRepository<T extends BaseEntity> {
   ): Promise<T> {
     if (!orgId || !projectId) throw new Error('orgId y projectId son obligatorios.');
     
+    await this.checkQuotaBeforeWrite(orgId, 1);
+
     let targetProjectId = projectId;
     if (targetProjectId === 'all') {
       targetProjectId = (data as any).projectId && (data as any).projectId !== 'all'

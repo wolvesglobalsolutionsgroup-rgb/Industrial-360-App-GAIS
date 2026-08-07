@@ -93,6 +93,25 @@ export function createApp(): express.Express {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
   });
 
+  // Local development endpoints mapping to Cloud Functions
+  app.post('/api/callGeminiProxy', async (req: Request, res: Response) => {
+    try {
+      const { callGeminiProxy } = await import('./functions/src/index');
+      await callGeminiProxy(req, res);
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || 'Error en proxy Gemini' });
+    }
+  });
+
+  app.post('/api/reserveExportQuota', async (req: Request, res: Response) => {
+    try {
+      const { reserveExportQuotaProxy } = await import('./functions/src/index');
+      await reserveExportQuotaProxy(req, res);
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || 'Error en proxy Export Quota' });
+    }
+  });
+
   /*
    * =================================================================================
    * ENDPOINTS MIGRADOS A FIREBASE CLOUD FUNCTIONS (ADR-001)

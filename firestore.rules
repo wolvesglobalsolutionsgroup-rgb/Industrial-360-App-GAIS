@@ -95,6 +95,17 @@ service cloud.firestore {
         allow write: if false;
       }
 
+      // FinOps Subcollections: escritura prohibida al cliente (exclusivo Admin SDK / Cloud Functions)
+      match /quotaUsage/{id} {
+        allow read: if belongsToOrg(orgId) && isGerente();
+        allow write: if false;
+      }
+
+      match /finopsAlerts/{id} {
+        allow read: if belongsToOrg(orgId);
+        allow write: if false;
+      }
+
       // Projects subcollection and 19 subcollections
       match /projects/{projectId} {
         allow read: if belongsToOrg(orgId);
