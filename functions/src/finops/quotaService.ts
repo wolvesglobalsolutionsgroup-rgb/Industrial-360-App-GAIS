@@ -1,5 +1,6 @@
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import { logger } from '../logger';
+import { resolveAuthorizedOrgId } from '../middleware/authorizer';
 import {
   QuotaOperationType,
   QuotaCheckResult,
@@ -17,6 +18,7 @@ export interface ReserveQuotaOptions {
   now?: string | Date;
   throwOnExceeded?: boolean;
   customLimit?: number;
+  authContext?: any;
 }
 
 /**
@@ -25,7 +27,7 @@ export interface ReserveQuotaOptions {
  */
 export async function reserveQuota(options: ReserveQuotaOptions): Promise<QuotaCheckResult> {
   const {
-    orgId,
+    orgId: requestedOrgId,
     operation,
     planId,
     increment = 1,
@@ -33,9 +35,20 @@ export async function reserveQuota(options: ReserveQuotaOptions): Promise<QuotaC
     now,
     throwOnExceeded = false,
     customLimit,
+    authContext,
   } = options;
 
-  if (!orgId) {
+  let orgId = requestedOrgId;
+
+  if (authContext) {
+    const resolved = resolveAuthorizedOrgId({
+      authContext,
+      requestedOrgId,
+    });
+    orgId = resolved.effectiveOrgId;
+  }
+
+  if (!orgId || typeof orgId !== 'string' || !orgId.trim()) {
     throw new Error('Parámetro requerido: orgId es obligatorio para verificar cuota FinOps.');
   }
 

@@ -6,7 +6,7 @@ import * as crypto from 'crypto';
 import { handleGeminiProxy } from '../../src/lib/geminiServer';
 import { requireAuth } from './middleware/requireAuth';
 import { rateLimit, checkRateLimit } from './middleware/rateLimit';
-import { authorizeServerSideRequest } from './middleware/authorizer';
+import { authorizeServerSideRequest, resolveAuthorizedOrgId } from './middleware/authorizer';
 import { logger } from './logger';
 import { validatePortalLink, escapeHtmlAttr } from '../../server';
 import { reserveQuota } from './finops/quotaService';
@@ -17,7 +17,7 @@ if (!getApps().length) {
 
 export { requireAuth } from './middleware/requireAuth';
 export { rateLimit, checkRateLimit } from './middleware/rateLimit';
-export { authorizeServerSideRequest } from './middleware/authorizer';
+export { authorizeServerSideRequest, resolveAuthorizedOrgId } from './middleware/authorizer';
 export { reserveQuota } from './finops/quotaService';
 
 // HTTPS Cloud Function endpoint export style (Firebase Functions compatible)
@@ -48,9 +48,26 @@ export const callGeminiProxy = async (req: any, res: any) => {
 
   const uid = req.user?.uid || 'unknown';
   const userRole = req.user?.role || 'authenticated';
-  const orgId = req.user?.orgId || 'unassigned';
 
-  // 2. Rate limiting (20/min por uid para callGeminiProxy)
+  // 2. Impone resolución estricta del tenant a partir de claims con resolveAuthorizedOrgId
+  let orgId: string;
+  try {
+    const requestedOrgId = req.body?.orgId || req.query?.orgId;
+    const resolvedTenant = resolveAuthorizedOrgId({
+      authContext: req.user,
+      requestedOrgId,
+    });
+    orgId = resolvedTenant.effectiveOrgId;
+  } catch (authErr: any) {
+    logger.warn(`[AUDIT AI FUNCTION TENANT REJECTED] uid=${uid} err=${authErr?.message}`);
+    res.status(403).json({
+      error: authErr?.message || 'Acceso denegado: No está autorizado para operar en la organización solicitada.',
+      code: 'PERMISSION_DENIED',
+    });
+    return;
+  }
+
+  // 3. Rate limiting (20/min por uid para callGeminiProxy)
   const geminiRateLimiter = rateLimit({ operation: 'callGeminiProxy', maxRequests: 20 });
   await new Promise<void>((resolve, reject) => {
     geminiRateLimiter(req, res, (err?: any) => {
@@ -61,7 +78,7 @@ export const callGeminiProxy = async (req: any, res: any) => {
 
   if (res.headersSent) return;
 
-  // 3. Reserva e Inspección de Cuota FinOps Serverless (IA_INVOCATION)
+  // 4. Reserva e Inspección de Cuota FinOps Serverless (IA_INVOCATION)
   const requestId = (req.headers && (req.headers['x-request-id'] as string)) || req.body?.requestId || crypto.randomUUID();
   try {
     const quotaResult = await reserveQuota({
@@ -70,6 +87,7 @@ export const callGeminiProxy = async (req: any, res: any) => {
       increment: 1,
       requestId,
       throwOnExceeded: false,
+      authContext: req.user,
     });
 
     if (!quotaResult.allowed) {
@@ -92,7 +110,7 @@ export const callGeminiProxy = async (req: any, res: any) => {
   }
 
   try {
-    const result = await handleGeminiProxy(req.body || {});
+    const result = await handleGeminiProxy({ ...(req.body || {}), orgId });
     logger.info(`[AUDIT AI FUNCTION] uid=${uid} role=${userRole} orgId=${orgId} status=200`);
     res.status(200).json(result);
   } catch (error: any) {
@@ -135,7 +153,24 @@ export const reserveExportQuotaProxy = async (req: any, res: any) => {
   if (res.headersSent) return;
 
   const uid = req.user?.uid || 'unknown';
-  const orgId = req.user?.orgId || 'unassigned';
+
+  let orgId: string;
+  try {
+    const requestedOrgId = req.body?.orgId || req.query?.orgId;
+    const resolvedTenant = resolveAuthorizedOrgId({
+      authContext: req.user,
+      requestedOrgId,
+    });
+    orgId = resolvedTenant.effectiveOrgId;
+  } catch (authErr: any) {
+    logger.warn(`[ExportQuota TENANT REJECTED] uid=${uid} err=${authErr?.message}`);
+    res.status(403).json({
+      error: authErr?.message || 'Acceso denegado: No está autorizado para operar en la organización solicitada.',
+      code: 'PERMISSION_DENIED',
+    });
+    return;
+  }
+
   const requestId = (req.headers && (req.headers['x-request-id'] as string)) || req.body?.requestId || crypto.randomUUID();
   const formats = req.body?.formats || ['pdf'];
   const increment = Array.isArray(formats) ? formats.length : 1;
@@ -147,6 +182,7 @@ export const reserveExportQuotaProxy = async (req: any, res: any) => {
       increment,
       requestId,
       throwOnExceeded: false,
+      authContext: req.user,
     });
 
     if (!quotaResult.allowed) {
@@ -205,7 +241,23 @@ export const sendEmail = async (req: any, res: any) => {
 
   const uid = req.user?.uid || 'unknown';
   let role = req.user?.role || '';
-  const orgId = req.user?.orgId || 'unassigned';
+
+  let orgId: string;
+  try {
+    const requestedOrgId = req.body?.orgId || req.query?.orgId;
+    const resolvedTenant = resolveAuthorizedOrgId({
+      authContext: req.user,
+      requestedOrgId,
+    });
+    orgId = resolvedTenant.effectiveOrgId;
+  } catch (authErr: any) {
+    logger.warn(`[AUDIT EMAIL FUNCTION TENANT REJECTED] uid=${uid} err=${authErr?.message}`);
+    res.status(403).json({
+      error: authErr?.message || 'Acceso denegado: No está autorizado para operar en la organización solicitada.',
+      code: 'PERMISSION_DENIED',
+    });
+    return;
+  }
 
   if (!role && uid && uid !== 'unknown') {
     try {

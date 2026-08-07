@@ -38,22 +38,126 @@ export interface AuthorizeResult {
   decodedToken: DecodedIdToken;
 }
 
+export interface ResolveAuthorizedOrgIdParams {
+  /**
+   * Objeto de autenticación proveniente de context.auth (Callable) o req.user / DecodedIdToken (Express).
+   */
+  authContext: CallableContext['auth'] | DecodedIdToken | undefined;
+  /**
+   * Identificador de organización solicitado opcionalmente en body, query o params.
+   */
+  requestedOrgId?: string;
+  /**
+   * Permite anulaciones administrativas de plataforma únicamente si el token posee claim platformAdmin === true.
+   */
+  allowPlatformAdminOverride?: boolean;
+}
+
+export interface ResolvedTenantResult {
+  effectiveOrgId: string;
+  isPlatformAdmin: boolean;
+  claimOrgId: string;
+}
+
 /**
- * Autorizador Server-Side Reusable para Cloud Functions e Integraciones (Sprint 14.2)
+ * Resuelve e impone la identidad autoritativa del tenant (orgId) a partir de Custom Claims del servidor.
+ *
+ * REGLA FUNDAMENTAL DE SEGURIDAD MULTI-TENANT (Sprint F-MT.1):
+ * 1. Para cualquier solicitud autenticada: effectiveOrgId = orgId derivado de claims/token verificado por el servidor.
+ * 2. NUNCA acepta orgId como autoridad si proviene únicamente del cliente (body, query, params, headers).
+ * 3. Si requestedOrgId no coincide con el tenant autorizado del token (custom claims),
+ *    rechaza inmediatamente con error de autorización estructurado (permission-denied).
+ * 4. Permite override de plataforma ÚNICAMENTE si token.platformAdmin === true y allowPlatformAdminOverride === true.
+ */
+export function resolveAuthorizedOrgId(
+  params: ResolveAuthorizedOrgIdParams
+): ResolvedTenantResult {
+  const { authContext, requestedOrgId, allowPlatformAdminOverride = false } = params;
+
+  if (!authContext) {
+    throw new HttpsError(
+      'unauthenticated',
+      'Acceso denegado: Se requiere un usuario autenticado para determinar la organización.'
+    );
+  }
+
+  const decodedToken: DecodedIdToken =
+    'token' in authContext && authContext.token
+      ? (authContext.token as DecodedIdToken)
+      : (authContext as DecodedIdToken);
+
+  const claimOrgId = typeof decodedToken.orgId === 'string' ? decodedToken.orgId.trim() : '';
+  const isPlatformAdmin = decodedToken.platformAdmin === true;
+
+  const cleanRequested = typeof requestedOrgId === 'string' ? requestedOrgId.trim() : '';
+
+  if (cleanRequested) {
+    if (claimOrgId && cleanRequested !== claimOrgId) {
+      if (isPlatformAdmin && allowPlatformAdminOverride) {
+        return {
+          effectiveOrgId: cleanRequested,
+          isPlatformAdmin,
+          claimOrgId,
+        };
+      }
+      throw new HttpsError(
+        'permission-denied',
+        `Acceso denegado: El usuario pertenece a la organización '${claimOrgId}', pero solicitó operar en '${cleanRequested}'.`
+      );
+    }
+
+    if (!claimOrgId) {
+      if (isPlatformAdmin && allowPlatformAdminOverride) {
+        return {
+          effectiveOrgId: cleanRequested,
+          isPlatformAdmin,
+          claimOrgId,
+        };
+      }
+      throw new HttpsError(
+        'permission-denied',
+        'Acceso denegado: El token de autenticación no contiene claims de organización (orgId).'
+      );
+    }
+
+    return {
+      effectiveOrgId: claimOrgId,
+      isPlatformAdmin,
+      claimOrgId,
+    };
+  }
+
+  if (!claimOrgId) {
+    throw new HttpsError(
+      'permission-denied',
+      'Acceso denegado: El token de autenticación no contiene claims de organización (orgId).'
+    );
+  }
+
+  return {
+    effectiveOrgId: claimOrgId,
+    isPlatformAdmin,
+    claimOrgId,
+  };
+}
+
+/**
+ * Autorizador Server-Side Reusable para Cloud Functions e Integraciones (Sprint 14.2 & Sprint F-MT.1)
  *
  * Aplica reglas estrictas de seguridad multi-tenant:
  * 1. Exige usuario autenticado.
- * 2. Valida presencia de orgId (y projectId si requireProject = true).
- * 3. Rechaza inconsistencias entre claims JWT, cuerpo de la petición y ruta HTTP.
- * 4. Consulta membership activa autoritativa en /organizations/{orgId}/memberships/{uid}.
- * 5. Valida roles permitidos.
- * 6. Verifique que el proyecto exista y pertenezca a la organización.
+ * 2. Impone resolución estricta de orgId desde claims del servidor mediante resolveAuthorizedOrgId.
+ * 3. Valida presencia de orgId (y projectId si requireProject = true).
+ * 4. Rechaza inconsistencias entre claims JWT, cuerpo de la petición y ruta HTTP.
+ * 5. Consulta membership activa autoritativa en /organizations/{orgId}/memberships/{uid}.
+ * 6. Valida roles permitidos.
+ * 7. Verifique que el proyecto exista y pertenezca a la organización.
  */
 export async function authorizeServerSideRequest(
   authContext: CallableContext['auth'] | DecodedIdToken | undefined,
   options: AuthorizeOptions
 ): Promise<AuthorizeResult> {
-  // 1. Exigir autenticación
+  // 1. Exigir autenticación y resolver tenant autoritativo mediante resolveAuthorizedOrgId
   if (!authContext) {
     throw new HttpsError(
       'unauthenticated',
@@ -66,7 +170,6 @@ export async function authorizeServerSideRequest(
     ? (authContext.token as DecodedIdToken)
     : (authContext as DecodedIdToken);
 
-  const tokenOrgId = (decodedToken.orgId as string) || '';
   const email = decodedToken.email;
 
   const { orgId, projectId, allowedRoles, requireProject, routeOrgId, routeProjectId } = options;
@@ -79,7 +182,14 @@ export async function authorizeServerSideRequest(
     );
   }
 
-  const cleanOrgId = orgId.trim();
+  // Resolver tenant autoritativo e imponer aislamiento estricto (Sprint F-MT.1)
+  const resolvedTenant = resolveAuthorizedOrgId({
+    authContext,
+    requestedOrgId: orgId,
+    allowPlatformAdminOverride: false,
+  });
+
+  const cleanOrgId = resolvedTenant.effectiveOrgId;
 
   const isProjectRequired = requireProject ?? Boolean(projectId);
   if (isProjectRequired) {
@@ -105,13 +215,6 @@ export async function authorizeServerSideRequest(
     throw new HttpsError(
       'permission-denied',
       `Inconsistencia de seguridad: projectId en ruta ('${routeProjectId}') no coincide con el cuerpo ('${cleanProjectId}').`
-    );
-  }
-
-  if (tokenOrgId && tokenOrgId !== cleanOrgId) {
-    throw new HttpsError(
-      'permission-denied',
-      `Acceso denegado: El usuario pertenece a la organización '${tokenOrgId}', pero solicitó operar en '${cleanOrgId}'.`
     );
   }
 
