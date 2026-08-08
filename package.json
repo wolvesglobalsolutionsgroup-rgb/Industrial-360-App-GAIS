@@ -98,7 +98,7 @@
     "minimist": "^1.2.8",
     "minimatch": "^9.0.5",
     "uuid": "^11.1.1",
-    "image-size": "^1.2.1",
+    "image-size": "2.0.2",
     "nanoid": "^5.1.6"
   }
 }
