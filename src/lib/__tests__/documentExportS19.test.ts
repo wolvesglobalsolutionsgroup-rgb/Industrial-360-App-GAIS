@@ -4,7 +4,7 @@ import { OPERATOR_BRAND_PRESETS } from '../brandKitPresets';
 import { freezeDocumentMetadata } from '../documentPolicy';
 import { buildDocumentViewModelWorkbook } from '../excelExporter';
 import { buildDocxDocument, generateDocxBuffer } from '../docxExporter';
-import { buildPptxPresentation, PPTX_LAYOUT } from '../pptxExporter';
+import { buildPptxPresentation, PPTX_LAYOUT, pptxDocumentExporter } from '../pptxExporter';
 
 describe('S19 — Exportadores Multiformato (DOCX, XLSX, PPTX y PDF Inmutable)', () => {
 
@@ -157,12 +157,17 @@ describe('S19 — Exportadores Multiformato (DOCX, XLSX, PPTX y PDF Inmutable)',
   });
 
   describe('4. Generación PPTX (pptxExporter.ts)', () => {
-    it('debe configurar presentación 16:9 con slides de portada, sección y tablas', async () => {
+    it('debe configurar presentación 16:9 con slides de portada, sección y tablas y escribir un blob PPTX válido', async () => {
       expect(PPTX_LAYOUT).toBe('LAYOUT_WIDE');
 
       const pptx = await buildPptxPresentation(sampleVm);
       expect(pptx).toBeDefined();
       expect(pptx.layout).toBe('LAYOUT_WIDE');
+
+      const blob = await pptxDocumentExporter.export(sampleVm);
+      expect(blob).toBeInstanceOf(Blob);
+      expect(blob.size).toBeGreaterThan(1000);
+      expect(blob.type).toBe('application/vnd.openxmlformats-officedocument.presentationml.presentation');
     });
   });
 

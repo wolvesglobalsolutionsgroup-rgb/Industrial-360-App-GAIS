@@ -1,0 +1,7 @@
+{
+  "name": "image-size",
+  "version": "2.0.3",
+  "description": "Safe stub for image-size for IC360 (PPTX text/tables exporter)",
+  "main": "index.js",
+  "types": "index.d.ts"
+}
