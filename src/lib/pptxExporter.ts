@@ -61,6 +61,36 @@ export async function buildPptxPresentation(vm: DocumentViewModel): Promise<Pptx
     align: 'left',
   });
 
+  // Contractor Logo (if present)
+  if (vm.contractorBrand?.logoUrl) {
+    try {
+      coverSlide.addImage({
+        data: vm.contractorBrand.logoUrl,
+        x: 0.5,
+        y: 0.1,
+        w: 1.0,
+        h: 0.5,
+      });
+    } catch {
+      // Ignore invalid image data gracefully
+    }
+  }
+
+  // Operator Logo (if present)
+  if (vm.operatorBrand?.logoUrl) {
+    try {
+      coverSlide.addImage({
+        data: vm.operatorBrand.logoUrl,
+        x: 8.5,
+        y: 0.1,
+        w: 1.0,
+        h: 0.5,
+      });
+    } catch {
+      // Ignore invalid image data gracefully
+    }
+  }
+
   // Draft Watermark Banner
   if (vm.isDraft) {
     coverSlide.addText('⚠️ [BORRADOR - IC360 - DOCUMENTO DE TRABAJO EDITABLE]', {
@@ -242,6 +272,42 @@ export async function buildPptxPresentation(vm: DocumentViewModel): Promise<Pptx
         colW: Array(table.headers.length).fill(9.0 / Math.max(1, table.headers.length)),
         border: { pt: 1, color: 'CBD5E1' }
       });
+    });
+  }
+
+  // Render Image Attachments
+  if (vm.attachments && vm.attachments.length > 0) {
+    vm.attachments.forEach((att) => {
+      if (att.url && (att.type?.startsWith('image/') || att.url.startsWith('data:image/'))) {
+        const slide = pptx.addSlide();
+        slide.addShape('rect' as PptxGenJS.ShapeType, {
+          x: 0,
+          y: 0,
+          w: '100%',
+          h: 0.6,
+          fill: { color: primaryHex },
+        });
+        slide.addText((att.name || 'ANEXO FOTOGRÁFICO').toUpperCase(), {
+          x: 0.5,
+          y: 0.1,
+          w: 9.0,
+          h: 0.4,
+          fontSize: 16,
+          bold: true,
+          color: 'FFFFFF',
+        });
+        try {
+          slide.addImage({
+            data: att.url,
+            x: 1.0,
+            y: 0.8,
+            w: 8.0,
+            h: 4.5,
+          });
+        } catch {
+          // Ignore invalid image buffer/url gracefully
+        }
+      }
     });
   }
 

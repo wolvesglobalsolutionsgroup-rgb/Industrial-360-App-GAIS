@@ -73,8 +73,7 @@
     "three": "^0.183.2",
     "tokml": "0.2.2",
     "zod": "^4.4.3",
-    "pptxgenjs": "^4.0.1",
-    "image-size": "file:./stubs/image-size"
+    "pptxgenjs": "^4.0.1"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.1",
@@ -99,10 +98,7 @@
     "minimist": "^1.2.8",
     "minimatch": "^9.0.5",
     "uuid": "^11.1.1",
-    "pptxgenjs": {
-      "image-size": "file:./stubs/image-size"
-    },
-    "image-size": "file:./stubs/image-size",
+    "image-size": "npm:isomorphic-image-size@1.0.6",
     "nanoid": "^5.1.6"
   }
 }

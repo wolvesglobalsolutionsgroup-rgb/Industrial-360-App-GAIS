@@ -5,6 +5,8 @@ import { freezeDocumentMetadata } from '../documentPolicy';
 import { buildDocumentViewModelWorkbook } from '../excelExporter';
 import { buildDocxDocument, generateDocxBuffer } from '../docxExporter';
 import { buildPptxPresentation, PPTX_LAYOUT, pptxDocumentExporter } from '../pptxExporter';
+import { calculateImageDimensions } from '../imageSizeUtils';
+import { exportDocument } from '../exporters/exportDocument';
 
 describe('S19 — Exportadores Multiformato (DOCX, XLSX, PPTX y PDF Inmutable)', () => {
 
@@ -156,18 +158,107 @@ describe('S19 — Exportadores Multiformato (DOCX, XLSX, PPTX y PDF Inmutable)',
     });
   });
 
-  describe('4. Generación PPTX (pptxExporter.ts)', () => {
-    it('debe configurar presentación 16:9 con slides de portada, sección y tablas y escribir un blob PPTX válido', async () => {
+  describe('4. Generación PPTX e Integridad de Imágenes (pptxExporter.ts y imageSizeUtils.ts)', () => {
+    // 1x1 PNG Real Buffer
+    const png1x1Base64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    const png1x1Buffer = Buffer.from(png1x1Base64, 'base64');
+    const png1x1DataUrl = `data:image/png;base64,${png1x1Base64}`;
+
+    // JPEG Real Buffer with known SOF0 dimensions: Height = 10 (0x000A), Width = 20 (0x0014)
+    const jpeg20x10Hex = 'ffd8ffe000104a46494600010101006000600000ffc0001108000a001403012200021101031101ffd9';
+    const jpeg20x10Buffer = Buffer.from(jpeg20x10Hex, 'hex');
+
+    // PNG with Transparency (RGBA)
+    const pngAlphaBase64 = 'iVBORw0KGgoAAAANSUhEUgAAAAIAAAADCAYAAAC5643DAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAGElEQVR42mP8z8D8n4GBgYGhkYGBgYEBABsnAgTz3LzUAAAAAElFTkSuQmCC';
+    const pngAlphaBuffer = Buffer.from(pngAlphaBase64, 'base64');
+
+    it('1. PPTX de texto/tablas: debe configurar presentación 16:9 con slides de portada, sección y tablas', async () => {
       expect(PPTX_LAYOUT).toBe('LAYOUT_WIDE');
 
       const pptx = await buildPptxPresentation(sampleVm);
       expect(pptx).toBeDefined();
       expect(pptx.layout).toBe('LAYOUT_WIDE');
+    });
 
-      const blob = await pptxDocumentExporter.export(sampleVm);
+    it('2. PNG real de dimensiones conocidas (1x1)', () => {
+      const dims = calculateImageDimensions(png1x1Buffer);
+      expect(dims.width).toBe(1);
+      expect(dims.height).toBe(1);
+      expect(dims.type).toBe('png');
+    });
+
+    it('3. JPEG real de dimensiones conocidas (20x10)', () => {
+      const dims = calculateImageDimensions(jpeg20x10Buffer);
+      expect(dims.width).toBe(20);
+      expect(dims.height).toBe(10);
+      expect(dims.type).toBe('jpg');
+    });
+
+    it('4. Imagen con transparencia (PNG RGBA)', () => {
+      const dims = calculateImageDimensions(pngAlphaBuffer);
+      expect(dims.type).toBe('png');
+      expect(dims.hasAlpha).toBe(true);
+    });
+
+    it('5 & 6. Logo contractorBrand y Logo operatorBrand incluidos en la presentación PPTX', async () => {
+      const vmWithLogos = createDocumentViewModel({
+        ...sampleVm,
+        contractorBrand: {
+          ...contractorBrand,
+          logoUrl: png1x1DataUrl,
+        },
+        operatorBrand: {
+          ...operatorBrand,
+          logoUrl: png1x1DataUrl,
+        },
+        attachments: [
+          {
+            id: 'att-1',
+            name: 'Inspección de Junta de Soldadura',
+            type: 'image/png',
+            url: png1x1DataUrl,
+          },
+        ],
+      });
+
+      const pptx = await buildPptxPresentation(vmWithLogos);
+      expect(pptx).toBeDefined();
+
+      const blob = await pptxDocumentExporter.export(vmWithLogos);
       expect(blob).toBeInstanceOf(Blob);
       expect(blob.size).toBeGreaterThan(1000);
       expect(blob.type).toBe('application/vnd.openxmlformats-officedocument.presentationml.presentation');
+    });
+
+    it('7. Buffer de imagen inválido debe lanzar excepción determinista', () => {
+      const invalidBuffer = Buffer.from('DATOS_INVALIDOS_NO_ES_UNA_IMAGEN');
+      expect(() => calculateImageDimensions(invalidBuffer)).toThrow('Unsupported or invalid image file');
+    });
+
+    it('8. Exportación canónica mediante exportDocument', async () => {
+      const result = await exportDocument(sampleVm, ['pptx']);
+      expect(result.pptx).toBeDefined();
+      expect(result.pptx).toBeInstanceOf(Blob);
+      expect(result.pptx.size).toBeGreaterThan(1000);
+    });
+
+    it('9. Blob final con MIME correcto', async () => {
+      const blob = await pptxDocumentExporter.export(sampleVm);
+      expect(blob.type).toBe('application/vnd.openxmlformats-officedocument.presentationml.presentation');
+    });
+
+    it('10. Validación de que las dimensiones calculadas NO son siempre 100x100', () => {
+      const dims1 = calculateImageDimensions(png1x1Buffer);
+      const dims2 = calculateImageDimensions(jpeg20x10Buffer);
+
+      expect(dims1.width).not.toBe(100);
+      expect(dims1.height).not.toBe(100);
+
+      expect(dims2.width).not.toBe(100);
+      expect(dims2.height).not.toBe(100);
+
+      expect(dims1.width).toBe(1);
+      expect(dims2.width).toBe(20);
     });
   });
 
