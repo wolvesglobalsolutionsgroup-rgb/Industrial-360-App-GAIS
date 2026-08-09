@@ -89,35 +89,24 @@ export const InstrumentationCapture: React.FC<WorkflowComponentProps<Instrumenta
     e.preventDefault();
     if (!newTagNo.trim() || !newLoopTag.trim()) return;
 
-    const defaultPoints: CalibrationPoint[] = [0, 25, 50, 75, 100].map((pct) => {
-      const expected = newRangeMin + (pct / 100) * (newRangeMax - newRangeMin);
-      return {
-        inputPercent: pct,
-        expectedVal: expected,
-        measuredVal: expected,
-        errorPercentFs: 0,
-        passed: true,
-      };
-    });
-
     const newLoop: InstrumentLoop = {
       id: `loop_${Date.now()}`,
       tagNo: newTagNo.trim().toUpperCase(),
       loopTag: newLoopTag.trim().toUpperCase(),
       pidNumber: newPidNumber.trim().toUpperCase(),
       instrumentType: newInstrumentType,
-      description: newDescription.trim() || `Transmisor ${newInstrumentType}`,
-      location: newLocation.trim() || 'Planta Principal',
+      description: newDescription.trim(),
+      location: newLocation.trim(),
       rangeMin: Number(newRangeMin),
       rangeMax: Number(newRangeMax),
       unit: newUnit.trim() || 'PSI',
       toleranceFsPercent: Number(newToleranceFs),
       signalType: newSignalType,
-      calibrationDate: new Date().toISOString().split('T')[0],
-      nextCalibrationDate: new Date(Date.now() + 365 * 86400000).toISOString().split('T')[0],
-      calibratedBy: newCalibratedBy.trim() || 'Técnico de Instrumentación',
-      status: 'Calibrado & Operativo',
-      calibrationPoints: defaultPoints,
+      calibrationDate: '',
+      nextCalibrationDate: '',
+      calibratedBy: newCalibratedBy.trim(),
+      status: 'Pendiente Calibración',
+      calibrationPoints: [],
     };
 
     const next = [...loops, newLoop];
@@ -129,6 +118,7 @@ export const InstrumentationCapture: React.FC<WorkflowComponentProps<Instrumenta
     setNewPidNumber('');
     setNewDescription('');
     setNewLocation('');
+    setNewCalibratedBy('');
   };
 
   const handleDeleteLoop = (loopId: string) => {

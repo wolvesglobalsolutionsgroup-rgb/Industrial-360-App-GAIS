@@ -64,15 +64,11 @@ export const WorkerQrCapture: React.FC<WorkflowComponentProps<WorkerQrData>> = (
   const [newFullName, setNewFullName] = useState('');
   const [newRole, setNewRole] = useState('');
   const [newContractor, setNewContractor] = useState('');
-  const [newBloodType, setNewBloodType] = useState('O+');
-  const [newAllergies, setNewAllergies] = useState('Ninguna');
-  const [newMedicalDate, setNewMedicalDate] = useState(
-    new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0]
-  );
-  const [newSihoDate, setNewSihoDate] = useState(
-    new Date(Date.now() + 180 * 86400000).toISOString().split('T')[0]
-  );
-  const [newFitStatus, setNewFitStatus] = useState<'Apto' | 'Apto con Restricciones' | 'No Apto' | 'Vencido'>('Apto');
+  const [newBloodType, setNewBloodType] = useState('');
+  const [newAllergies, setNewAllergies] = useState('');
+  const [newMedicalDate, setNewMedicalDate] = useState('');
+  const [newSihoDate, setNewSihoDate] = useState('');
+  const [newFitStatus, setNewFitStatus] = useState<'Apto' | 'Apto con Restricciones' | 'No Apto' | 'Vencido'>('Vencido');
 
   const selectedWorker = workers.find((w) => w.id === selectedWorkerId) || workers[0] || null;
 
@@ -90,16 +86,16 @@ export const WorkerQrCapture: React.FC<WorkflowComponentProps<WorkerQrData>> = (
 
     const newWorker: FieldWorker = {
       id: `worker_${Date.now()}`,
-      credentialId: `CRD_${Math.random().toString(36).substring(2, 10)}`,
+      credentialId: '',
       nationalId: newNationalId.trim(),
       fullName: newFullName.trim(),
-      role: newRole.trim() || 'Operador de Campo',
-      contractor: newContractor.trim() || 'Contratista General',
-      bloodType: newBloodType,
-      allergies: newAllergies.trim() || 'Ninguna',
+      role: newRole.trim(),
+      contractor: newContractor.trim(),
+      bloodType: newBloodType.trim(),
+      allergies: newAllergies.trim(),
       medicalCheckValidUntil: newMedicalDate,
       sihoInductionValidUntil: newSihoDate,
-      fitStatus: newFitStatus,
+      fitStatus: 'Vencido',
       totalHhtAccumulated: 0,
     };
 
@@ -111,6 +107,11 @@ export const WorkerQrCapture: React.FC<WorkflowComponentProps<WorkerQrData>> = (
     setNewFullName('');
     setNewRole('');
     setNewContractor('');
+    setNewBloodType('');
+    setNewAllergies('');
+    setNewMedicalDate('');
+    setNewSihoDate('');
+    setNewFitStatus('Vencido');
   };
 
   const handleDeleteWorker = (workerId: string) => {

@@ -50,18 +50,26 @@ export const wf054Definition: WorkflowDefinition<FleetData> = {
       id: 'gate-preop-checklist',
       name: 'Inspección Pre-operativa Obligatoria de Seguridad',
       description:
-        'Verifica que todo equipo operativo en lista tenga aprobada la inspección pre-operativa de 5 puntos de seguridad.',
+        'Verifica que todo equipo en lista esté operativo, tenga intervalo configurado y checklist pre-operativo de 5 puntos aprobado.',
       evaluator: (_context, data) => {
         if (!data.equipment || data.equipment.length === 0) {
-          return { passed: true };
-        }
-        const failedPreOp = data.equipment.find(
-          (item) => item.status === 'OPERATIONAL' && item.preOpChecklist && !item.preOpChecklist.passedAll
-        );
-        if (failedPreOp) {
           return {
             passed: false,
-            message: `BLOQUEO DE MAQUINARIA: El equipo ${failedPreOp.tag} (${failedPreOp.name}) presenta fallas no conformes en su checklist pre-operativo de seguridad.`,
+            message: 'BLOQUEO: no existen registros verificados para evaluar.',
+          };
+        }
+        const unapprovedEquipment = data.equipment.find(
+          (item) =>
+            item.status === 'OUT_OF_SERVICE' ||
+            !item.preOpChecklist ||
+            !item.preOpChecklist.passedAll ||
+            !item.maintenanceIntervalHours ||
+            item.maintenanceIntervalHours <= 0
+        );
+        if (unapprovedEquipment) {
+          return {
+            passed: false,
+            message: `BLOQUEO DE MAQUINARIA: El equipo ${unapprovedEquipment.tag} (${unapprovedEquipment.name}) está fuera de servicio, sin intervalo configurado o presenta fallas en su checklist pre-operativo.`,
           };
         }
         return { passed: true };
@@ -74,17 +82,21 @@ export const wf054Definition: WorkflowDefinition<FleetData> = {
         'Bloquea la certificación de maquinaria cuyo horómetro de operación haya sobrepasado el límite asignado de mantenimiento.',
       evaluator: (_context, data) => {
         if (!data.equipment || data.equipment.length === 0) {
-          return { passed: true };
+          return {
+            passed: false,
+            message: 'BLOQUEO: no existen registros verificados para evaluar.',
+          };
         }
         const overdueEquipment = data.equipment.find(
           (item) =>
-            item.status === 'OPERATIONAL' &&
+            item.status === 'MAINTENANCE_DUE' ||
+            item.nextServiceHorometer <= 0 ||
             item.currentHorometer >= item.nextServiceHorometer
         );
         if (overdueEquipment) {
           return {
             passed: false,
-            message: `BLOQUEO DE MANTENIMIENTO: La maquinaria ${overdueEquipment.tag} ha sobrepasado su horómetro de servicio (${overdueEquipment.currentHorometer} hrs >= límite ${overdueEquipment.nextServiceHorometer} hrs).`,
+            message: `BLOQUEO DE MANTENIMIENTO: La maquinaria ${overdueEquipment.tag} ha sobrepasado su horómetro de servicio o requiere mantenimiento preventivo.`,
           };
         }
         return { passed: true };

@@ -60,8 +60,8 @@ export const FleetEquipmentCapture: React.FC<WorkflowComponentProps<FleetData>> 
   const [newName, setNewName] = useState('');
   const [newType, setNewType] = useState('Grúa Telescópica');
   const [newBrandModel, setNewBrandModel] = useState('');
-  const [newCurrentHorometer, setNewCurrentHorometer] = useState(100);
-  const [newInterval, setNewInterval] = useState(250);
+  const [newCurrentHorometer, setNewCurrentHorometer] = useState(0);
+  const [newInterval, setNewInterval] = useState(0);
 
   const selectedItem = equipment.find((e) => e.id === selectedEqId) || equipment[0] || null;
 
@@ -77,26 +77,26 @@ export const FleetEquipmentCapture: React.FC<WorkflowComponentProps<FleetData>> 
     if (!newTag.trim() || !newName.trim()) return;
 
     const horometer = Number(newCurrentHorometer) || 0;
-    const interval = Number(newInterval) || 250;
+    const interval = Number(newInterval) || 0;
 
     const newItem: FleetEquipmentItem = {
       id: `fleet_${Date.now()}`,
       tag: newTag.trim().toUpperCase(),
       name: newName.trim(),
       type: newType,
-      brandModel: newBrandModel.trim() || 'Modelo Estándar',
+      brandModel: newBrandModel.trim(),
       currentHorometer: horometer,
       lastServiceHorometer: horometer,
-      nextServiceHorometer: horometer + interval,
+      nextServiceHorometer: interval > 0 ? horometer + interval : 0,
       maintenanceIntervalHours: interval,
-      status: 'OPERATIONAL',
+      status: 'OUT_OF_SERVICE',
       preOpChecklist: {
-        checkEngineOil: true,
-        checkHydraulicLeaks: true,
-        checkBrakesAlerts: true,
-        checkFireExtinguisher: true,
-        checkEmergencyStop: true,
-        passedAll: true,
+        checkEngineOil: false,
+        checkHydraulicLeaks: false,
+        checkBrakesAlerts: false,
+        checkFireExtinguisher: false,
+        checkEmergencyStop: false,
+        passedAll: false,
       },
     };
 
@@ -107,6 +107,8 @@ export const FleetEquipmentCapture: React.FC<WorkflowComponentProps<FleetData>> 
     setNewTag('');
     setNewName('');
     setNewBrandModel('');
+    setNewCurrentHorometer(0);
+    setNewInterval(0);
   };
 
   const handleDeleteEquipment = (eqId: string) => {
@@ -122,8 +124,12 @@ export const FleetEquipmentCapture: React.FC<WorkflowComponentProps<FleetData>> 
     if (isReadOnly) return;
     const nextEq = equipment.map((item) => {
       if (item.id !== eqId) return item;
-      const isDue = horometer >= item.nextServiceHorometer;
-      const status: FleetEquipmentItem['status'] = isDue ? 'MAINTENANCE_DUE' : 'OPERATIONAL';
+      const isDue = item.nextServiceHorometer > 0 && horometer >= item.nextServiceHorometer;
+      const status: FleetEquipmentItem['status'] = isDue
+        ? 'MAINTENANCE_DUE'
+        : item.preOpChecklist?.passedAll
+        ? 'OPERATIONAL'
+        : 'OUT_OF_SERVICE';
       return {
         ...item,
         currentHorometer: horometer,
@@ -138,12 +144,12 @@ export const FleetEquipmentCapture: React.FC<WorkflowComponentProps<FleetData>> 
     const nextEq = equipment.map((item) => {
       if (item.id !== eqId) return item;
       const currentCl = item.preOpChecklist || {
-        checkEngineOil: true,
-        checkHydraulicLeaks: true,
-        checkBrakesAlerts: true,
-        checkFireExtinguisher: true,
-        checkEmergencyStop: true,
-        passedAll: true,
+        checkEngineOil: false,
+        checkHydraulicLeaks: false,
+        checkBrakesAlerts: false,
+        checkFireExtinguisher: false,
+        checkEmergencyStop: false,
+        passedAll: false,
       };
       const updatedVal = !currentCl[key];
       const updatedCl = { ...currentCl, [key]: updatedVal };
@@ -154,10 +160,18 @@ export const FleetEquipmentCapture: React.FC<WorkflowComponentProps<FleetData>> 
         updatedCl.checkFireExtinguisher &&
         updatedCl.checkEmergencyStop;
 
+      const isDue = item.nextServiceHorometer > 0 && item.currentHorometer >= item.nextServiceHorometer;
+      let newStatus: FleetEquipmentItem['status'] = 'OUT_OF_SERVICE';
+      if (isDue) {
+        newStatus = 'MAINTENANCE_DUE';
+      } else if (passedAll && item.maintenanceIntervalHours > 0) {
+        newStatus = 'OPERATIONAL';
+      }
+
       return {
         ...item,
         preOpChecklist: { ...updatedCl, passedAll },
-        status: !passedAll ? ('OUT_OF_SERVICE' as const) : item.status,
+        status: newStatus,
       };
     });
     updateEquipment(nextEq);
@@ -357,7 +371,7 @@ export const FleetEquipmentCapture: React.FC<WorkflowComponentProps<FleetData>> 
                       { key: 'checkFireExtinguisher', label: 'Extintor Vigente (PQS min 20 lbs)' },
                       { key: 'checkEmergencyStop', label: 'Paro de Emergencia / Set de Corte Probado' },
                     ].map(({ key, label }) => {
-                      const currentVal = selectedItem.preOpChecklist?.[key as keyof Omit<PreOpChecklist, 'passedAll'>] ?? true;
+                      const currentVal = selectedItem.preOpChecklist?.[key as keyof Omit<PreOpChecklist, 'passedAll'>] ?? false;
 
                       return (
                         <label

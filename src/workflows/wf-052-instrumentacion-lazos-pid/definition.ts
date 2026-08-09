@@ -64,10 +64,27 @@ export const wf052Definition: WorkflowDefinition<InstrumentationData> = {
       id: 'gate-instrument-tolerance',
       name: 'Tolerancia de Calibración de Instrumentos (%FS)',
       description:
-        'Verifica que todos los puntos de prueba medidos en el instrumento se encuentren dentro del porcentaje de tolerancia FS establecido.',
+        'Verifica que todos los puntos de prueba medidos en el instrumento se encuentren dentro del porcentaje de tolerancia FS establecido y sin calibraciones pendientes.',
       evaluator: (_context, data) => {
         if (!data.loops || data.loops.length === 0) {
-          return { passed: true };
+          return {
+            passed: false,
+            message: 'BLOQUEO: no existen registros verificados para evaluar.',
+          };
+        }
+        const pendingLoop = data.loops.find(
+          (loop) =>
+            loop.status === 'Pendiente Calibración' ||
+            !loop.calibrationDate ||
+            !loop.calibratedBy ||
+            !loop.pidNumber ||
+            !loop.location
+        );
+        if (pendingLoop) {
+          return {
+            passed: false,
+            message: `BLOQUEO DE INSTRUMENTACIÓN: El instrumento ${pendingLoop.tagNo} se encuentra en estado pendiente o carece de datos de calibración / P&ID.`,
+          };
         }
         const failedLoop = data.loops.find((loop) =>
           loop.calibrationPoints?.some((pt) => !pt.passed)
@@ -75,7 +92,7 @@ export const wf052Definition: WorkflowDefinition<InstrumentationData> = {
         if (failedLoop) {
           return {
             passed: false,
-            message: `BLOQUEO DE INSTRUMENTACIÓN: El instrumento ${failedLoop.tagNo} tiene puntos de calibración fuera de tolerancia (±${failedLoop.toleranceFsPercent}% FS).`,
+            message: `BLOQUEO DE INSTRUMENTACIÓN: El instrumento ${failedLoop.tagNo} tiene puntos de calibración fuera de tolerancia (±${failedLoop.toleranceFsPercent}% FS) o no verificados.`,
           };
         }
         return { passed: true };
@@ -88,7 +105,10 @@ export const wf052Definition: WorkflowDefinition<InstrumentationData> = {
         'Exige que todo instrumento registrado tenga al menos 3 puntos de calibración de prueba (e.g. 0%, 50%, 100%).',
       evaluator: (_context, data) => {
         if (!data.loops || data.loops.length === 0) {
-          return { passed: true };
+          return {
+            passed: false,
+            message: 'BLOQUEO: no existen registros verificados para evaluar.',
+          };
         }
         const incompleteLoop = data.loops.find(
           (loop) => !loop.calibrationPoints || loop.calibrationPoints.length < 3

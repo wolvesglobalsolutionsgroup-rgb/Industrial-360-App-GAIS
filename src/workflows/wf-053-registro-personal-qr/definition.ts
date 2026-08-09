@@ -53,18 +53,27 @@ export const wf053Definition: WorkflowDefinition<WorkerQrData> = {
       id: 'gate-siho-fit-status',
       name: 'Verificación de Aptitud SIHO-A y Médica',
       description:
-        'Bloquea la generación de pases o certificados si existen trabajadores marcados como No Apto o Vencidos en la lista.',
+        'Bloquea la generación de pases o certificados si existen trabajadores marcados como No Apto, Vencidos o sin verificación médica.',
       evaluator: (_context, data) => {
         if (!data.workers || data.workers.length === 0) {
-          return { passed: true };
+          return {
+            passed: false,
+            message: 'BLOQUEO: no existen registros verificados para evaluar.',
+          };
         }
         const unfitWorker = data.workers.find(
-          (w) => w.fitStatus === 'No Apto' || w.fitStatus === 'Vencido'
+          (w) =>
+            w.fitStatus === 'No Apto' ||
+            w.fitStatus === 'Vencido' ||
+            !w.medicalCheckValidUntil ||
+            !w.sihoInductionValidUntil ||
+            !w.role ||
+            !w.contractor
         );
         if (unfitWorker) {
           return {
             passed: false,
-            message: `BLOQUEO SIHO-A: El trabajador ${unfitWorker.fullName} (${unfitWorker.nationalId}) figura como "${unfitWorker.fitStatus}" y no puede ser certificado para ingresar a la obra.`,
+            message: `BLOQUEO SIHO-A: El trabajador ${unfitWorker.fullName} (${unfitWorker.nationalId}) figura como "${unfitWorker.fitStatus}" o carece de datos de aptitud/fechas médicas completas.`,
           };
         }
         return { passed: true };
@@ -74,19 +83,26 @@ export const wf053Definition: WorkflowDefinition<WorkerQrData> = {
       id: 'gate-siho-induction-validity',
       name: 'Vigencia de Inducción de Seguridad PDVSA SI-S-04',
       description:
-        'Exige que todo trabajador tenga fecha de vigencia de inducción SIHO-A asignada y válida.',
+        'Exige que todo trabajador tenga fecha de vigencia de inducción SIHO-A y examen médico asignadas y no vencidas.',
       evaluator: (_context, data) => {
         if (!data.workers || data.workers.length === 0) {
-          return { passed: true };
-        }
-        const today = new Date().toISOString().split('T')[0];
-        const expiredInduction = data.workers.find(
-          (w) => !w.sihoInductionValidUntil || w.sihoInductionValidUntil < today
-        );
-        if (expiredInduction) {
           return {
             passed: false,
-            message: `BLOQUEO DE SEGURIDAD: La inducción SIHO-A del trabajador ${expiredInduction.fullName} está vencida o no fue registrada.`,
+            message: 'BLOQUEO: no existen registros verificados para evaluar.',
+          };
+        }
+        const today = new Date().toISOString().split('T')[0];
+        const expiredWorker = data.workers.find(
+          (w) =>
+            !w.sihoInductionValidUntil ||
+            w.sihoInductionValidUntil < today ||
+            !w.medicalCheckValidUntil ||
+            w.medicalCheckValidUntil < today
+        );
+        if (expiredWorker) {
+          return {
+            passed: false,
+            message: `BLOQUEO DE SEGURIDAD: La inducción SIHO-A o la fecha médica del trabajador ${expiredWorker.fullName} está vencida o no fue registrada.`,
           };
         }
         return { passed: true };
