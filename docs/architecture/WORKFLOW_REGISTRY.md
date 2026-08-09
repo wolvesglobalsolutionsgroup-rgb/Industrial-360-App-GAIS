@@ -104,3 +104,27 @@ https://app.ic360.io/workflows/wf-045-inspeccion-recubrimientos/inst-001
 | Registro Inmutable | `src/lib/workflows/registry.ts` | Mantiene el Map privado con prevención de IDs duplicados y bloqueo inmutable |
 | Motor de Reglas | `src/lib/workflows/runner.ts` | TypeScript puro: evalúa gates, valida esquemas Zod, comprueba roles y genera deliverables |
 | Contenedor de Ruta | `src/pages/WorkflowRunnerPage.tsx` | Componente de página que resuelve dinámicamente `/workflows/:workflowId/:instanceId` |
+
+---
+
+## 6. Estado de Registro y Asignación por Olas
+
+| Workflow ID | Título Oficial | Fase | Estado de Evidencia / Ola |
+|---|---|---:|---|
+| `wf-042-inspeccion-izaje` | Inspección de Grúas y Equipos de Izaje | 4 | COMPLETADO (Piloto 1) |
+| `wf-043-aprobacion-ptw` | Emisión y Autorización de Permisos de Trabajo Seguro (PTW) | 2 | COMPLETADO (Piloto 2) |
+| `wf-044-reporte-tabular` | Reporte Tabular de Inspección de Soldadura NDT | 5 | COMPLETADO (Piloto 3) |
+| `wf-048-gestion-ambiental-siho` | Gestión Ambiental SIHO-A y Manifiestos RASDA | 4 | COMPLETADO (Ola 1) |
+| `wf-050-ensayos-civiles-suelos` | Ensayos Civiles, Mecánica de Suelos y Concreto | 4 | COMPLETADO (Ola 1) |
+| `wf-051-control-aislamiento-loto` | Control de Aislamiento de Fuentes de Energía LOTO | 4 | COMPLETADO (Ola 1) |
+| `wf-052-instrumentacion-lazos-pid` | Calibración de Instrumentación y Lazos P&ID | 3 | EVIDENCE_READY (Ola 2) |
+| `wf-053-registro-personal-qr` | Control de Acceso y Ficha Médica de Personal QR | 4 | EVIDENCE_READY (Ola 2) |
+| `wf-054-flota-equipos-pesados` | Pre-operacional de Flota y Equipos Pesados | 4 | EVIDENCE_READY (Ola 2) |
+| `wf-073-medicion-avance-ingenieria` | Curva S y Medición de Avance Físico de Ingeniería | 2 | EVIDENCE_READY (Ola 3) |
+| `wf-075-libro-de-obra` | Libro de Obra Digital y Asientos de Bitácora | 4 | EVIDENCE_READY (Ola 3) |
+| `wf-065-gis-alignment-sheets-kp` | Alignment Sheets GIS y Estacionamiento KP | 2 | EVIDENCE_READY (Ola 3) |
+| `wf-077-supervision-ingenieria` | Supervisión de Ingeniería de Detalle y Certificación ORC | 2 | PLANIFICADO (Ola 4) |
+| `wf-066-bim3d-integridad-soldadura` | Integridad de Soldadura, BIM 3D y Navegabilidad ILI | 5 | PLANIFICADO (Ola 4) |
+| `wf-074-completacion-mecanica` | Acta de Completación Mecánica y Dossier MC | 7 | PLANIFICADO (Ola 4) |
+| `wf-076-terminacion-construccion` | Acta de Terminación de Construcción y Custodia | 7 | RESERVADO (Ola 5) |
+
