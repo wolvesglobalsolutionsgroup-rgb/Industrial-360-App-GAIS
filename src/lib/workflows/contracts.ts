@@ -112,6 +112,7 @@ export interface WorkflowComponentProps<T = any> {
   onTransition?: (targetState: WorkflowState) => Promise<void>;
   currentState: WorkflowState;
   isReadOnly?: boolean;
+  errors?: string[];
 }
 
 /**

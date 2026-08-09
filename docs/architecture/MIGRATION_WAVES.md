@@ -34,9 +34,9 @@ El objetivo de la migración por olas es desacoplar progresivamente los módulos
 │                 │ wf-050-ensayos-civiles-suelos     │ Fase 4 │ EN EJECUCIÓN │
 │                 │ wf-051-control-aislamiento-loto   │ Fase 4 │ EN EJECUCIÓN │
 ├─────────────────┼───────────────────────────────────┼────────┼──────────────┤
-│ Ola 2 (Futura)  │ wf-052-instrumentacion-lazos-pid  │ Fase 3 │ PLANIFICADO  │
-│                 │ wf-053-registro-personal-qr       │ Fase 4 │ PLANIFICADO  │
-│                 │ wf-054-flota-equipos-pesados      │ Fase 4 │ PLANIFICADO  │
+│ Ola 2 (F-D2+)   │ wf-052-instrumentacion-lazos-pid  │ Fase 3 │ COMPLETADO   │
+│                 │ wf-053-registro-personal-qr       │ Fase 4 │ COMPLETADO   │
+│                 │ wf-054-flota-equipos-pesados      │ Fase 4 │ COMPLETADO   │
 └─────────────────┴───────────────────────────────────┴────────┴──────────────┘
 ```
 

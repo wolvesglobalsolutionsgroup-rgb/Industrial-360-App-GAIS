@@ -5,6 +5,9 @@ import { wf044Definition } from './wf-044-reporte-tabular/definition';
 import { wf048Definition } from './wf-048-gestion-ambiental-siho/definition';
 import { wf050Definition } from './wf-050-ensayos-civiles-suelos/definition';
 import { wf051Definition } from './wf-051-control-aislamiento-loto/definition';
+import { wf052Definition } from './wf-052-instrumentacion-lazos-pid/definition';
+import { wf053Definition } from './wf-053-registro-personal-qr/definition';
+import { wf054Definition } from './wf-054-flota-equipos-pesados/definition';
 import { wf073Definition } from './wf-073-medicion-avance-ingenieria/definition';
 import { wf075Definition } from './wf-075-libro-de-obra/definition';
 import { wf065Definition } from './wf-065-gis-alignment-sheets-kp/definition';
@@ -29,6 +32,9 @@ export function ensureWorkflowsRegistered(): void {
     registerWorkflow(wf048Definition);
     registerWorkflow(wf050Definition);
     registerWorkflow(wf051Definition);
+    registerWorkflow(wf052Definition);
+    registerWorkflow(wf053Definition);
+    registerWorkflow(wf054Definition);
     registerWorkflow(wf073Definition);
     registerWorkflow(wf075Definition);
     registerWorkflow(wf065Definition);
@@ -55,6 +61,9 @@ export {
   wf048Definition,
   wf050Definition,
   wf051Definition,
+  wf052Definition,
+  wf053Definition,
+  wf054Definition,
   wf073Definition,
   wf075Definition,
   wf065Definition,
