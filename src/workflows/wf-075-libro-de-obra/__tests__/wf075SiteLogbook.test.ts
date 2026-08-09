@@ -67,6 +67,25 @@ describe('Workflow wf-075: Libro de Obra Digital y Asientos Diarios', () => {
     const incompleteResult = missingEntriesGate!.evaluator(dummyContext, incompleteEntryData);
     expect(incompleteResult.passed).toBe(false);
     expect(incompleteResult.message).toContain('BLOQUEO TÉCNICO');
+
+    // Asiento con clima 'pendiente'
+    const pendingWeatherEntryData = {
+      ...createInitialSiteLogbookData(),
+      isSealed: true,
+      dailyEntries: [
+        {
+          entryNumber: 1,
+          date: '2026-08-09',
+          description: 'Apertura de Libro de Obra',
+          weatherCondition: 'pendiente' as any,
+          manpowerCount: 5,
+          incidentsReported: false,
+        },
+      ],
+    };
+    const pendingResult = missingEntriesGate!.evaluator(dummyContext, pendingWeatherEntryData);
+    expect(pendingResult.passed).toBe(false);
+    expect(pendingResult.message).toContain('BLOQUEO TÉCNICO');
   });
 
   it('5. Permite el paso de los Hard Gates cuando existen asientos diarios válidos y el libro está sellado', () => {

@@ -119,7 +119,7 @@ export const wf075Definition: WorkflowDefinition<SiteLogbookData> = {
               message: `BLOQUEO TÉCNICO: El asiento #${entry.entryNumber} no posee una descripción suficiente (mínimo 5 caracteres).`,
             };
           }
-          if (!entry.weatherCondition || entry.weatherCondition === '' || (entry.weatherCondition as string) === 'pendiente') {
+          if (!entry.weatherCondition || entry.weatherCondition === 'pendiente') {
             return {
               passed: false,
               message: `BLOQUEO TÉCNICO: El asiento #${entry.entryNumber} no tiene la condición climática seleccionada.`,
