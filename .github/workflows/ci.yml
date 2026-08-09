@@ -69,6 +69,9 @@ jobs:
       - name: Audit No Hardcoded Tenant & Secrets
         run: npm run audit:no-hardcoded-tenant
 
+      - name: Audit Fictitious Data & Secrets
+        run: npm run audit:industrial-data
+
       - name: Secret Scan (Gitleaks)
         uses: gitleaks/gitleaks-action@v2
         env:
@@ -130,17 +133,32 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Lint code
+      - name: Lint code (tsc --noEmit)
         run: npm run lint
 
       - name: Typecheck Root (tsc --noEmit)
-        run: npx tsc --noEmit
+        run: npm run typecheck
 
       - name: Typecheck Functions (tsc --noEmit)
         run: cd functions && npm install && npx tsc --noEmit
 
+      - name: Mechanical Gate - Tenant Isolation Audit
+        run: npm run audit:tenant-isolation
+
+      - name: Mechanical Gate - Firestore Guardrails Audit
+        run: npm run audit:firestore-guardrails
+
+      - name: Mechanical Gate - Workflow Conformance Audit
+        run: npm run audit:workflow-conformance
+
+      - name: Mechanical Gate - Industrial Data & Secrets Audit
+        run: npm run audit:industrial-data
+
       - name: Build application
         run: npm run build
+
+      - name: Mechanical Gate - Bundle Budget Audit
+        run: npm run audit:bundle-budget
 
       - name: Run Unit Tests
         run: npm run test:unit

@@ -42,7 +42,7 @@ export interface ProjectItem {
 
 export default function Projects() {
   const { currentOrganization } = useProject();
-  const orgId = currentOrganization?.id || 'default_org';
+  const orgId = currentOrganization?.id || '';
   const projectsPath = `organizations/${orgId}/projects`;
 
   const [projects, setProjects] = useState<ProjectItem[]>([]);

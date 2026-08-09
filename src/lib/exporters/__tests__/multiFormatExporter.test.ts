@@ -25,7 +25,7 @@ describe('Sprint F-E — Multi-Format Deliverables Engine Parity', () => {
         expect(docViewModel.sections.length).toBeGreaterThan(0);
 
         // Execute canonical export flow
-        const exportResults = await exportDocument(docViewModel, ['pdf', 'docx', 'xlsx']);
+        const exportResults = await exportDocument(docViewModel, ['pdf', 'docx', 'xlsx', 'pptx']);
 
         // 1. Verify PDF Blob
         const pdfBlob = exportResults.pdf;
@@ -44,6 +44,24 @@ describe('Sprint F-E — Multi-Format Deliverables Engine Parity', () => {
         expect(xlsxBlob).toBeInstanceOf(Blob);
         expect(xlsxBlob.type).toBe('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         expect(xlsxBlob.size).toBeGreaterThan(500);
+
+        // 4. Verify PPTX Blob
+        const pptxBlob = exportResults.pptx;
+        expect(pptxBlob).toBeInstanceOf(Blob);
+        expect(pptxBlob.type).toBe('application/vnd.openxmlformats-officedocument.presentationml.presentation');
+        expect(pptxBlob.size).toBeGreaterThan(500);
+      });
+
+      it('debe mantener invariantes de firma y estados documentales (DRAFT no firmado, PENDING sin fecha)', async () => {
+        const docViewModel = await factory();
+
+        if (docViewModel.status === 'DRAFT') {
+          // Invariant: DRAFT documents cannot have signedAt on PENDING signers
+          const pendingSigners = docViewModel.signers.filter(s => s.status === 'PENDING');
+          pendingSigners.forEach(s => {
+            expect(s.signedAt).toBeUndefined();
+          });
+        }
       });
 
       it('debe mantener paridad de metadatos e identidad documental entre exportadores', async () => {
@@ -52,21 +70,25 @@ describe('Sprint F-E — Multi-Format Deliverables Engine Parity', () => {
         const pdfExporter = getExporterForFormat('pdf');
         const docxExporter = getExporterForFormat('docx');
         const excelExporter = getExporterForFormat('xlsx');
+        const pptxExporter = getExporterForFormat('pptx');
 
         expect(pdfExporter.format).toBe('pdf');
         expect(docxExporter.format).toBe('docx');
         expect(excelExporter.format).toBe('xlsx');
+        expect(pptxExporter.format).toBe('pptx');
 
         // Parallel export using individual exporters
-        const [pdfBlob, docxBlob, xlsxBlob] = await Promise.all([
+        const [pdfBlob, docxBlob, xlsxBlob, pptxBlob] = await Promise.all([
           pdfExporter.export(docViewModel),
           docxExporter.export(docViewModel),
           excelExporter.export(docViewModel),
+          pptxExporter.export(docViewModel),
         ]);
 
         expect(pdfBlob.type).toBe('application/pdf');
         expect(docxBlob.type).toBe('application/vnd.openxmlformats-officedocument.wordprocessingml.document');
         expect(xlsxBlob.type).toBe('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        expect(pptxBlob.type).toBe('application/vnd.openxmlformats-officedocument.presentationml.presentation');
       });
     });
   });

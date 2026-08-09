@@ -841,7 +841,11 @@ export const getClientPortal = async (req: any, res: any) => {
     }
 
     // C2 - Registrar Audit Log Server-Side (sin incluir rawToken)
-    const orgId = portalData.orgId || 'default_org';
+    const orgId = portalData.orgId;
+    if (!orgId) {
+      res.status(400).json({ error: 'Acceso Denegado: Organización no configurada en el portal.' });
+      return;
+    }
 
     try {
       await dbAdmin.collection(`organizations/${orgId}/client_portal_access_logs`).add({

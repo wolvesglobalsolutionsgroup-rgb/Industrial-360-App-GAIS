@@ -70,15 +70,15 @@ export default function WorkflowRunnerPage({ overrideWorkflowId }: WorkflowRunne
   const userRole = (user as any)?.role || 'supervisor';
 
   const routeContext: WorkflowRouteContext = {
-    orgId: currentProject?.orgId || 'org_prointeca',
-    projectId: currentProject?.id || 'PROJ-PILOT-PROINTECA',
+    orgId: currentOrganization?.id || currentProject?.orgId || '',
+    projectId: currentProject?.id || '',
     workflowId,
     instanceId,
     user: {
       uid: user?.uid || 'usr_dev_01',
       email: user?.email || 'operador@ic360.com',
       role: userRole,
-      orgId: currentProject?.orgId || 'org_prointeca',
+      orgId: currentOrganization?.id || currentProject?.orgId || '',
     },
     contractorBrand: brandKit,
     operatorBrand: {

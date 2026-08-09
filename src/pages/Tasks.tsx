@@ -81,7 +81,7 @@ import { DEMO_AUTH_ENABLED } from '../config';
 
 export default function Tasks() {
   const { currentProject, currentOrganization } = useProject();
-  const orgId = currentOrganization?.id || 'default_org';
+  const orgId = currentOrganization?.id || '';
 
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [loading, setLoading] = useState(true);

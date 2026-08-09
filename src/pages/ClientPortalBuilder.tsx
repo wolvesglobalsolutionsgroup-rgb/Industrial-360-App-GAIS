@@ -63,7 +63,7 @@ export interface ClientPortalConfig {
 
 export default function ClientPortalBuilder() {
   const { projects, currentOrganization, brandKit } = useProject();
-  const orgId = currentOrganization?.id || 'default_org';
+  const orgId = currentOrganization?.id || '';
 
   // Saved Portals State
   const [portals, setPortals] = useState<ClientPortalConfig[]>([]);

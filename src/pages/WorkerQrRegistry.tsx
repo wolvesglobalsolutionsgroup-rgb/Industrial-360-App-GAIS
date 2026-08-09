@@ -502,7 +502,7 @@ export default function WorkerQrRegistry() {
   const handleCreateIncident = (e: React.FormEvent) => {
     e.preventDefault();
     const incidentRecord = createSihoIncidentWorkflow({
-      orgId: orgId || 'org_demo',
+      orgId: orgId || currentOrganization?.id || '',
       projectId: currentProject?.id || 'proj_demo',
       incidentType,
       severity: incidentSeverity,
