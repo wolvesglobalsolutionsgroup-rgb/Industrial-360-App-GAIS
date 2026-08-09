@@ -48,6 +48,41 @@ export interface InstrumentationData {
   summaryNotes?: string;
 }
 
+export function createDefaultInstrumentLoop(params: {
+  tagNo: string;
+  loopTag: string;
+  pidNumber?: string;
+  instrumentType?: InstrumentType;
+  description?: string;
+  location?: string;
+  rangeMin?: number;
+  rangeMax?: number;
+  unit?: string;
+  toleranceFsPercent?: number;
+  signalType?: InstrumentLoop['signalType'];
+  calibratedBy?: string;
+}): InstrumentLoop {
+  return {
+    id: `loop_${Date.now()}`,
+    tagNo: params.tagNo.trim().toUpperCase(),
+    loopTag: params.loopTag.trim().toUpperCase(),
+    pidNumber: (params.pidNumber || '').trim().toUpperCase(),
+    instrumentType: params.instrumentType || 'PT',
+    description: (params.description || '').trim(),
+    location: (params.location || '').trim(),
+    rangeMin: params.rangeMin ?? 0,
+    rangeMax: params.rangeMax ?? 100,
+    unit: (params.unit || 'PSI').trim(),
+    toleranceFsPercent: params.toleranceFsPercent ?? 0.5,
+    signalType: params.signalType || '4-20mA HART',
+    calibrationDate: '',
+    nextCalibrationDate: '',
+    calibratedBy: (params.calibratedBy || '').trim(),
+    status: 'Pendiente Calibración',
+    calibrationPoints: [],
+  };
+}
+
 export const InstrumentationCapture: React.FC<WorkflowComponentProps<InstrumentationData>> = ({
   data,
   onChange,
@@ -89,25 +124,20 @@ export const InstrumentationCapture: React.FC<WorkflowComponentProps<Instrumenta
     e.preventDefault();
     if (!newTagNo.trim() || !newLoopTag.trim()) return;
 
-    const newLoop: InstrumentLoop = {
-      id: `loop_${Date.now()}`,
-      tagNo: newTagNo.trim().toUpperCase(),
-      loopTag: newLoopTag.trim().toUpperCase(),
-      pidNumber: newPidNumber.trim().toUpperCase(),
+    const newLoop = createDefaultInstrumentLoop({
+      tagNo: newTagNo,
+      loopTag: newLoopTag,
+      pidNumber: newPidNumber,
       instrumentType: newInstrumentType,
-      description: newDescription.trim(),
-      location: newLocation.trim(),
+      description: newDescription,
+      location: newLocation,
       rangeMin: Number(newRangeMin),
       rangeMax: Number(newRangeMax),
-      unit: newUnit.trim() || 'PSI',
+      unit: newUnit,
       toleranceFsPercent: Number(newToleranceFs),
       signalType: newSignalType,
-      calibrationDate: '',
-      nextCalibrationDate: '',
-      calibratedBy: newCalibratedBy.trim(),
-      status: 'Pendiente Calibración',
-      calibrationPoints: [],
-    };
+      calibratedBy: newCalibratedBy,
+    });
 
     const next = [...loops, newLoop];
     updateLoops(next);

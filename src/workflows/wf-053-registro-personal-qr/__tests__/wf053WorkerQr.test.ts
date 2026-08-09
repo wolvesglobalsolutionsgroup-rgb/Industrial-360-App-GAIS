@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { wf053Definition, WorkerQrWorkflowSchema } from '../definition';
+import { createDefaultFieldWorker } from '../components/WorkerQrCapture';
 import { exportDocument } from '../../../lib/exporters/exportDocument';
 
 describe('wf-053-registro-personal-qr Workflow Suite', () => {
@@ -35,19 +36,36 @@ describe('wf-053-registro-personal-qr Workflow Suite', () => {
     expect(wf053Definition.phase).toBe(4);
   });
 
-  it('3. Debe validar el esquema Zod con datos válidos', () => {
+  it('3. Debe verificar los defaults iniciales al crear un nuevo trabajador', () => {
+    const newWorker = createDefaultFieldWorker({
+      nationalId: 'V-20.111.222',
+      fullName: 'Juan Pérez',
+    });
+
+    expect(newWorker.fitStatus).toBe('Vencido');
+    expect(newWorker.credentialId).toBe('');
+    expect(newWorker.role).toBe('');
+    expect(newWorker.contractor).toBe('');
+    expect(newWorker.bloodType).toBe('');
+    expect(newWorker.allergies).toBe('');
+    expect(newWorker.medicalCheckValidUntil).toBe('');
+    expect(newWorker.sihoInductionValidUntil).toBe('');
+    expect(newWorker.totalHhtAccumulated).toBe(0);
+  });
+
+  it('4. Debe validar el esquema Zod con datos válidos', () => {
     const validData = { workers: [validWorkerData] };
     const result = WorkerQrWorkflowSchema.safeParse(validData);
     expect(result.success).toBe(true);
   });
 
-  it('4. Debe rechazar datos con arreglo de trabajadores vacío en la factory de entregable', () => {
+  it('5. Debe rechazar datos con arreglo de trabajadores vacío en la factory de entregable', () => {
     expect(() =>
       wf053Definition.deliverable!.factory(validContext, { workers: [] })
     ).toThrow('Error de Dominio');
   });
 
-  it('5. Debe aceptar datos válidos y generar un DocumentViewModel DRAFT', () => {
+  it('6. Debe aceptar datos válidos y generar un DocumentViewModel DRAFT', () => {
     const doc = wf053Definition.deliverable!.factory(validContext, {
       workers: [validWorkerData],
     });
@@ -57,13 +75,24 @@ describe('wf-053-registro-personal-qr Workflow Suite', () => {
     expect((doc.signers[0] as any).signedAt).toBeUndefined();
   });
 
-  it('6. El Hard Gate de aptitud SIHO debe pasar con trabajador Apto', () => {
+  it('7. El Hard Gate de aptitud SIHO debe bloquear arreglo vacío o trabajadores vencidos/incompletos', () => {
+    const gate = wf053Definition.hardGates.find((g) => g.id === 'gate-siho-fit-status');
+    const resEmpty = gate!.evaluator(validContext as any, { workers: [] });
+    expect(resEmpty.passed).toBe(false);
+
+    const newWorker = createDefaultFieldWorker({ nationalId: 'V-22.333.444', fullName: 'Pedro Rivas' });
+    const resDefault = gate!.evaluator(validContext as any, { workers: [newWorker] });
+    expect(resDefault.passed).toBe(false);
+    expect(resDefault.message).toContain('BLOQUEO SIHO-A');
+  });
+
+  it('8. El Hard Gate de aptitud SIHO debe pasar con trabajador Apto', () => {
     const gate = wf053Definition.hardGates.find((g) => g.id === 'gate-siho-fit-status');
     const res = gate!.evaluator(validContext as any, { workers: [validWorkerData] });
     expect(res.passed).toBe(true);
   });
 
-  it('7. El Hard Gate de aptitud SIHO debe fallar si hay un trabajador No Apto', () => {
+  it('9. El Hard Gate de aptitud SIHO debe fallar si hay un trabajador No Apto', () => {
     const unfitWorker = { ...validWorkerData, fitStatus: 'No Apto' as const };
     const gate = wf053Definition.hardGates.find((g) => g.id === 'gate-siho-fit-status');
     const res = gate!.evaluator(validContext as any, { workers: [unfitWorker] });
@@ -71,15 +100,19 @@ describe('wf-053-registro-personal-qr Workflow Suite', () => {
     expect(res.message).toContain('BLOQUEO SIHO-A');
   });
 
-  it('8. El Hard Gate de inducción SIHO debe fallar si la inducción está vencida', () => {
-    const expiredWorker = { ...validWorkerData, sihoInductionValidUntil: '2020-01-01' };
+  it('10. El Hard Gate de inducción SIHO debe fallar si la inducción o examen está vencido o vacío', () => {
     const gate = wf053Definition.hardGates.find((g) => g.id === 'gate-siho-induction-validity');
-    const res = gate!.evaluator(validContext as any, { workers: [expiredWorker] });
-    expect(res.passed).toBe(false);
-    expect(res.message).toContain('BLOQUEO DE SEGURIDAD');
+    
+    const resEmpty = gate!.evaluator(validContext as any, { workers: [] });
+    expect(resEmpty.passed).toBe(false);
+
+    const expiredWorker = { ...validWorkerData, sihoInductionValidUntil: '2020-01-01' };
+    const resExpired = gate!.evaluator(validContext as any, { workers: [expiredWorker] });
+    expect(resExpired.passed).toBe(false);
+    expect(resExpired.message).toContain('BLOQUEO DE SEGURIDAD');
   });
 
-  it('9. Debe exportar a PDF correctamente sin errores', async () => {
+  it('11. Debe exportar a PDF correctamente sin errores', async () => {
     const doc = wf053Definition.deliverable!.factory(validContext, {
       workers: [validWorkerData],
     });
@@ -89,7 +122,7 @@ describe('wf-053-registro-personal-qr Workflow Suite', () => {
     expect(result.pdf?.size).toBeGreaterThan(0);
   });
 
-  it('10. Debe exportar a DOCX correctamente sin errores', async () => {
+  it('12. Debe exportar a DOCX correctamente sin errores', async () => {
     const doc = wf053Definition.deliverable!.factory(validContext, {
       workers: [validWorkerData],
     });
@@ -99,7 +132,7 @@ describe('wf-053-registro-personal-qr Workflow Suite', () => {
     expect(result.docx?.size).toBeGreaterThan(0);
   });
 
-  it('11. Debe exportar a XLSX correctamente sin errores', async () => {
+  it('13. Debe exportar a XLSX correctamente sin errores', async () => {
     const doc = wf053Definition.deliverable!.factory(validContext, {
       workers: [validWorkerData],
     });
@@ -109,7 +142,7 @@ describe('wf-053-registro-personal-qr Workflow Suite', () => {
     expect(result.xlsx?.size).toBeGreaterThan(0);
   });
 
-  it('12. Debe exportar a PPTX correctamente sin errores', async () => {
+  it('14. Debe exportar a PPTX correctamente sin errores', async () => {
     const doc = wf053Definition.deliverable!.factory(validContext, {
       workers: [validWorkerData],
     });

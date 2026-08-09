@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { wf052Definition, InstrumentationWorkflowSchema } from '../definition';
+import { createDefaultInstrumentLoop } from '../components/InstrumentationCapture';
 import { exportDocument } from '../../../lib/exporters/exportDocument';
 
 describe('wf-052-instrumentacion-lazos-pid Workflow Suite', () => {
@@ -44,19 +45,35 @@ describe('wf-052-instrumentacion-lazos-pid Workflow Suite', () => {
     expect(wf052Definition.phase).toBe(3);
   });
 
-  it('3. Debe validar el esquema Zod con datos válidos', () => {
+  it('3. Debe verificar los defaults iniciales al crear un nuevo lazo de instrumentación', () => {
+    const newLoop = createDefaultInstrumentLoop({
+      tagNo: 'PT-202B',
+      loopTag: 'LOOP-202',
+    });
+
+    expect(newLoop.status).toBe('Pendiente Calibración');
+    expect(newLoop.calibrationPoints.length).toBe(0);
+    expect(newLoop.calibrationDate).toBe('');
+    expect(newLoop.nextCalibrationDate).toBe('');
+    expect(newLoop.calibratedBy).toBe('');
+    expect(newLoop.description).toBe('');
+    expect(newLoop.location).toBe('');
+    expect(newLoop.pidNumber).toBe('');
+  });
+
+  it('4. Debe validar el esquema Zod con datos válidos', () => {
     const validData = { loops: [validLoopData] };
     const result = InstrumentationWorkflowSchema.safeParse(validData);
     expect(result.success).toBe(true);
   });
 
-  it('4. Debe rechazar datos con arreglo de lazos vacío en la factory de entregable', () => {
+  it('5. Debe rechazar datos con arreglo de lazos vacío en la factory de entregable', () => {
     expect(() =>
       wf052Definition.deliverable!.factory(validContext, { loops: [] })
     ).toThrow('Error de Dominio');
   });
 
-  it('5. Debe rechazar lazos con tipo de instrumento no válido en Zod', () => {
+  it('6. Debe rechazar lazos con tipo de instrumento no válido en Zod', () => {
     const invalidData = {
       loops: [{ ...validLoopData, instrumentType: 'INVALID_TYPE' }],
     };
@@ -64,7 +81,7 @@ describe('wf-052-instrumentacion-lazos-pid Workflow Suite', () => {
     expect(result.success).toBe(false);
   });
 
-  it('6. Debe aceptar datos válidos y generar un DocumentViewModel DRAFT', () => {
+  it('7. Debe aceptar datos válidos y generar un DocumentViewModel DRAFT', () => {
     const doc = wf052Definition.deliverable!.factory(validContext, {
       loops: [validLoopData],
     });
@@ -74,13 +91,25 @@ describe('wf-052-instrumentacion-lazos-pid Workflow Suite', () => {
     expect((doc.signers[0] as any).signedAt).toBeUndefined();
   });
 
-  it('7. El Hard Gate de tolerancia debe pasar con datos conformes', () => {
+  it('8. Hard Gate de tolerancia debe bloquear arreglos vacíos o lazos pendientes', () => {
+    const gate = wf052Definition.hardGates.find((g) => g.id === 'gate-instrument-tolerance');
+    const resEmpty = gate!.evaluator(validContext as any, { loops: [] });
+    expect(resEmpty.passed).toBe(false);
+    expect(resEmpty.message).toContain('BLOQUEO');
+
+    const newLoop = createDefaultInstrumentLoop({ tagNo: 'PT-303C', loopTag: 'LOOP-303' });
+    const resPending = gate!.evaluator(validContext as any, { loops: [newLoop] });
+    expect(resPending.passed).toBe(false);
+    expect(resPending.message).toContain('BLOQUEO DE INSTRUMENTACIÓN');
+  });
+
+  it('9. El Hard Gate de tolerancia debe pasar con datos conformes', () => {
     const gate = wf052Definition.hardGates.find((g) => g.id === 'gate-instrument-tolerance');
     const res = gate!.evaluator(validContext as any, { loops: [validLoopData] });
     expect(res.passed).toBe(true);
   });
 
-  it('8. El Hard Gate de tolerancia debe fallar si hay un punto fuera de tolerancia', () => {
+  it('10. El Hard Gate de tolerancia debe fallar si hay un punto fuera de tolerancia', () => {
     const failedLoop = {
       ...validLoopData,
       calibrationPoints: [
@@ -93,20 +122,24 @@ describe('wf-052-instrumentacion-lazos-pid Workflow Suite', () => {
     expect(res.message).toContain('BLOQUEO DE INSTRUMENTACIÓN');
   });
 
-  it('9. El Hard Gate de puntos mínimos debe fallar con menos de 3 puntos', () => {
+  it('11. El Hard Gate de puntos mínimos debe fallar con menos de 3 puntos o arreglo vacío', () => {
+    const gate = wf052Definition.hardGates.find((g) => g.id === 'gate-calibration-points');
+    
+    const resEmpty = gate!.evaluator(validContext as any, { loops: [] });
+    expect(resEmpty.passed).toBe(false);
+
     const incompleteLoop = {
       ...validLoopData,
       calibrationPoints: [
         { inputPercent: 0, expectedVal: 0, measuredVal: 0, errorPercentFs: 0, passed: true },
       ],
     };
-    const gate = wf052Definition.hardGates.find((g) => g.id === 'gate-calibration-points');
-    const res = gate!.evaluator(validContext as any, { loops: [incompleteLoop] });
-    expect(res.passed).toBe(false);
-    expect(res.message).toContain('BLOQUEO NORMATIVO');
+    const resIncomplete = gate!.evaluator(validContext as any, { loops: [incompleteLoop] });
+    expect(resIncomplete.passed).toBe(false);
+    expect(resIncomplete.message).toContain('BLOQUEO NORMATIVO');
   });
 
-  it('10. Debe exportar a PDF correctamente sin errores', async () => {
+  it('12. Debe exportar a PDF correctamente sin errores', async () => {
     const doc = wf052Definition.deliverable!.factory(validContext, {
       loops: [validLoopData],
     });
@@ -116,7 +149,7 @@ describe('wf-052-instrumentacion-lazos-pid Workflow Suite', () => {
     expect(result.pdf?.size).toBeGreaterThan(0);
   });
 
-  it('11. Debe exportar a DOCX correctamente sin errores', async () => {
+  it('13. Debe exportar a DOCX correctamente sin errores', async () => {
     const doc = wf052Definition.deliverable!.factory(validContext, {
       loops: [validLoopData],
     });
@@ -126,7 +159,7 @@ describe('wf-052-instrumentacion-lazos-pid Workflow Suite', () => {
     expect(result.docx?.size).toBeGreaterThan(0);
   });
 
-  it('12. Debe exportar a XLSX correctamente sin errores', async () => {
+  it('14. Debe exportar a XLSX correctamente sin errores', async () => {
     const doc = wf052Definition.deliverable!.factory(validContext, {
       loops: [validLoopData],
     });
@@ -136,7 +169,7 @@ describe('wf-052-instrumentacion-lazos-pid Workflow Suite', () => {
     expect(result.xlsx?.size).toBeGreaterThan(0);
   });
 
-  it('13. Debe exportar a PPTX correctamente sin errores', async () => {
+  it('15. Debe exportar a PPTX correctamente sin errores', async () => {
     const doc = wf052Definition.deliverable!.factory(validContext, {
       loops: [validLoopData],
     });

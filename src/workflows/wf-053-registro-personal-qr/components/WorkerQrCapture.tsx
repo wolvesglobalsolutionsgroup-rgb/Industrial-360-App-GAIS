@@ -44,6 +44,32 @@ export interface WorkerQrData {
   summaryNotes?: string;
 }
 
+export function createDefaultFieldWorker(params: {
+  nationalId: string;
+  fullName: string;
+  role?: string;
+  contractor?: string;
+  bloodType?: string;
+  allergies?: string;
+  medicalCheckValidUntil?: string;
+  sihoInductionValidUntil?: string;
+}): FieldWorker {
+  return {
+    id: `worker_${Date.now()}`,
+    credentialId: '',
+    nationalId: params.nationalId.trim(),
+    fullName: params.fullName.trim(),
+    role: (params.role || '').trim(),
+    contractor: (params.contractor || '').trim(),
+    bloodType: (params.bloodType || '').trim(),
+    allergies: (params.allergies || '').trim(),
+    medicalCheckValidUntil: (params.medicalCheckValidUntil || '').trim(),
+    sihoInductionValidUntil: (params.sihoInductionValidUntil || '').trim(),
+    fitStatus: 'Vencido',
+    totalHhtAccumulated: 0,
+  };
+}
+
 export const WorkerQrCapture: React.FC<WorkflowComponentProps<WorkerQrData>> = ({
   data,
   onChange,
@@ -84,20 +110,16 @@ export const WorkerQrCapture: React.FC<WorkflowComponentProps<WorkerQrData>> = (
     e.preventDefault();
     if (!newNationalId.trim() || !newFullName.trim()) return;
 
-    const newWorker: FieldWorker = {
-      id: `worker_${Date.now()}`,
-      credentialId: '',
-      nationalId: newNationalId.trim(),
-      fullName: newFullName.trim(),
-      role: newRole.trim(),
-      contractor: newContractor.trim(),
-      bloodType: newBloodType.trim(),
-      allergies: newAllergies.trim(),
+    const newWorker = createDefaultFieldWorker({
+      nationalId: newNationalId,
+      fullName: newFullName,
+      role: newRole,
+      contractor: newContractor,
+      bloodType: newBloodType,
+      allergies: newAllergies,
       medicalCheckValidUntil: newMedicalDate,
       sihoInductionValidUntil: newSihoDate,
-      fitStatus: 'Vencido',
-      totalHhtAccumulated: 0,
-    };
+    });
 
     const next = [...workers, newWorker];
     updateWorkers(next);

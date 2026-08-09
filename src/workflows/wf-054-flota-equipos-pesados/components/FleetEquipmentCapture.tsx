@@ -41,6 +41,38 @@ export interface FleetData {
   summaryNotes?: string;
 }
 
+export function createDefaultFleetEquipmentItem(params: {
+  tag: string;
+  name: string;
+  type?: string;
+  brandModel?: string;
+  currentHorometer?: number;
+  maintenanceIntervalHours?: number;
+}): FleetEquipmentItem {
+  const horometer = Number(params.currentHorometer) || 0;
+  const interval = Number(params.maintenanceIntervalHours) || 0;
+  return {
+    id: `fleet_${Date.now()}`,
+    tag: params.tag.trim().toUpperCase(),
+    name: params.name.trim(),
+    type: params.type || 'Grúa Telescópica',
+    brandModel: (params.brandModel || '').trim(),
+    currentHorometer: horometer,
+    lastServiceHorometer: horometer,
+    nextServiceHorometer: interval > 0 ? horometer + interval : 0,
+    maintenanceIntervalHours: interval,
+    status: 'OUT_OF_SERVICE',
+    preOpChecklist: {
+      checkEngineOil: false,
+      checkHydraulicLeaks: false,
+      checkBrakesAlerts: false,
+      checkFireExtinguisher: false,
+      checkEmergencyStop: false,
+      passedAll: false,
+    },
+  };
+}
+
 export const FleetEquipmentCapture: React.FC<WorkflowComponentProps<FleetData>> = ({
   data,
   onChange,
@@ -76,29 +108,14 @@ export const FleetEquipmentCapture: React.FC<WorkflowComponentProps<FleetData>> 
     e.preventDefault();
     if (!newTag.trim() || !newName.trim()) return;
 
-    const horometer = Number(newCurrentHorometer) || 0;
-    const interval = Number(newInterval) || 0;
-
-    const newItem: FleetEquipmentItem = {
-      id: `fleet_${Date.now()}`,
-      tag: newTag.trim().toUpperCase(),
-      name: newName.trim(),
+    const newItem = createDefaultFleetEquipmentItem({
+      tag: newTag,
+      name: newName,
       type: newType,
-      brandModel: newBrandModel.trim(),
-      currentHorometer: horometer,
-      lastServiceHorometer: horometer,
-      nextServiceHorometer: interval > 0 ? horometer + interval : 0,
-      maintenanceIntervalHours: interval,
-      status: 'OUT_OF_SERVICE',
-      preOpChecklist: {
-        checkEngineOil: false,
-        checkHydraulicLeaks: false,
-        checkBrakesAlerts: false,
-        checkFireExtinguisher: false,
-        checkEmergencyStop: false,
-        passedAll: false,
-      },
-    };
+      brandModel: newBrandModel,
+      currentHorometer: Number(newCurrentHorometer),
+      maintenanceIntervalHours: Number(newInterval),
+    });
 
     const next = [...equipment, newItem];
     updateEquipment(next);
