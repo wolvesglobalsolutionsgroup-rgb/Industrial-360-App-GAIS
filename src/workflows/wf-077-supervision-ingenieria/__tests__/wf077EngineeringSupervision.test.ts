@@ -91,7 +91,7 @@ describe('Workflow wf-077: Supervisión de Ingeniería y Certificación ORC', ()
     expect(result.passed).toBe(true);
   });
 
-  it('7. Genera un DocumentViewModel inicial con estado DRAFT', () => {
+  it('7. Genera un DocumentViewModel inicial con estado DRAFT y fecha neutra vacía', () => {
     const validData = {
       packageCode: 'PKG-ING-DET-010',
       discipline: 'mecanica' as const,
@@ -106,6 +106,7 @@ describe('Workflow wf-077: Supervisión de Ingeniería y Certificación ORC', ()
 
     expect(docVM.status).toBe('DRAFT');
     expect(docVM.code).toBe('PKG-ING-DET-010');
+    expect(docVM.date).toBe('');
   });
 
   it('8. Los firmantes iniciales están en estado PENDING y sin fechas fijas de firma', () => {

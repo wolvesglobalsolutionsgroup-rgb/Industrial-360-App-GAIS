@@ -79,7 +79,7 @@ export function createDocumentViewModel(params: {
     documentId: params.documentId,
     title: params.title,
     code: params.code,
-    date: params.date || new Date().toLocaleDateString('es-VE'),
+    date: params.date ?? '',
     status: params.status || 'DRAFT',
     isDraft,
     contractorBrand: params.contractorBrand,

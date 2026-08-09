@@ -27,6 +27,7 @@ export const EngineeringSupervisionSchema = z.object({
 export function createDefaultEngineeringSupervisionData(): EngineeringSupervisionData {
   return {
     packageCode: '',
+    // 'procesos' actúa como fallback neutro requerido por el enum de TypeScript, no como disciplina confirmada
     discipline: 'procesos',
     revisionNumber: '',
     orcCertificateIssued: false,
@@ -99,7 +100,7 @@ export const wf077Definition: WorkflowDefinition<EngineeringSupervisionData> = {
         documentId: `AVAL-ING-${data.packageCode || 'PENDIENTE'}`,
         title: 'AVAL TÉCNICO DE SUPERVISIÓN DE INGENIERÍA DE DETALLE Y CONFORMIDAD ORC',
         code: data.packageCode || 'PENDIENTE',
-        date: new Date().toISOString().split('T')[0],
+        date: '',
         status: 'DRAFT',
         contractorBrand: context.contractorBrand,
         operatorBrand: context.operatorBrand,
