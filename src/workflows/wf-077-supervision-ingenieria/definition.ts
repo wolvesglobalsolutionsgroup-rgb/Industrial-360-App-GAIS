@@ -24,6 +24,18 @@ export const EngineeringSupervisionSchema = z.object({
   supervisorNotes: z.string().min(5, 'Las observaciones de supervisión deben tener al menos 5 caracteres'),
 });
 
+export function createDefaultEngineeringSupervisionData(): EngineeringSupervisionData {
+  return {
+    packageCode: '',
+    discipline: 'procesos',
+    revisionNumber: '',
+    orcCertificateIssued: false,
+    orcCertificateCode: '',
+    calculationsApproved: false,
+    supervisorNotes: '',
+  };
+}
+
 export const wf077Definition: WorkflowDefinition<EngineeringSupervisionData> = {
   id: 'wf-077-supervision-ingenieria',
   title: 'Supervisión de Ingeniería de Detalle y Certificación ORC (GPG Fase 2)',
@@ -57,38 +69,38 @@ export const wf077Definition: WorkflowDefinition<EngineeringSupervisionData> = {
         {
           id: 'sig-077-1',
           role: 'INSPECTOR' as const,
-          name: context.user.email,
+          name: '',
           title: 'Supervisor Principal de Ingeniería',
-          organization: context.contractorBrand.companyName || 'PROINTECA C.A.',
-          status: 'SIGNED' as const,
-          signedAt: new Date().toISOString(),
+          organization: context.contractorBrand.companyName || 'CONTRATISTA',
+          status: 'PENDING' as const,
+          signedAt: undefined,
         },
         {
           id: 'sig-077-2',
           role: 'CONTRACTOR' as const,
-          name: 'Ing. Especialista de Disciplina',
+          name: '',
           title: 'Líder Técnico de Especialidad',
-          organization: context.contractorBrand.companyName || 'PROINTECA C.A.',
-          status: 'SIGNED' as const,
-          signedAt: new Date().toISOString(),
+          organization: context.contractorBrand.companyName || 'CONTRATISTA',
+          status: 'PENDING' as const,
+          signedAt: undefined,
         },
         {
           id: 'sig-077-3',
           role: 'OPERATOR' as const,
-          name: 'Ing. Jefe de la Oficina de Revisión y Control ORC',
+          name: '',
           title: 'Auditor Técnico de Ingeniería PDVSA',
-          organization: context.operatorBrand.companyName || 'PDVSA PETRÓLEO S.A.',
-          status: 'SIGNED' as const,
-          signedAt: new Date().toISOString(),
+          organization: context.operatorBrand.companyName || 'OPERADOR',
+          status: 'PENDING' as const,
+          signedAt: undefined,
         },
       ];
 
       return createDocumentViewModel({
-        documentId: `AVAL-ING-${data.packageCode}`,
+        documentId: `AVAL-ING-${data.packageCode || 'PENDIENTE'}`,
         title: 'AVAL TÉCNICO DE SUPERVISIÓN DE INGENIERÍA DE DETALLE Y CONFORMIDAD ORC',
-        code: data.packageCode,
+        code: data.packageCode || 'PENDIENTE',
         date: new Date().toISOString().split('T')[0],
-        status: 'APPROVED',
+        status: 'DRAFT',
         contractorBrand: context.contractorBrand,
         operatorBrand: context.operatorBrand,
         signers,
@@ -98,9 +110,9 @@ export const wf077Definition: WorkflowDefinition<EngineeringSupervisionData> = {
             id: 'sec-sup-1',
             title: '1. DATOS DEL PAQUETE DE INGENIERÍA Y EVALUACIÓN ORC',
             content: [
-              `Código de Paquete: ${data.packageCode}`,
-              `Disciplina: ${data.discipline.toUpperCase()}`,
-              `Número de Revisión: ${data.revisionNumber}`,
+              `Código de Paquete: ${data.packageCode || 'N/A'}`,
+              `Disciplina: ${(data.discipline || 'PROCESOS').toUpperCase()}`,
+              `Número de Revisión: ${data.revisionNumber || 'N/A'}`,
               `Certificado de Calidad ORC: ${data.orcCertificateIssued ? 'EMITIDO Y CONFORME' : 'NO EMITIDO'}`,
               `Código Certificado ORC: ${data.orcCertificateCode || 'N/A'}`,
               `Memorias de Cálculo Verificadas: ${data.calculationsApproved ? 'SÍ' : 'NO'}`,
@@ -109,7 +121,7 @@ export const wf077Definition: WorkflowDefinition<EngineeringSupervisionData> = {
           {
             id: 'sec-sup-2',
             title: '2. DICTAMEN DE CONSTRUCTIBILIDAD Y SUPERVISIÓN TÉCNICA',
-            content: [data.supervisorNotes],
+            content: [data.supervisorNotes || 'Sin observaciones registradas.'],
           },
         ],
       });

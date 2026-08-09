@@ -36,7 +36,7 @@ export const EngineeringSupervisionCapture: React.FC<WorkflowComponentProps<Engi
               Disciplina de Ingeniería
             </label>
             <select
-              value={data.discipline || 'mecanica'}
+              value={data.discipline || 'procesos'}
               onChange={(e) => onChange({ discipline: e.target.value as any })}
               disabled={isReadOnly}
               className="w-full px-3 py-2 border border-border rounded-md bg-surface text-ink capitalize"
@@ -56,7 +56,7 @@ export const EngineeringSupervisionCapture: React.FC<WorkflowComponentProps<Engi
             </label>
             <input
               type="text"
-              value={data.revisionNumber || 'REV-0'}
+              value={data.revisionNumber || ''}
               onChange={(e) => onChange({ revisionNumber: e.target.value })}
               disabled={isReadOnly}
               className="w-full px-3 py-2 border border-border rounded-md bg-surface text-ink font-mono font-bold"
