@@ -1,6 +1,7 @@
 import PptxGenJS from 'pptxgenjs';
 import { DocumentViewModel } from './documentViewModel';
 import { DocumentExporter } from './exporters/types';
+import { calculateProportionalBox } from './imageSizeUtils';
 
 /**
  * Concrete instance of DocumentExporter contract for PPTX format.
@@ -64,12 +65,13 @@ export async function buildPptxPresentation(vm: DocumentViewModel): Promise<Pptx
   // Contractor Logo (if present)
   if (vm.contractorBrand?.logoUrl) {
     try {
+      const box = calculateProportionalBox(vm.contractorBrand.logoUrl, { x: 0.5, y: 0.1, maxW: 1.0, maxH: 0.5 }, 'left');
       coverSlide.addImage({
         data: vm.contractorBrand.logoUrl,
-        x: 0.5,
-        y: 0.1,
-        w: 1.0,
-        h: 0.5,
+        x: box.x,
+        y: box.y,
+        w: box.w,
+        h: box.h,
       });
     } catch {
       // Ignore invalid image data gracefully
@@ -79,12 +81,13 @@ export async function buildPptxPresentation(vm: DocumentViewModel): Promise<Pptx
   // Operator Logo (if present)
   if (vm.operatorBrand?.logoUrl) {
     try {
+      const box = calculateProportionalBox(vm.operatorBrand.logoUrl, { x: 8.5, y: 0.1, maxW: 1.0, maxH: 0.5 }, 'right');
       coverSlide.addImage({
         data: vm.operatorBrand.logoUrl,
-        x: 8.5,
-        y: 0.1,
-        w: 1.0,
-        h: 0.5,
+        x: box.x,
+        y: box.y,
+        w: box.w,
+        h: box.h,
       });
     } catch {
       // Ignore invalid image data gracefully
@@ -297,12 +300,13 @@ export async function buildPptxPresentation(vm: DocumentViewModel): Promise<Pptx
           color: 'FFFFFF',
         });
         try {
+          const box = calculateProportionalBox(att.url, { x: 1.0, y: 0.8, maxW: 8.0, maxH: 4.5 }, 'center');
           slide.addImage({
             data: att.url,
-            x: 1.0,
-            y: 0.8,
-            w: 8.0,
-            h: 4.5,
+            x: box.x,
+            y: box.y,
+            w: box.w,
+            h: box.h,
           });
         } catch {
           // Ignore invalid image buffer/url gracefully

@@ -194,10 +194,36 @@ describe('S19 — Exportadores Multiformato (DOCX, XLSX, PPTX y PDF Inmutable)',
       expect(dims.type).toBe('jpg');
     });
 
-    it('4. Imagen con transparencia (PNG RGBA)', () => {
+    it('4. Imagen con transparencia y tipos de color PNG', () => {
       const dims = calculateImageDimensions(pngAlphaBuffer);
       expect(dims.type).toBe('png');
       expect(dims.hasAlpha).toBe(true);
+
+      // PNG Header template (26 bytes)
+      const createHeader = (colorType: number) => {
+        const buf = Buffer.alloc(26);
+        // PNG Signature
+        buf.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a], 0);
+        // Width = 100 at byte 16
+        buf.writeUInt32BE(100, 16);
+        // Height = 50 at byte 20
+        buf.writeUInt32BE(50, 20);
+        // Color type at byte 25
+        buf[25] = colorType;
+        return buf;
+      };
+
+      // PNG RGB (colorType 2) -> hasAlpha false
+      const pngRgb = calculateImageDimensions(createHeader(2));
+      expect(pngRgb.hasAlpha).toBe(false);
+
+      // PNG RGBA (colorType 6) -> hasAlpha true
+      const pngRgba = calculateImageDimensions(createHeader(6));
+      expect(pngRgba.hasAlpha).toBe(true);
+
+      // PNG Grayscale + Alpha (colorType 4) -> hasAlpha true
+      const pngGrayAlpha = calculateImageDimensions(createHeader(4));
+      expect(pngGrayAlpha.hasAlpha).toBe(true);
     });
 
     it('5 & 6. Logo contractorBrand y Logo operatorBrand incluidos en la presentación PPTX', async () => {

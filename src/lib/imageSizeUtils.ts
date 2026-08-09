@@ -39,7 +39,7 @@ export function calculateImageDimensions(buffer: Uint8Array | Buffer): ImageDime
     
     // Color type at byte 25: 4 (gray+alpha), 6 (RGBA) indicate alpha channel
     const colorType = buffer.length >= 26 ? buffer[25] : 0;
-    const hasAlpha = colorType === 4 || colorType === 6 || colorType === 2; // RGB / RGBA
+    const hasAlpha = colorType === 4 || colorType === 6;
 
     return { width, height, type: 'png', hasAlpha };
   }
@@ -128,4 +128,74 @@ export function calculateImageDimensions(buffer: Uint8Array | Buffer): ImageDime
   }
 
   throw new Error('Unsupported or invalid image file format');
+}
+
+export interface BoundingBox {
+  x: number;
+  y: number;
+  maxW: number;
+  maxH: number;
+}
+
+export interface PlacedImageDimensions {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/**
+ * Parses image source (data URL or buffer), calculates real dimensions via calculateImageDimensions,
+ * and scales image proportionally inside bounding box.
+ * Avoids division by zero and rejects invalid buffers gracefully without throwing.
+ */
+export function calculateProportionalBox(
+  imageSource: string | Uint8Array | Buffer | undefined | null,
+  box: BoundingBox,
+  alignHorizontal: 'left' | 'center' | 'right' = 'center'
+): PlacedImageDimensions {
+  const fallback = { x: box.x, y: box.y, w: box.maxW, h: box.maxH };
+  if (!imageSource) return fallback;
+
+  try {
+    let buffer: Uint8Array | Buffer | null = null;
+    if (typeof imageSource === 'string') {
+      if (imageSource.startsWith('data:image/')) {
+        const commaIdx = imageSource.indexOf(',');
+        if (commaIdx !== -1) {
+          const base64Str = imageSource.substring(commaIdx + 1);
+          buffer = typeof Buffer !== 'undefined' ? Buffer.from(base64Str, 'base64') : Uint8Array.from(atob(base64Str), c => c.charCodeAt(0));
+        }
+      }
+    } else {
+      buffer = imageSource;
+    }
+
+    if (!buffer || buffer.length < 8) return fallback;
+
+    const dims = calculateImageDimensions(buffer);
+    if (!dims.width || !dims.height || dims.width <= 0 || dims.height <= 0) {
+      return fallback;
+    }
+
+    const scale = Math.min(box.maxW / dims.width, box.maxH / dims.height);
+    const w = Number((dims.width * scale).toFixed(2));
+    const h = Number((dims.height * scale).toFixed(2));
+
+    if (w <= 0 || h <= 0) return fallback;
+
+    let x = box.x;
+    if (alignHorizontal === 'center') {
+      x = Number((box.x + (box.maxW - w) / 2).toFixed(2));
+    } else if (alignHorizontal === 'right') {
+      x = Number((box.x + (box.maxW - w)).toFixed(2));
+    }
+
+    const y = Number((box.y + (box.maxH - h) / 2).toFixed(2));
+
+    return { x, y, w, h };
+  } catch {
+    // Return safe default bounding box on invalid image or parsing error
+    return fallback;
+  }
 }
