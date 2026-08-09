@@ -119,7 +119,7 @@ export const wf073Definition: WorkflowDefinition<EngineeringProgressData> = {
         {
           id: 'sig-073-1',
           role: 'INSPECTOR' as const,
-          name: context.user.email,
+          name: '',
           title: 'Inspector de Control de Proyectos EVM',
           organization: context.contractorBrand.companyName || 'CONTRATISTA',
           status: 'PENDING' as const,
@@ -128,7 +128,7 @@ export const wf073Definition: WorkflowDefinition<EngineeringProgressData> = {
         {
           id: 'sig-073-2',
           role: 'CONTRACTOR' as const,
-          name: 'Gerente de Ingeniería',
+          name: '',
           title: 'Líder de Contratista de Ingeniería',
           organization: context.contractorBrand.companyName || 'CONTRATISTA',
           status: 'PENDING' as const,
@@ -137,7 +137,7 @@ export const wf073Definition: WorkflowDefinition<EngineeringProgressData> = {
         {
           id: 'sig-073-3',
           role: 'OPERATOR' as const,
-          name: 'Custodio de Proyecto',
+          name: '',
           title: 'Gerente de Proyecto Operador',
           organization: context.operatorBrand.companyName || 'OPERADOR',
           status: 'PENDING' as const,

@@ -3,6 +3,7 @@ import {
   wf075Definition,
   SiteLogbookSchema,
   createInitialSiteLogbookData,
+  createDefaultSiteLogbookEntry,
 } from '../definition';
 
 describe('Workflow wf-075: Libro de Obra Digital y Asientos Diarios', () => {
@@ -26,7 +27,18 @@ describe('Workflow wf-075: Libro de Obra Digital y Asientos Diarios', () => {
     expect(initialData.isSealed).toBe(false);
   });
 
-  it('2. Bloquea mediante Hard Gate si el Libro de Obra no ha sido sellado digitalmente', () => {
+  it('2. createDefaultSiteLogbookEntry genera un asiento con fecha y clima vacíos sin evidencia ficticia', () => {
+    const defaultEntry = createDefaultSiteLogbookEntry(1);
+
+    expect(defaultEntry.entryNumber).toBe(1);
+    expect(defaultEntry.date).toBe('');
+    expect(defaultEntry.description).toBe('');
+    expect(defaultEntry.weatherCondition).toBe('');
+    expect(defaultEntry.manpowerCount).toBe(0);
+    expect(defaultEntry.incidentsReported).toBe(false);
+  });
+
+  it('3. Bloquea mediante Hard Gate si el Libro de Obra no ha sido sellado digitalmente', () => {
     const unsealedGate = wf075Definition.hardGates.find((g) => g.id === 'UNSEALED_BOOK');
     expect(unsealedGate).toBeDefined();
 
@@ -37,18 +49,27 @@ describe('Workflow wf-075: Libro de Obra Digital y Asientos Diarios', () => {
     expect(result.message).toContain('BLOQUEO DE LIBRO DE OBRA');
   });
 
-  it('3. Bloquea mediante Hard Gate la ausencia de asientos diarios', () => {
+  it('4. Bloquea mediante Hard Gate la ausencia de asientos o asientos incompletos (sin fecha, descripción o clima)', () => {
     const missingEntriesGate = wf075Definition.hardGates.find((g) => g.id === 'MISSING_DAILY_ENTRIES');
     expect(missingEntriesGate).toBeDefined();
 
-    const initialData = { ...createInitialSiteLogbookData(), isSealed: true };
-    const result = missingEntriesGate!.evaluator(dummyContext, initialData);
+    // Sin asientos
+    const noEntriesData = { ...createInitialSiteLogbookData(), isSealed: true };
+    expect(missingEntriesGate!.evaluator(dummyContext, noEntriesData).passed).toBe(false);
 
-    expect(result.passed).toBe(false);
-    expect(result.message).toContain('BLOQUEO TÉCNICO');
+    // Asiento nuevo por defecto (sin fecha, sin descripción, sin clima)
+    const incompleteEntryData = {
+      ...createInitialSiteLogbookData(),
+      isSealed: true,
+      dailyEntries: [createDefaultSiteLogbookEntry(1)],
+    };
+
+    const incompleteResult = missingEntriesGate!.evaluator(dummyContext, incompleteEntryData);
+    expect(incompleteResult.passed).toBe(false);
+    expect(incompleteResult.message).toContain('BLOQUEO TÉCNICO');
   });
 
-  it('4. Permite el paso de los Hard Gates cuando existen asientos diarios y el libro está sellado', () => {
+  it('5. Permite el paso de los Hard Gates cuando existen asientos diarios válidos y el libro está sellado', () => {
     const unsealedGate = wf075Definition.hardGates.find((g) => g.id === 'UNSEALED_BOOK');
     const missingEntriesGate = wf075Definition.hardGates.find((g) => g.id === 'MISSING_DAILY_ENTRIES');
 
@@ -72,7 +93,7 @@ describe('Workflow wf-075: Libro de Obra Digital y Asientos Diarios', () => {
     expect(missingEntriesGate!.evaluator(dummyContext, validData).passed).toBe(true);
   });
 
-  it('5. Valida esquema Zod ante campos incompletos o número de secciones incorrecto', () => {
+  it('6. Valida esquema Zod ante campos incompletos o número de secciones incorrecto', () => {
     const invalidData = {
       bookCode: 'AB', // min 3
       startDate: 'invalid-date',
@@ -89,14 +110,15 @@ describe('Workflow wf-075: Libro de Obra Digital y Asientos Diarios', () => {
     expect(parseResult.success).toBe(false);
   });
 
-  it('6. Genera un DocumentViewModel con estado DRAFT/SEALED y firmantes en estado PENDING', () => {
-    const validData = {
+  it('7. Genera un DocumentViewModel con estado DRAFT/SEALED y firmantes PENDING sin nombres de persona ficticios', () => {
+    const dataWithoutCapturedSigners = {
+      ...createInitialSiteLogbookData(),
       bookCode: 'LO-2026-001',
       startDate: '2026-08-01',
       endDate: '2026-08-09',
       contractorName: 'CONTRATISTA PIPELINE C.A.',
-      residentEngineer: 'Ing. Pedro Pérez',
-      inspectorName: 'Ing. María Rodríguez',
+      residentEngineer: '', // No capturado
+      inspectorName: '', // No capturado
       sectionsCount: 16,
       dailyEntries: [
         {
@@ -111,15 +133,18 @@ describe('Workflow wf-075: Libro de Obra Digital y Asientos Diarios', () => {
       isSealed: true,
     };
 
-    const docVM = wf075Definition.deliverable.factory(dummyContext, validData);
+    const docVM = wf075Definition.deliverable.factory(dummyContext, dataWithoutCapturedSigners);
 
     expect(docVM.status).toBe('SEALED');
     expect(docVM.code).toBe('LO-2026-001');
     expect(docVM.signers.length).toBe(3);
 
+    // Confirmar que no se asignó signedAt y que no hay nombres de personas ni roles como nombre
     docVM.signers.forEach((s) => {
       expect(s.status).toBe('PENDING');
       expect(s.signedAt).toBeUndefined();
+      expect(s.name).toBe(''); // Nombre vacío si no fue capturado
+      expect(['INSPECTOR', 'CONTRACTOR', 'OPERATOR']).toContain(s.role);
     });
   });
 });

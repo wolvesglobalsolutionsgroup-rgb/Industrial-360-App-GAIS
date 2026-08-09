@@ -8,7 +8,7 @@ export interface DailyLogEntry {
   entryNumber: number;
   date: string;
   description: string;
-  weatherCondition: 'bueno' | 'lluvia_moderada' | 'lluvia_fuerte' | 'inoperativo';
+  weatherCondition: 'bueno' | 'lluvia_moderada' | 'lluvia_fuerte' | 'inoperativo' | '' | 'pendiente';
   manpowerCount: number;
   incidentsReported: boolean;
 }
@@ -36,7 +36,7 @@ export const SiteLogbookSchema = z.object({
   dailyEntries: z.array(
     z.object({
       entryNumber: z.number().int().positive(),
-      date: z.string(),
+      date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Fecha asiento YYYY-MM-DD'),
       description: z.string().min(5, 'Cada asiento debe describir la novedad o actividad ejecutada'),
       weatherCondition: z.enum(['bueno', 'lluvia_moderada', 'lluvia_fuerte', 'inoperativo']),
       manpowerCount: z.number().int().min(0),
@@ -45,6 +45,17 @@ export const SiteLogbookSchema = z.object({
   ).min(1, 'Debe registrar al menos un asiento diario en el Libro de Obra'),
   isSealed: z.boolean(),
 });
+
+export function createDefaultSiteLogbookEntry(entryNumber: number = 1): DailyLogEntry {
+  return {
+    entryNumber,
+    date: '',
+    description: '',
+    weatherCondition: '',
+    manpowerCount: 0,
+    incidentsReported: false,
+  };
+}
 
 export function createInitialSiteLogbookData(): SiteLogbookData {
   return {
@@ -85,8 +96,8 @@ export const wf075Definition: WorkflowDefinition<SiteLogbookData> = {
     },
     {
       id: 'MISSING_DAILY_ENTRIES',
-      name: 'Falta de Asientos Diarios Reglamentarios',
-      description: 'Valida que no existan días laborables sin asientos diarios registrados en la bitácora de construcción.',
+      name: 'Falta de Asientos Diarios Reglamentarios o Incompletos',
+      description: 'Valida que existan asientos diarios y que no haya registros sin fecha, sin descripción o con clima no seleccionado.',
       evaluator: (_context, data) => {
         if (!data.dailyEntries || data.dailyEntries.length === 0) {
           return {
@@ -94,6 +105,28 @@ export const wf075Definition: WorkflowDefinition<SiteLogbookData> = {
             message: 'BLOQUEO TÉCNICO: Se registraron 0 asientos diarios en el periodo reportado del Libro de Obra.',
           };
         }
+
+        for (const entry of data.dailyEntries) {
+          if (!entry.date || !/^\d{4}-\d{2}-\d{2}$/.test(entry.date)) {
+            return {
+              passed: false,
+              message: `BLOQUEO TÉCNICO: El asiento #${entry.entryNumber} no posee una fecha válida en formato YYYY-MM-DD.`,
+            };
+          }
+          if (!entry.description || entry.description.trim().length < 5) {
+            return {
+              passed: false,
+              message: `BLOQUEO TÉCNICO: El asiento #${entry.entryNumber} no posee una descripción suficiente (mínimo 5 caracteres).`,
+            };
+          }
+          if (!entry.weatherCondition || entry.weatherCondition === '' || (entry.weatherCondition as string) === 'pendiente') {
+            return {
+              passed: false,
+              message: `BLOQUEO TÉCNICO: El asiento #${entry.entryNumber} no tiene la condición climática seleccionada.`,
+            };
+          }
+        }
+
         return { passed: true };
       },
     },
@@ -107,7 +140,7 @@ export const wf075Definition: WorkflowDefinition<SiteLogbookData> = {
         {
           id: 'sig-075-1',
           role: 'INSPECTOR' as const,
-          name: data.inspectorName || context.user.email,
+          name: data.inspectorName || '',
           title: 'Inspector Principal de Obra',
           organization: context.operatorBrand.companyName || 'OPERADOR',
           status: 'PENDING' as const,
@@ -116,7 +149,7 @@ export const wf075Definition: WorkflowDefinition<SiteLogbookData> = {
         {
           id: 'sig-075-2',
           role: 'CONTRACTOR' as const,
-          name: data.residentEngineer || 'Ingeniero Residente',
+          name: data.residentEngineer || '',
           title: 'Ingeniero Residente de Obra',
           organization: data.contractorName || context.contractorBrand.companyName || 'CONTRATISTA',
           status: 'PENDING' as const,
@@ -125,8 +158,8 @@ export const wf075Definition: WorkflowDefinition<SiteLogbookData> = {
         {
           id: 'sig-075-3',
           role: 'OPERATOR' as const,
-          name: 'Superintendente de Infraestructura',
-          title: 'Custodio Operativo',
+          name: '',
+          title: 'Superintendente de Infraestructura',
           organization: context.operatorBrand.companyName || 'OPERADOR',
           status: 'PENDING' as const,
           signedAt: undefined,

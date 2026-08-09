@@ -86,7 +86,7 @@ export const wf065Definition: WorkflowDefinition<GisAlignmentData> = {
         {
           id: 'sig-065-1',
           role: 'INSPECTOR' as const,
-          name: context.user.email,
+          name: '',
           title: 'Inspector Topógrafo Geodesta',
           organization: context.contractorBrand.companyName || 'CONTRATISTA',
           status: 'PENDING' as const,
@@ -95,7 +95,7 @@ export const wf065Definition: WorkflowDefinition<GisAlignmentData> = {
         {
           id: 'sig-065-2',
           role: 'CONTRACTOR' as const,
-          name: 'Superintendente de Ductos',
+          name: '',
           title: 'Jefe de Traza y Cadena de Faja',
           organization: context.contractorBrand.companyName || 'CONTRATISTA',
           status: 'PENDING' as const,
@@ -104,7 +104,7 @@ export const wf065Definition: WorkflowDefinition<GisAlignmentData> = {
         {
           id: 'sig-065-3',
           role: 'OPERATOR' as const,
-          name: 'Especialista GIS Operador',
+          name: '',
           title: 'Custodio de Servidumbre y Cartografía',
           organization: context.operatorBrand.companyName || 'OPERADOR',
           status: 'PENDING' as const,

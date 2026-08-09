@@ -1,6 +1,6 @@
 import React from 'react';
 import { WorkflowComponentProps } from '../../../lib/workflows/contracts';
-import { SiteLogbookData } from '../definition';
+import { SiteLogbookData, createDefaultSiteLogbookEntry } from '../definition';
 import { BookOpen, AlertCircle, PlusCircle, CheckCircle } from 'lucide-react';
 
 export const SiteLogbookCapture: React.FC<WorkflowComponentProps<SiteLogbookData>> = ({
@@ -10,14 +10,7 @@ export const SiteLogbookCapture: React.FC<WorkflowComponentProps<SiteLogbookData
 }) => {
   const addEntry = () => {
     const nextNumber = (data.dailyEntries?.length || 0) + 1;
-    const newEntry = {
-      entryNumber: nextNumber,
-      date: new Date().toISOString().split('T')[0],
-      description: '',
-      weatherCondition: 'bueno' as const,
-      manpowerCount: 0,
-      incidentsReported: false,
-    };
+    const newEntry = createDefaultSiteLogbookEntry(nextNumber);
     onChange({ dailyEntries: [...(data.dailyEntries || []), newEntry] });
   };
 
@@ -179,11 +172,12 @@ export const SiteLogbookCapture: React.FC<WorkflowComponentProps<SiteLogbookData
                   <div>
                     <label className="block text-ink-muted mb-1">Clima / Atmosférico</label>
                     <select
-                      value={entry.weatherCondition}
+                      value={entry.weatherCondition || ''}
                       onChange={(e) => updateEntry(idx, { weatherCondition: e.target.value })}
                       disabled={isReadOnly}
                       className="w-full px-2 py-1 border border-border rounded bg-surface text-ink"
                     >
+                      <option value="">-- Seleccionar Clima --</option>
                       <option value="bueno">Bueno / Despejado</option>
                       <option value="lluvia_moderada">Lluvia Moderada</option>
                       <option value="lluvia_fuerte">Lluvia Fuerte</option>
