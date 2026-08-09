@@ -26,6 +26,19 @@ export const GisAlignmentSchema = z.object({
   inspectorNotes: z.string().min(5, 'Las observaciones topográficas deben tener al menos 5 caracteres'),
 });
 
+export function createInitialGisAlignmentData(): GisAlignmentData {
+  return {
+    sheetCode: '',
+    pipelineSegment: '',
+    startKp: 0,
+    endKp: 0,
+    kmzValidated: false,
+    coordinatesCount: 0,
+    datum: 'REGVEN',
+    inspectorNotes: '',
+  };
+}
+
 export const wf065Definition: WorkflowDefinition<GisAlignmentData> = {
   id: 'wf-065-gis-alignment-sheets-kp',
   title: 'Alignment Sheets, Proyección KP y Georreferenciación GIS (GPG Fase 5)',
@@ -38,7 +51,7 @@ export const wf065Definition: WorkflowDefinition<GisAlignmentData> = {
     {
       id: 'GATE_KP_CONTINUITY',
       name: 'Continuidad Topográfica de Kilometraje KP',
-      description: 'Valida estrictamente que el KP final sea mayor al KP inicial, previniendo discontinuidades en el trazado de tuberías.',
+      description: 'Valida strictly que el KP final sea mayor al KP inicial, previniendo discontinuidades en el trazado de tuberías.',
       evaluator: (_context, data) => {
         if (data.endKp <= data.startKp) {
           return {
@@ -75,36 +88,36 @@ export const wf065Definition: WorkflowDefinition<GisAlignmentData> = {
           role: 'INSPECTOR' as const,
           name: context.user.email,
           title: 'Inspector Topógrafo Geodesta',
-          organization: context.contractorBrand.companyName || 'PROINTECA C.A.',
-          status: 'SIGNED' as const,
-          signedAt: new Date().toISOString(),
+          organization: context.contractorBrand.companyName || 'CONTRATISTA',
+          status: 'PENDING' as const,
+          signedAt: undefined,
         },
         {
-          id: 'sig-075-2',
+          id: 'sig-065-2',
           role: 'CONTRACTOR' as const,
-          name: 'Ing. Jefe de Traza y Cadena de Faja',
-          title: 'Superintendente de Ductos',
-          organization: context.contractorBrand.companyName || 'PROINTECA C.A.',
-          status: 'SIGNED' as const,
-          signedAt: new Date().toISOString(),
+          name: 'Superintendente de Ductos',
+          title: 'Jefe de Traza y Cadena de Faja',
+          organization: context.contractorBrand.companyName || 'CONTRATISTA',
+          status: 'PENDING' as const,
+          signedAt: undefined,
         },
         {
-          id: 'sig-075-3',
+          id: 'sig-065-3',
           role: 'OPERATOR' as const,
-          name: 'Ing. Especialista GIS PDVSA',
+          name: 'Especialista GIS Operador',
           title: 'Custodio de Servidumbre y Cartografía',
-          organization: context.operatorBrand.companyName || 'PDVSA PETRÓLEO S.A.',
-          status: 'SIGNED' as const,
-          signedAt: new Date().toISOString(),
+          organization: context.operatorBrand.companyName || 'OPERADOR',
+          status: 'PENDING' as const,
+          signedAt: undefined,
         },
       ];
 
       return createDocumentViewModel({
-        documentId: `ALIGN-SHEET-${data.sheetCode}`,
+        documentId: `ALIGN-SHEET-${data.sheetCode || 'PENDIENTE'}`,
         title: 'ALIGNMENT SHEET Y HOJA DE DATOS GEORREFERENCIADOS KP',
-        code: data.sheetCode,
+        code: data.sheetCode || 'PENDIENTE',
         date: new Date().toISOString().split('T')[0],
-        status: 'APPROVED',
+        status: 'DRAFT',
         contractorBrand: context.contractorBrand,
         operatorBrand: context.operatorBrand,
         signers,
@@ -114,20 +127,20 @@ export const wf065Definition: WorkflowDefinition<GisAlignmentData> = {
             id: 'sec-gis-1',
             title: '1. DATOS DE TRAZADO Y KILOMETRAJE (KP)',
             content: [
-              `Código de Plano: ${data.sheetCode}`,
-              `Segmento de Tubería: ${data.pipelineSegment}`,
-              `KP Inicial: KP ${data.startKp.toFixed(3)} Km`,
-              `KP Final: KP ${data.endKp.toFixed(3)} Km`,
-              `Longitud del Tramo: ${(data.endKp - data.startKp).toFixed(3)} Km`,
-              `Sistema Geodésico / Datum: ${data.datum}`,
-              `Vértices Topográficos Procesados: ${data.coordinatesCount}`,
+              `Código de Plano: ${data.sheetCode || 'N/A'}`,
+              `Segmento de Tubería: ${data.pipelineSegment || 'N/A'}`,
+              `KP Inicial: KP ${(data.startKp || 0).toFixed(3)} Km`,
+              `KP Final: KP ${(data.endKp || 0).toFixed(3)} Km`,
+              `Longitud del Tramo: ${((data.endKp || 0) - (data.startKp || 0)).toFixed(3)} Km`,
+              `Sistema Geodésico / Datum: ${data.datum || 'REGVEN'}`,
+              `Vértices Topográficos Procesados: ${data.coordinatesCount || 0}`,
               `Estado de Archivos KMZ: ${data.kmzValidated ? 'VALIDADO ESPACIALMENTE' : 'PENDIENTE DE REVISIÓN'}`,
             ],
           },
           {
             id: 'sec-gis-2',
             title: '2. OBSERVACIONES TOPOGRÁFICAS Y SERVIDUMBRE',
-            content: [data.inspectorNotes],
+            content: [data.inspectorNotes || 'Sin observaciones registradas.'],
           },
         ],
       });

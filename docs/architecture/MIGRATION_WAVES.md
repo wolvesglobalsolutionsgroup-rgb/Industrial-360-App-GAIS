@@ -37,6 +37,10 @@ El objetivo de la migración por olas es desacoplar progresivamente los módulos
 │ Ola 2 (F-D2+)   │ wf-052-instrumentacion-lazos-pid  │ Fase 3 │ EVIDENCE_READY │
 │                 │ wf-053-registro-personal-qr       │ Fase 4 │ EVIDENCE_READY │
 │                 │ wf-054-flota-equipos-pesados      │ Fase 4 │ EVIDENCE_READY │
+├─────────────────┼───────────────────────────────────┼────────┼──────────────┤
+│ Ola 3 (F-D2++)  │ wf-073-medicion-avance-ingenieria │ Fase 2 │ EVIDENCE_READY │
+│                 │ wf-075-libro-de-obra              │ Fase 4 │ EVIDENCE_READY │
+│                 │ wf-065-gis-alignment-sheets-kp    │ Fase 5 │ EVIDENCE_READY │
 └─────────────────┴───────────────────────────────────┴────────┴──────────────┘
 ```
 

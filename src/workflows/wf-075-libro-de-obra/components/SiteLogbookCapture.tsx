@@ -15,7 +15,7 @@ export const SiteLogbookCapture: React.FC<WorkflowComponentProps<SiteLogbookData
       date: new Date().toISOString().split('T')[0],
       description: '',
       weatherCondition: 'bueno' as const,
-      manpowerCount: 10,
+      manpowerCount: 0,
       incidentsReported: false,
     };
     onChange({ dailyEntries: [...(data.dailyEntries || []), newEntry] });

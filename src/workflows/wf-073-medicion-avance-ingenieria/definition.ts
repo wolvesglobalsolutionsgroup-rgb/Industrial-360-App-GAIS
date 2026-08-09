@@ -42,6 +42,20 @@ export const EngineeringProgressSchema = z.object({
   notes: z.string().optional(),
 });
 
+export function createInitialEngineeringProgressData(): EngineeringProgressData {
+  return {
+    reportCode: '',
+    reportDate: '',
+    plannedProgressPct: 0,
+    actualProgressPct: 0,
+    plannedValueUSD: 0,
+    earnedValueUSD: 0,
+    actualCostUSD: 0,
+    deliverables: [],
+    notes: '',
+  };
+}
+
 export const wf073Definition: WorkflowDefinition<EngineeringProgressData> = {
   id: 'wf-073-medicion-avance-ingenieria',
   title: 'Medición de Avance de Ingeniería con EVM (GPG Fase 2)',
@@ -51,6 +65,20 @@ export const wf073Definition: WorkflowDefinition<EngineeringProgressData> = {
   captureComponent: EngineeringProgressCapture,
   schema: EngineeringProgressSchema,
   hardGates: [
+    {
+      id: 'EMPTY_DELIVERABLES',
+      name: 'Entregables Vacíos',
+      description: 'Bloquea la generación de reporte si no se han registrado entregables de ingeniería.',
+      evaluator: (_context, data) => {
+        if (!data.deliverables || data.deliverables.length === 0) {
+          return {
+            passed: false,
+            message: 'BLOQUEO TÉCNICO: Se requiere al menos un entregable de ingeniería registrado.',
+          };
+        }
+        return { passed: true };
+      },
+    },
     {
       id: 'EFFICIENCY_BELOW_085',
       name: 'Eficiencia EVM por Debajo de 0.85',
@@ -93,36 +121,36 @@ export const wf073Definition: WorkflowDefinition<EngineeringProgressData> = {
           role: 'INSPECTOR' as const,
           name: context.user.email,
           title: 'Inspector de Control de Proyectos EVM',
-          organization: context.contractorBrand.companyName || 'PROINTECA C.A.',
-          status: 'SIGNED' as const,
-          signedAt: new Date().toISOString(),
+          organization: context.contractorBrand.companyName || 'CONTRATISTA',
+          status: 'PENDING' as const,
+          signedAt: undefined,
         },
         {
           id: 'sig-073-2',
           role: 'CONTRACTOR' as const,
-          name: 'Ing. Gerente de Ingeniería',
+          name: 'Gerente de Ingeniería',
           title: 'Líder de Contratista de Ingeniería',
-          organization: context.contractorBrand.companyName || 'PROINTECA C.A.',
-          status: 'SIGNED' as const,
-          signedAt: new Date().toISOString(),
+          organization: context.contractorBrand.companyName || 'CONTRATISTA',
+          status: 'PENDING' as const,
+          signedAt: undefined,
         },
         {
           id: 'sig-073-3',
           role: 'OPERATOR' as const,
-          name: 'Ing. Custodio de Proyecto PDVSA',
+          name: 'Custodio de Proyecto',
           title: 'Gerente de Proyecto Operador',
-          organization: context.operatorBrand.companyName || 'PDVSA PETRÓLEO S.A.',
-          status: 'SIGNED' as const,
-          signedAt: new Date().toISOString(),
+          organization: context.operatorBrand.companyName || 'OPERADOR',
+          status: 'PENDING' as const,
+          signedAt: undefined,
         },
       ];
 
       return createDocumentViewModel({
-        documentId: `EVM-ING-${data.reportCode}`,
+        documentId: `EVM-ING-${data.reportCode || 'PENDIENTE'}`,
         title: 'REPORTES DE MEDIDAS DE AVANCE Y PERFORMANCE DE INGENIERÍA EVM',
-        code: data.reportCode,
-        date: data.reportDate,
-        status: 'APPROVED',
+        code: data.reportCode || 'PENDIENTE',
+        date: data.reportDate || new Date().toISOString().split('T')[0],
+        status: 'DRAFT',
         contractorBrand: context.contractorBrand,
         operatorBrand: context.operatorBrand,
         signers,
@@ -132,8 +160,8 @@ export const wf073Definition: WorkflowDefinition<EngineeringProgressData> = {
             id: 'sec-evm-1',
             title: '1. RESUMEN DE INDICADORES EVM Y VARIACIONES',
             content: [
-              `Código de Reporte: ${data.reportCode}`,
-              `Fecha de Corte: ${data.reportDate}`,
+              `Código de Reporte: ${data.reportCode || 'N/A'}`,
+              `Fecha de Corte: ${data.reportDate || 'N/A'}`,
               `% Prog. Planificado: ${data.plannedProgressPct}%`,
               `% Prog. Real Acumulado: ${data.actualProgressPct}%`,
               `Valor Planificado (PV): $${pv.toLocaleString()} USD`,

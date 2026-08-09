@@ -21,7 +21,7 @@ export const EngineeringProgressCapture: React.FC<WorkflowComponentProps<Enginee
     const calculatedActual = totalWeight > 0 ? Number(((weightedProgress / totalWeight) * 100).toFixed(2)) : 0;
     
     // EV = PV_budget * (%Actual / 100)
-    const budget = data.plannedValueUSD > 0 ? data.plannedValueUSD : 100000;
+    const budget = data.plannedValueUSD || 0;
     const earnedUSD = Number((budget * (calculatedActual / 100)).toFixed(2));
 
     onChange({
@@ -71,7 +71,7 @@ export const EngineeringProgressCapture: React.FC<WorkflowComponentProps<Enginee
             </label>
             <input
               type="date"
-              value={data.reportDate || new Date().toISOString().split('T')[0]}
+              value={data.reportDate || ''}
               onChange={(e) => onChange({ reportDate: e.target.value })}
               disabled={isReadOnly}
               className="w-full px-3 py-2 border border-border rounded-md bg-surface text-ink focus:ring-2 focus:ring-brand-500"
