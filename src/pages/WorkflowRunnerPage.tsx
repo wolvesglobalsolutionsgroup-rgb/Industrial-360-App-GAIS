@@ -60,7 +60,7 @@ export default function WorkflowRunnerPage({ overrideWorkflowId }: WorkflowRunne
   const workflowId = overrideWorkflowId || paramWorkflowId;
 
   const navigate = useNavigate();
-  const { currentProject, brandKit } = useProject();
+  const { currentProject, currentOrganization, brandKit } = useProject();
   const [user] = useAppAuthState();
 
   const definition = registryReady ? getWorkflow(workflowId) : undefined;
