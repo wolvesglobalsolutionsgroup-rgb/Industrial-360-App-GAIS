@@ -1,0 +1,57 @@
+# Modelo de Renderizado y Vista Previa Formal: WF-052
+
+documentRenderingModel:
+  workflowId: wf-052-instrumentacion-lazos-pid
+  deliverableId: DEL-INST-CERT-052
+  officialTitle: "CERTIFICADO DE CALIBRACIÓN Y PRUEBA DE LAZOS P&ID"
+  documentClass: CERTIFICADO_DE_CALIBRACION_E_INTEGRIDAD
+  templateId: TPL-ISA-20-QAQC-CERT-052
+  renderingEngine: HTML_CSS_PRINT_CONTAINER
+  pageSize: LETTER_A4_210MM_297MM
+
+  brandConfig:
+    operatorLogo:
+      enabled: true
+      position: TOP_LEFT
+      defaultSource: "OPERATOR_BRAND_KIT"
+    contractorLogo:
+      enabled: true # En WF-052 sí se muestra el logo de la contratista ejecutora por defecto
+      position: TOP_RIGHT
+      allowOverridePerDocument: true
+    colorVariables:
+      brandPrimary: "var(--brand-primary, #1e3a8a)"
+      brandSecondary: "var(--brand-secondary, #0284c7)"
+      brandBgHeader: "var(--brand-bg-header, #e2e8f0)"
+      brandText: "var(--brand-text, #0f172a)"
+
+  previewModalSpec:
+    sharedBaseLayout: true
+    layoutStructure:
+      - headerBlock: "Doble Logo (Operador Izquierda + Contratista Derecha) + Título Certificado"
+      - section1_instrumentData: "Tag Instrumento, Tag Lazo, P&ID N°, Tipo, Rango, Tolerancia %FS"
+      - section2_5PointTable: "Tabla de 5 Puntos Ascendente/Descendente con Error Calculado"
+      - section3_standardInfo: "Datos de Patrón Calibrador y Vigencia de Certificado"
+      - section4_exProofCheck: "Verificación de Sello Antiexplosivo Ex-d / Ex-i"
+      - section5_signatures: "Firmas Técnico I&C, Inspector QA/QC y Custodio Operativo"
+
+    rolePermissions:
+      INSTRUMENT_TECHNICIAN:
+        canEditDraft: true
+        canSignAsCreator: true
+        availableActions: ["REGISTRAR_LECTURAS", "CALCULAR_HISTESIS", "FIRMAR_TECNICO"]
+      QAQC_INSPECTOR:
+        canReview: true
+        canRequestChanges: true
+        canApprove: true
+        availableActions: ["VALIDAR_TOLERANCIA", "SOLICITAR_RECALIBRACION", "FIRMAR_QAQC"]
+      OPERATOR_CUSTODIAN:
+        canAcceptHandover: true
+        canSignOfficialIssue: true
+        availableActions: ["FIRMAR_ACEPTACION_OPERATIVA", "EXPORTAR_PDF"]
+      AUDITOR:
+        readOnly: true
+        availableActions: ["VERIFICAR_HASH_CRIPTOGRAFICO", "DESCARGAR_COPIA"]
+
+  visualTraceability:
+    captureRenderedHash: true
+    hashAlgorithm: "SHA-256"

@@ -1,0 +1,80 @@
+# Modelo de Renderizado y Vista Previa Formal: WF-043
+
+documentRenderingModel:
+  workflowId: wf-043-aprobacion-ptw
+  deliverableId: DEL-PTW-ANEXO-A
+  officialTitle: "ANEXO A - PERMISO DE TRABAJO EN FRÍO O EN CALIENTE"
+  documentClass: PERMISO_DE_TRABAJO_OFICIAL
+  templateId: TPL-PDVSA-IR-S-04-ANEXO-A
+  renderingEngine: HTML_CSS_PRINT_CONTAINER
+  pageSize: LETTER_A4_210MM_297MM
+
+  brandConfig:
+    operatorLogo:
+      enabled: true
+      position: TOP_LEFT
+      defaultSource: "OPERATOR_BRAND_KIT"
+      altText: "Logo Operador Petrolero"
+    contractorLogo:
+      enabled: false # En WF-043 Anexo A no se muestra logo de contratista por defecto
+      position: TOP_RIGHT
+      allowOverridePerDocument: true # Configurable si la plantilla/documento lo requiere
+    colorVariables:
+      brandPrimary: "var(--brand-primary, #1e3a8a)"
+      brandSecondary: "var(--brand-secondary, #0284c7)"
+      brandBgHeader: "var(--brand-bg-header, #e2e8f0)"
+      brandText: "var(--brand-text, #0f172a)"
+
+  previewModalSpec:
+    sharedBaseLayout: true # Mismo layout base para todos los roles
+    layoutStructure:
+      - headerBlock: "Logos Operador/Contratista + Título ANEXO A + Número de Permiso en rojo"
+      - section1_general: "Tipo En Frío/Caliente, Orden SAP, Permiso N°"
+      - section2_ubicacion: "Instalación/Área/Unidad, Equipo, Descripción"
+      - section3_art_procedimiento: "N° ART (IR-S-17) y N° Procedimiento (SI-S-20)"
+      - section4_ejecutor: "Ejecutor PDVSA/Contratista, N° Personas, Fecha/Hora inicio y validez"
+      - section5_certificados: "Matriz 9-Certificados Especiales Requeridos"
+      - section6_preparacion: "Matriz 10-Preparación de Equipos (Lavados, Purgados, Inertizados, Drenados)"
+      - section7_condiciones: "Matriz 11-Condiciones a Verificar (a. al n.) con checkboxes N/A e SI"
+      - section8_pruebasGas: "Matriz 12-Prueba de Gases Completa (LEL, O2, Tóxicos, Evaluador)"
+      - section9_tiempos_mdc: "Fechas, Horas de Inicio/Fin y N° Manejo del Cambio"
+      - section10_firmas: "Sección 17 Emisor, 18 Receptor, 19 Ejecutor"
+      - section11_prorroga: "Sección 20 Prórroga (Máx 2 horas)"
+      - section12_cancelacion: "Sección 21 Cancelación del Permiso"
+      - section13_cierre: "Sección 22 Cierre del Permiso"
+
+    rolePermissions:
+      EMISOR:
+        canEditDraft: true
+        canSignIssuance: true
+        canSignExtension: true
+        canCancel: true
+        canSignClosure: true
+        availableActions: ["EDITAR_DRAFT", "APROBAR_Y_FIRMAR", "PRORROGAR", "CANCELAR", "CERRAR_PERMISO", "EXPORTAR_PDF"]
+      RECEPTOR:
+        canEditDraft: true
+        canSignIssuance: true
+        canRequestExtension: true
+        canSignClosure: true
+        availableActions: ["EDITAR_DRAFT", "FIRMAR_SOLICITUD", "SOLICITAR_PRORROGA", "FIRMAR_CIERRE"]
+      EJECUTOR:
+        canEditDraft: true
+        canSignIssuance: true
+        canSignClosure: true
+        availableActions: ["FIRMAR_EJECUCION", "FIRMAR_CIERRE"]
+      AUDITOR:
+        readOnly: true
+        canInspectHash: true
+        canVerifyQR: true
+        availableActions: ["VERIFICAR_HASH_CRIPTOGRAFICO", "DESCARGAR_COPIA_AUDITORIA"]
+
+  visualTraceability:
+    captureRenderedHash: true
+    hashAlgorithm: "SHA-256"
+    fieldsIncludedInHash:
+      - templateId
+      - brandConfig
+      - inputValues
+      - timestamps
+      - signatures
+      - QRVerificationUrl
