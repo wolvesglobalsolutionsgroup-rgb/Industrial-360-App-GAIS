@@ -1,24 +1,27 @@
-# WF-043: MATRIZ DE FUENTES FALTANTES Y PREGUNTAS ABIERTAS
+# WF-043: REGISTRO DE FUENTES PRIMARIAS, FUENTES INCORPORADAS Y PARÁMETROS EXTERNOS PENDIENTES
 
 **Documento Base:** PDVSA IR-S-04 — *Sistema de Permisos de Trabajo*, Rev. 4 (Agosto 2013).
 
 ---
 
-## 1. FUENTES FALTANTES Y SU IMPACTO OPERATIVO EXACTO (`MISSING_SOURCE`)
+## 1. FUENTES NUEVAS INCORPORADAS EN PDF REAL (`CONFIRMED`)
 
-| Documento Faltante | Título / Objeto | Referencia en IR-S-04 | Impacto Operativo Exacto |
-|---|---|---|---|
-| **PDVSA HO-H-06** | *Espacios Confinados* | Sec. 11.2, Pág. 23 | Imposibilita definir los límites cuantitativos de contaminantes tóxicos y tiempos de ventilación en Anexo B. |
-| **PDVSA SI-S-27 / SI-S-31** | *Andamios y Altura* | Sec. 19.3, Pág. 31 | Imposibilita validar factores de diseño de andamios y distancias de seguridad a líneas eléctricas en Anexo J. |
-| **COVENIN 2247** | *Excavaciones* | Sec. 14.9, Pág. 26 | Imposibilita definir la profundidad a partir de la cual el entibado es obligatorio en Anexo E. |
-| **PDVSA SI-S-29 / SI-S-32** | *Sistemas Eléctricos* | Sec. 15.16, Pág. 28 | Imposibilita definir las distancias mínimas de aislamiento de arcos y EPP dieléctrico en Anexo F. |
-| **PDVSA IR-S-16** | *Zonas de Seguridad* | Sec. 18.2, Pág. 30 | Imposibilita validar el radio de la franja de seguridad (50m) en áreas compartidas en Anexo I. |
-| **PDVSA PR-H-08** | *Protección Radiológica* | Sec. 13.3, Pág. 24 | Imposibilita validar el límite de tasa de dosis ($0.5\ \mu\text{Sv/h}$) y dosimetría en Anexo D. |
+1. **`PDVSA HO-H-16`** (*Identificación y Notificación de Peligros y Riesgos Asociados a las Instalaciones y Puestos de Trabajos*, Rev. 2, Abril 2013, 31 Págs.):  
+   *Estatus:* **CONFIRMADO PDF REAL**. Rige el procedimiento de notificación de riesgos en sitio (§7.5.3 de SI-S-04 y Renglón 11.k del Anexo A de IR-S-04).
+
+2. **`PDVSA PR-H-08`** (*Requisitos para el Transporte de Materiales Radiactivos o Equipos que los Contengan*, Rev. 1, Junio 2014, 23 Págs.):  
+   *Estatus:* **CONFIRMADO PDF REAL**. Rige el transporte de fuentes y bultos radiológicos para el Anexo D (Radiaciones Ionizantes).
 
 ---
 
-## 2. AMBIGÜEDADES DOCUMENTALES REGISTRADAS
+## 2. PARÁMETROS EXTERNOS PENDIENTES (`PENDING_EXTERNAL_PARAMETER`)
 
-1. **Prórroga en Permisos de 12 horas (§8.5 vs Nota Pág. 20):**  
-   El texto de la Sección 8.5 menciona prórroga general de 2h, pero la nota de la Pág. 20 prohíbe prórrogas en permisos de 12h en paradas de planta.  
-   *Resolución solicitada:* Confirmar si en paradas de planta aplica prohibición absoluta de prórroga.
+Las fuentes externas no localizadas no bloquean el desarrollo del flujo PTW ni de los Anexos B al L. Únicamente se mantienen etiquetadas como `PENDING_EXTERNAL_PARAMETER` para los siguientes valores numéricos especializados:
+
+| Documento Referenciado | Objeto Técnico | Parámetro Externo Pendiente | Estado de Desarrollo |
+|---|---|---|:---:|
+| **PDVSA HO-H-06** | *Espacios Confinados* | Tiempos de ventilación forzada específicos por volumen. | `PERMITTED` (Campos de Anexo B construibles) |
+| **PDVSA SI-S-27 / SI-S-31** | *Andamios y Altura* | Tabla de factores de carga estructural según tipo de tubo. | `PERMITTED` (Campos de Anexo J construibles) |
+| **COVENIN 2247** | *Excavaciones* | Ángulo exacto de talud seguro por cohesión de suelo. | `PERMITTED` (Campos de Anexo E construibles) |
+| **PDVSA SI-S-29 / SI-S-32** | *Sistemas Eléctricos* | Distancias de seguridad por niveles de voltaje $>34.5\text{kV}$. | `PERMITTED` (Campos de Anexo F construibles) |
+| **PDVSA IR-S-16** | *Zonas de Seguridad* | Ancho de franja de seguridad en corredores marinos. | `PERMITTED` (Campos de Anexo I construibles) |

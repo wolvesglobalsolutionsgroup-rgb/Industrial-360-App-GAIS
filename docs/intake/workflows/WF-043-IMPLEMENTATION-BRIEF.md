@@ -2,34 +2,61 @@
 
 **Workflow:** WF-043 — Sistema de Permisos de Trabajo  
 **Documento Base:** PDVSA IR-S-04 Rev. 4 (Agosto 2013)  
-**Estado:** `BLOCKED_PENDING_SOURCE_RECONCILIATION`  
+**Estado:** `PERMITTED_WITH_PENDING_EXTERNAL_PARAMS`  
 
-> [!WARNING]
-> **ESTADO DE BLOQUEO DE IMPLEMENTACIÓN:**  
-> La implementación de código de producción para los Certificados Especiales (Anexos B a L) se encuentra **BLOQUEADA** hasta completar la conciliación de fuentes primarias faltantes (`PDVSA HO-H-06`, `PDVSA SI-S-27/31`, `COVENIN 2247`, `PDVSA SI-S-29/32`). No se redactará ni modificará código hasta la recepción o aprobación formal de los umbrales normativos.
+> [!NOTE]
+> **ESTADO DE CONSTRUCCIÓN Y DESARROLLO PERMITIDO:**  
+> Todos los Anexos B al L (Certificados Especiales) están completamente disponibles en la norma primaria `PDVSA IR-S-04 Rev 4` (Págs. 36 a 69). Se **PERMITE** el modelado de datos, la construcción de componentes UX/UI, la lógica de formularios, la trazabilidad y la generación de entregables para todos los Anexos B al L. Las normas externas no localizadas únicamente condicionan el ajuste fino de parámetros especializados (`PENDING_EXTERNAL_PARAMETER`).
 
 ---
 
-## 1. CLASIFICACIÓN DE COMPONENTES DEL DOMINIO
+## 1. CLASIFICACIÓN DE CONSTRUCCIÓN E IMPLEMENTACIÓN
 
-### A. REQUISITOS CONFIRMADOS (NORMATIVOS NORMA A NORMA)
-* Formulario Anexo A (Renglones 1 al 23).
-* Firma tripartita obligatoria (Emisor, Receptor, Ejecutor).
-* Duración máxima de 8h continuas (ó 12h en paradas de planta).
+### A. ANEXOS DISPONIBLES EN NORMA PRIMARIA (`AVAILABLE_IN_PRIMARY_STANDARD`)
+* **Anexo A (Permiso Principal Frío/Caliente):** Renglones 1 al 23 (Págs. 33-35).
+* **Anexo B (Espacios Confinados):** Formato y checklist normado (Págs. 36-38).
+* **Anexo C (Izamiento de Cargas):** Formato y cálculo de riggers/grúas (Págs. 39-42).
+* **Anexo D (Radiaciones Ionizantes):** Formato y controles de fuentes (Págs. 43-45).
+* **Anexo E (Excavaciones):** Formato y firmas de servicios públicos (Págs. 46-48).
+* **Anexo F (Sistema Eléctrico):** Formato y desenergización LOTO (Págs. 49-52).
+* **Anexo G (Subacuáticos):** Formato y buceo en pareja (Págs. 53-55).
+* **Anexo H (Hot-Tapping):** Formato y datos de línea/válvula (Págs. 56-58).
+* **Anexo I (Áreas Compartidas):** Formato y notificación a custodios (Págs. 59-60).
+* **Anexo J (Trabajos en Altura):** Formato y andamios/arnés (Págs. 61-63).
+* **Anexo K (Fumigación):** Formato y producto/MSDS (Págs. 64-66).
+* **Anexo L (Soldadura):** Formato y calificación EPS/soldador (Págs. 67-69).
+
+### B. REGLAS CONTENIDAS EN IR-S-04 (`HARD_BLOCK` & `ADVISORY`)
+* Duración máxima (8h continuo / 12h paradas).
 * Prórroga única por máximo 2h.
-* Regla de hora de inicio igual a la hora de prueba de gas.
-* Límite de $0\% \text{ LEL}$ para trabajos en caliente.
-* Prerrequisito de Contratista Calificado "APTA" y Plan SIHOA aprobado (PDVSA SI-S-04).
+* Coincidencia exacta de hora de inicio con hora de gas test.
+* Límite de 0% LEL en caliente.
+* Firma tripartita obligatoria (Emisor, Receptor, Ejecutor).
+* Prerrequisito de Contratista Calificado APTA y Plan SIHOA (PDVSA SI-S-04).
+* Notificación de Riesgos por puesto de trabajo (PDVSA HO-H-16 - **CONFIRMADO PDF**).
+* Requisitos de Transporte Radiológico (PDVSA PR-H-08 - **CONFIRMADO PDF**).
 
-### B. PROPUESTAS DE PRODUCTO (IC360-NEXUS)
-* Interfaz de asistente multi-paso (Wizard Planificación → Gas Test → Firmas → Cierre).
-* Paquete digital inmutable en PDF/A para el Databook de Infraestructura (`05.01_PERMISOS_DE_TRABAJO_PTW`).
-* Sistema de alertas Advisory para calibración de instrumentos multigas.
+### C. PARÁMETROS EXTERNOS PENDIENTES (`PENDING_EXTERNAL_PARAMETER`)
+* Tiempos de ventilación forzada específicos y límites de toxicidad secundarios (`PDVSA HO-H-06`).
+* Factores de carga estructural de andamios específicos (`PDVSA SI-S-27/31`).
+* Ángulo exacto de talud por tipo de suelo en excavaciones (`COVENIN 2247`).
+* Distancias mínimas de arco eléctrico por nivel de kilovoltios (`PDVSA SI-S-29/32`).
 
-### C. INFERENCIAS TÉCNICAS
-* La prueba de gas debe ser re-ejecutada en sitio si el trabajo en caliente se interrumpe por más de 1 hora o trabajo en frío por más de 2 horas (basado en §8.6.2).
+---
 
-### D. PUNTOS PENDIENTES (REQUIEREN FUENTE PRIMARIA)
-* Umbrales numéricos de contaminantes tóxicos específicos en espacios confinados (`PDVSA HO-H-06`).
-* Requisitos dimensionales y ángulos de talud en excavaciones (`COVENIN 2247`).
-* Factores de seguridad de carga en andamios (`PDVSA SI-S-27/31`).
+## 2. ESTRUCTURA DE COMPONENTES DE SOFTWARE PERMITIDA
+
+```text
+src/
+ ├── domain/
+ │    └── ptw/
+ │         ├── ptwDomain.ts            # Reglas de negocio de Anexo A y Anexos B-L
+ │         ├── ptwTypes.ts             # Tipos TypeScript para Anexo A y Anexos B-L
+ │         └── ptwAdvisoryRules.ts     # Reglas Advisory y Hard Blocks
+ ├── pages/
+ │    └── SihoPtwWizardView.tsx        # Vista asistida multi-paso para Anexo A + Anexos B-L
+ └── services/
+      └── ptw/
+           ├── ptwDataService.ts       # Persistencia Firestore / Indexación Databook
+           └── ptwPdfExporter.ts       # Generación de entregables PDF/A ISO 19005-1
+```

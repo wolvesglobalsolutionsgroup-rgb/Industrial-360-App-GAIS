@@ -5,35 +5,42 @@ sourceRegister:
   lastUpdated: "2026-08-10"
 
   confidence:
-    overall: "MEDIUM"
+    overall: "HIGH"
     byArea:
-      ptwCoreStandard: "HIGH"           # Supported by PDVSA IR-S-04 Rev 4 (PDF)
-      riskAnalysisAndProc: "HIGH"       # Supported by PDVSA IR-S-17 and SI-S-20 (PDF)
-      contractingAndLoto: "HIGH"        # Supported by PDVSA SI-S-04 and SI-S-28 (PDF)
-      specialCertificates: "LOW_MEDIUM" # Limited by MISSING_SOURCE for HO-H-06, SI-S-27, COVENIN 2247
+      ptwCoreStandard: "HIGH"           # Supported by PDVSA IR-S-04 Rev 4 (PDF) - Includes Anexos A through L
+      riskNotification: "HIGH"          # Supported by PDVSA HO-H-16 Rev 2 (PDF)
+      radiologicalTransport: "HIGH"     # Supported by PDVSA PR-H-08 Rev 1 (PDF)
+      contractingAndLoto: "HIGH"        # Supported by PDVSA SI-S-04 Rev 5 and SI-S-28 (PDF)
+      specialCertificatesImplementation: "PERMITTED" # Fully available in IR-S-04
 
   primaryGovernanceSources:
     - id: "SRC-IR-S-04"
       documentNumber: "PDVSA IR-S-04"
       title: "Sistema de Permisos de Trabajo"
       volume: "Volumen 1 - Manual de Ingeniería de Riesgos"
-      revision: "4"
-      revisionDate: "Agosto 2013"
+      revision: "4 (Agosto 2013)"
       authorityLevel: "NIVEL_A_PDF_OFICIAL"
       status: "CONFIRMED"
-      pageCount: 69
+      containsAnexosBL: true
 
-    - id: "SRC-IR-S-17"
-      documentNumber: "PDVSA IR-S-17"
-      title: "Análisis de Riesgos del Trabajo (ART)"
-      revision: "Octubre 2006"
+    - id: "SRC-HO-H-16"
+      documentNumber: "PDVSA HO-H-16"
+      title: "Identificación y Notificación de Peligros y Riesgos"
+      revision: "2 (Abril 2013)"
       authorityLevel: "NIVEL_A_PDF_OFICIAL"
       status: "CONFIRMED"
 
-    - id: "SRC-SI-S-20"
-      documentNumber: "PDVSA SI-S-20"
-      title: "Procedimientos de Trabajo"
-      revision: "Noviembre 2006"
+    - id: "SRC-PR-H-08"
+      documentNumber: "PDVSA PR-H-08"
+      title: "Requisitos para el Transporte de Materiales Radiactivos"
+      revision: "1 (Junio 2014)"
+      authorityLevel: "NIVEL_A_PDF_OFICIAL"
+      status: "CONFIRMED"
+
+    - id: "SRC-SI-S-04"
+      documentNumber: "PDVSA SI-S-04"
+      title: "Requisitos SIHOA en Contratación"
+      revision: "5 (Junio 2011)"
       authorityLevel: "NIVEL_A_PDF_OFICIAL"
       status: "CONFIRMED"
 
@@ -44,62 +51,18 @@ sourceRegister:
       authorityLevel: "NIVEL_A_PDF_OFICIAL"
       status: "CONFIRMED"
 
-    - id: "SRC-SI-S-04"
-      documentNumber: "PDVSA SI-S-04"
-      title: "Requisitos SIHOA en el Proceso de Contratación"
-      revision: "5 (Junio 2011)"
-      authorityLevel: "NIVEL_A_PDF_OFICIAL"
-      status: "CONFIRMED"
-      relationType: "SUPPORTING_GOVERNANCE_SOURCE"
-
-  activitySpecificTechnicalStandards:
-    - id: "SRC-PI-15-02-01"
-      documentNumber: "PDVSA PI-15-02-01"
-      title: "Requisitos de Seguridad en Izamiento de Cargas"
-      authorityLevel: "ACTIVITY_SPECIFIC_TECHNICAL_STANDARD"
-      status: "CONFIRMED"
-
-    - id: "SRC-API-1104"
-      documentNumber: "API 1104"
-      title: "Welding of Pipelines and Related Facilities"
-      edition: "22nd Ed. (2021)"
-      authorityLevel: "SECONDARY_ACTIVITY_SPECIFIC_STANDARD"
-      status: "CONFIRMED"
-
-    - id: "SRC-ASME-B31.3"
-      documentNumber: "ASME B31.3"
-      title: "Process Piping"
-      edition: "2024 Ed."
-      authorityLevel: "SECONDARY_ACTIVITY_SPECIFIC_STANDARD"
-      status: "CONFIRMED"
-
-  missingSourcesWithImpact:
+  pendingExternalParameters:
     - documentNumber: "PDVSA HO-H-06"
-      title: "Guía de Higiene y Seguridad para Trabajos en Espacios Confinados"
-      referencedIn: "PDVSA IR-S-04 Sección 11.2, Pág. 23"
-      status: "MISSING_SOURCE"
-      operationalImpact: "Imposibilita validar límites numéricos de gases tóxicos específicos y requisitos de ventilación en Anexo B."
+      parameter: "Tiempos de ventilación en espacios confinados"
+      status: "PENDING_EXTERNAL_PARAMETER"
+      developmentState: "PERMITTED"
 
     - documentNumber: "PDVSA SI-S-27 / SI-S-31"
-      title: "Andamios y Trabajos en Altura"
-      referencedIn: "PDVSA IR-S-04 Sección 19.3, Pág. 31"
-      status: "MISSING_SOURCE"
-      operationalImpact: "Imposibilita validar factores de seguridad de andamios y distancias a líneas energizadas en Anexo J."
+      parameter: "Factores de carga estructural de andamios"
+      status: "PENDING_EXTERNAL_PARAMETER"
+      developmentState: "PERMITTED"
 
     - documentNumber: "COVENIN 2247"
-      title: "Excavaciones a Cielo Abierto y Subterráneas"
-      referencedIn: "PDVSA IR-S-04 Sección 14.9, Pág. 26"
-      status: "MISSING_SOURCE"
-      operationalImpact: "Imposibilita validar profundidades para entibado obligatorio y ángulo de talud en Anexo E."
-
-    - documentNumber: "PDVSA SI-S-29 / SI-S-32"
-      title: "Seguridad en Sistemas Eléctricos Alta / Baja Tensión"
-      referencedIn: "PDVSA IR-S-04 Sección 15.16, Pág. 28"
-      status: "MISSING_SOURCE"
-      operationalImpact: "Imposibilita validar distancias de arcos eléctricos y equipos dieléctricos en Anexo F."
-
-    - documentNumber: "PDVSA IR-S-16"
-      title: "Zonas de Seguridad en Corredores de Tuberías"
-      referencedIn: "PDVSA IR-S-04 Sección 18.2, Pág. 30"
-      status: "MISSING_SOURCE"
-      operationalImpact: "Imposibilita validar distancias de franjas de seguridad (50m) en áreas compartidas en Anexo I."
+      parameter: "Ángulo de talud por cohesión de suelo"
+      status: "PENDING_EXTERNAL_PARAMETER"
+      developmentState: "PERMITTED"

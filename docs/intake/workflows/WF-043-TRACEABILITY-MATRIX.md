@@ -1,19 +1,22 @@
-# WF-043: MATRIZ DE TRAZABILIDAD FUENTE vs CÓDIGO & CONFLICTOS
+# WF-043: MATRIZ DE TRAZABILIDAD Y DISPONIBILIDAD DE ANEXOS B A L
 
-**Documento Base:** PDVSA IR-S-04 — *Sistema de Permisos de Trabajo*, Rev. 4 (Agosto 2013).  
-**Código Auditado en GitHub:** `Industrial-360-App-GAIS` (`src/pages/SihoPtw.tsx`, `src/pages/LotoIsolation.tsx`, `src/lib/domain/`).
+**Documento Base:** PDVSA IR-S-04 — *Sistema de Permisos de Trabajo*, Rev. 4 (Agosto 2013).
 
 ---
 
-## 1. AUDITORÍA DE TRAZABILIDAD Y ESTADOS DE HALLAZGO
+## 1. ESTADO DE DISPONIBILIDAD DE ANEXOS EN NORMA PRIMARIA
 
-| Elemento / Campo Auditado | Exigencia en PDF PDVSA IR-S-04 | Estado en Repo GitHub GAIS | Estado de Trazabilidad | Conflicto / Riesgo Detectado |
-|---|---|---|:---:|---|
-| **Formato Anexo A Renglones 1-23** | 23 renglones específicos normados (§8.8, Pág. 33) | `SihoPtw.tsx` tiene campos genéricos simplificados | `CONFLICTED` | Faltan campos normados (MDC, Desvíos Tag, pruebas tóxicas completas). |
-| **Duración Máxima Permiso** | Max 8h continuo / Max 12h paradas (§8.4.1, 8.4.2) | Campo de texto de horas libre sin restricción | `CONFLICTED` | Riesgo de emisión de permisos con validez excesiva sin alerta. |
-| **Prórroga Única (Max 2h)** | Max 1 prórroga por max 2 horas (§8.5) | Sin lógica de control de prórroga única | `CONFLICTED` | Permite extensión indeterminada de vigencia. |
-| **Prueba de Gas Explosividad** | Premisa 0% LEL en caliente (§8.3.6) | Entrada numérica sin validación de umbral | `CONFLICTED` | No emite advertencia si LEL >0%. |
-| **Certificados Especiales B-L** | 11 Anexos específicos normados (Págs. 36-69) | `SihoPtw.tsx` muestra lista estática sin sub-formularios | `CONFLICTED` | No captura los renglones específicos de excavación, izamiento, etc. |
-| **Firma Tripartita (Emisor/Receptor/Ejecutor)** | Obligatoria en Otorgamiento, Prórroga y Cierre (§8.1.2.g) | Un solo botón de aprobación sin rol diferenciado | `CONFLICTED` | Rompe la corresponsabilidad tripartita requerida por la norma. |
-| **Notificación a Trabajadores** | Constancia escrita requerida (§8.1.2.f) | Ausente en la UI actual | `CONFLICTED` | Falta evidencia de divulgación de riesgos en sitio. |
-| **Prerrequisito Calificación Contratista SI-S-04** | Calificación APTA + Plan Específico SIHOA aprobados antes de inicio (§6.6, §7.5.4) | Sin validación previa de estatus de contratista en UI | `CONFLICTED` | Riesgo de emisión de PTW a contratistas sin calificación APTA o sin Plan SIHOA. |
+| Anexo / Certificado | Propósito en IR-S-04 | Ubicación en PDF | Estado Trazabilidad | Estado Desarrollo |
+|---|---|---|:---:|:---:|
+| **Anexo A** | Permiso Principal Frío/Caliente | Págs. 33-35 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
+| **Anexo B** | Espacios Confinados | Págs. 36-38 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
+| **Anexo C** | Izamiento de Cargas | Págs. 39-42 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
+| **Anexo D** | Radiaciones Ionizantes | Págs. 43-45 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
+| **Anexo E** | Excavaciones | Págs. 46-48 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
+| **Anexo F** | Sistema Eléctrico | Págs. 49-52 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
+| **Anexo G** | Subacuáticos / Acuáticos | Págs. 53-55 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
+| **Anexo H** | Hot-Tapping | Págs. 56-58 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
+| **Anexo I** | Áreas Compartidas | Págs. 59-60 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
+| **Anexo J** | Trabajos en Altura | Págs. 61-63 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
+| **Anexo K** | Fumigación | Págs. 64-66 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
+| **Anexo L** | Soldadura | Págs. 67-69 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
