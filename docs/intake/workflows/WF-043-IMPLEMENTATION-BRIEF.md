@@ -2,40 +2,34 @@
 
 **Workflow:** WF-043 — Sistema de Permisos de Trabajo  
 **Documento Base:** PDVSA IR-S-04 Rev. 4 (Agosto 2013)  
-**Estado:** ESPECIFICACIÓN DOCUMENTAL VERIFICABLE  
+**Estado:** `BLOCKED_PENDING_SOURCE_RECONCILIATION`  
+
+> [!WARNING]
+> **ESTADO DE BLOQUEO DE IMPLEMENTACIÓN:**  
+> La implementación de código de producción para los Certificados Especiales (Anexos B a L) se encuentra **BLOQUEADA** hasta completar la conciliación de fuentes primarias faltantes (`PDVSA HO-H-06`, `PDVSA SI-S-27/31`, `COVENIN 2247`, `PDVSA SI-S-29/32`). No se redactará ni modificará código hasta la recepción o aprobación formal de los umbrales normativos.
 
 ---
 
-## 1. ESTRUCTURA DE MÓDULOS Y ENTIDADES PROPUESTAS
+## 1. CLASIFICACIÓN DE COMPONENTES DEL DOMINIO
 
-```text
-src/
- ├── domain/
- │    └── ptw/
- │         ├── ptwDomain.ts           # Lógica pura de validaciones y estados PTW
- │         ├── ptwTypes.ts            # Tipos de dominio para Anexo A y Anexos B-L
- │         └── ptwAdvisoryRules.ts    # Reglas advisory (blocking: false)
- ├── pages/
- │    └── SihoPtwSpecView.tsx         # Vista renovada multi-paso de PTW
- └── services/
-      └── ptw/
-           ├── ptwDataService.ts      # Ingestión e integración Firestore / Databook
-           └── ptwPdfExporter.ts      # Generador de entregable impreso ISO 19005-1
-```
+### A. REQUISITOS CONFIRMADOS (NORMATIVOS NORMA A NORMA)
+* Formulario Anexo A (Renglones 1 al 23).
+* Firma tripartita obligatoria (Emisor, Receptor, Ejecutor).
+* Duración máxima de 8h continuas (ó 12h en paradas de planta).
+* Prórroga única por máximo 2h.
+* Regla de hora de inicio igual a la hora de prueba de gas.
+* Límite de $0\% \text{ LEL}$ para trabajos en caliente.
+* Prerrequisito de Contratista Calificado "APTA" y Plan SIHOA aprobado (PDVSA SI-S-04).
 
----
+### B. PROPUESTAS DE PRODUCTO (IC360-NEXUS)
+* Interfaz de asistente multi-paso (Wizard Planificación → Gas Test → Firmas → Cierre).
+* Paquete digital inmutable en PDF/A para el Databook de Infraestructura (`05.01_PERMISOS_DE_TRABAJO_PTW`).
+* Sistema de alertas Advisory para calibración de instrumentos multigas.
 
-## 2. MODELO DE EVENTOS DEL DOMINIO
-* `PTW_CREATED`: Permiso redactado con ART y Procedimiento adjunto.
-* `GAS_TEST_RECORDED`: Prueba cuantitativa de gases registrada por Evaluador.
-* `PTW_ISSUED`: Firmado y otorgado tripartitamente en sitio por Emisor, Receptor y Ejecutor.
-* `PTW_EXTENDED`: Prórroga concedida por máximo 2h con re-prueba de gas.
-* `PTW_CANCELLED`: Permiso anulado por variación de condiciones o emergencia.
-* `PTW_CLOSED`: Permiso culminado en sitio con verificación de orden, limpieza y desaislamiento LOTO.
+### C. INFERENCIAS TÉCNICAS
+* La prueba de gas debe ser re-ejecutada en sitio si el trabajo en caliente se interrumpe por más de 1 hora o trabajo en frío por más de 2 horas (basado en §8.6.2).
 
----
-
-## 3. PRUEBAS REQUERIDAS DE COHERENCIA (TESTING BRIEF)
-1. **Test de Regla Advisory CTL-PTW-01:** Verificar que la discrepancia entre hora de inicio y hora de gas test genera una alerta sin bloquear la interfaz.
-2. **Test de Coincidencia de Anexos:** Verificar que seleccionar un certificado especial abre la estructura de datos del anexo correspondiente.
-3. **Test de Trazabilidad Databook:** Confirmar que al cerrar un permiso, se genera la referencia dentro de `05.01_PERMISOS_DE_TRABAJO_PTW`.
+### D. PUNTOS PENDIENTES (REQUIEREN FUENTE PRIMARIA)
+* Umbrales numéricos de contaminantes tóxicos específicos en espacios confinados (`PDVSA HO-H-06`).
+* Requisitos dimensionales y ángulos de talud en excavaciones (`COVENIN 2247`).
+* Factores de seguridad de carga en andamios (`PDVSA SI-S-27/31`).

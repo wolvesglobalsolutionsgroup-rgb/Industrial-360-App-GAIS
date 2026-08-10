@@ -1,27 +1,24 @@
-# WF-043: PREGUNTAS ABIERTAS, AMBIGÜEDADES Y FUENTES FALTANTES
+# WF-043: MATRIZ DE FUENTES FALTANTES Y PREGUNTAS ABIERTAS
 
 **Documento Base:** PDVSA IR-S-04 — *Sistema de Permisos de Trabajo*, Rev. 4 (Agosto 2013).
 
 ---
 
-## 1. FUENTES REFERENCIADAS FALTANTES (`MISSING_SOURCE`)
+## 1. FUENTES FALTANTES Y SU IMPACTO OPERATIVO EXACTO (`MISSING_SOURCE`)
 
-Las siguientes normas primarias citadas en PDVSA IR-S-04 deben ser localizadas en PDF oficial para completar la auditoría de los Certificados Especiales (Anexos B a L):
-
-1. `REF-HO-H-06`: **PDVSA HO-H-06** — *Guía de Higiene y Seguridad para Trabajos en Espacios Confinados* (Requerida para autorizar Anexo B).
-2. `REF-SI-S-27` & `REF-SI-S-31`: **PDVSA SI-S-27 / SI-S-31** — *Andamios y Trabajos en Altura* (Requeridas para autorizar Anexo J).
-3. `REF-SI-S-29` & `REF-SI-S-32`: **PDVSA SI-S-29 / SI-S-32** — *Sistemas Eléctricos Alta y Baja Tensión* (Requeridas para autorizar Anexo F).
-4. `REF-COVENIN-2247`: **COVENIN 2247** — *Excavaciones a Cielo Abierto y Subterráneas* (Requerida para autorizar Anexo E).
-5. `REF-IR-S-16`: **PDVSA IR-S-16** — *Zonas de Seguridad y Protección en Corredores* (Requerida para autorizar Anexo I).
+| Documento Faltante | Título / Objeto | Referencia en IR-S-04 | Impacto Operativo Exacto |
+|---|---|---|---|
+| **PDVSA HO-H-06** | *Espacios Confinados* | Sec. 11.2, Pág. 23 | Imposibilita definir los límites cuantitativos de contaminantes tóxicos y tiempos de ventilación en Anexo B. |
+| **PDVSA SI-S-27 / SI-S-31** | *Andamios y Altura* | Sec. 19.3, Pág. 31 | Imposibilita validar factores de diseño de andamios y distancias de seguridad a líneas eléctricas en Anexo J. |
+| **COVENIN 2247** | *Excavaciones* | Sec. 14.9, Pág. 26 | Imposibilita definir la profundidad a partir de la cual el entibado es obligatorio en Anexo E. |
+| **PDVSA SI-S-29 / SI-S-32** | *Sistemas Eléctricos* | Sec. 15.16, Pág. 28 | Imposibilita definir las distancias mínimas de aislamiento de arcos y EPP dieléctrico en Anexo F. |
+| **PDVSA IR-S-16** | *Zonas de Seguridad* | Sec. 18.2, Pág. 30 | Imposibilita validar el radio de la franja de seguridad (50m) en áreas compartidas en Anexo I. |
+| **PDVSA PR-H-08** | *Protección Radiológica* | Sec. 13.3, Pág. 24 | Imposibilita validar el límite de tasa de dosis ($0.5\ \mu\text{Sv/h}$) y dosimetría en Anexo D. |
 
 ---
 
-## 2. AMBIGÜEDADES DOCUMENTALES IDENTIFICADAS
+## 2. AMBIGÜEDADES DOCUMENTALES REGISTRADAS
 
-1. **Prórroga en Permisos de 12 horas (§8.5 vs Nota al Pie Pág. 20):**  
-   El texto de la Sección 8.5 indica que se otorgará una prórroga de hasta 2h si las condiciones no han variado. Sin embargo, la nota al pie de la página 20 establece: *"No se otorgará Prórroga de Permisos en los casos expuestos en el punto 8.4.2 (Paradas de Planta 12h)"*.  
-   *Consecuencia:* Queda pendiente determinar por procedimiento operativo local si los permisos de 12 horas en paradas admiten o no prórroga.
-
-2. **Rol de Emisor en Áreas Sin Custodio (§6.10, Pág. 13):**  
-   Establece que en proyectos nuevos en áreas sin custodio asignado, el emisor puede ser el Residente de la Contratista o el Inspector de Proyecto.  
-   *Consecuencia:* En la interfaz se debe permitir la flexibilidad de asignación de rol de Emisor a personal de Proyectos/Residencia sin violar la regla advisory de separación de roles.
+1. **Prórroga en Permisos de 12 horas (§8.5 vs Nota Pág. 20):**  
+   El texto de la Sección 8.5 menciona prórroga general de 2h, pero la nota de la Pág. 20 prohíbe prórrogas en permisos de 12h en paradas de planta.  
+   *Resolución solicitada:* Confirmar si en paradas de planta aplica prohibición absoluta de prórroga.
