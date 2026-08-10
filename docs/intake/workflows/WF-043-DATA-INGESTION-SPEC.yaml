@@ -1,0 +1,89 @@
+dataIngestionSpec:
+  workflowId: "WF-043"
+  workflowName: "Sistema de Permisos de Trabajo"
+  standardRef: "PDVSA IR-S-04 Rev 4 (Agosto 2013)"
+  governance:
+    advisoryOnly: true
+    blocking: false
+    humanOverrideAllowed: true
+    humanDecisionRequiredOnException: true
+    automaticLegalValidityAsserted: false
+
+  fieldsAnexoA:
+    - id: "tipoTrabajo"
+      name: "Tipo de Trabajo"
+      type: "ENUM"
+      options: ["EN_FRIO", "EN_CALIENTE"]
+      required: true
+
+    - id: "ordenSapNo"
+      name: "Orden SAP No."
+      type: "STRING"
+      required: false
+
+    - id: "numeroPermiso"
+      name: "Número del Permiso"
+      type: "STRING"
+      required: true
+      unique: true
+
+    - id: "ubicacion"
+      name: "Instalación / Área / Unidad / Equipo"
+      type: "COMPLEX"
+      fields: ["instalacion", "area", "unidad", "equipo", "tramoKm"]
+      required: true
+
+    - id: "descripcionTrabajo"
+      name: "Descripción de los Trabajos"
+      type: "TEXT"
+      required: true
+
+    - id: "numeroArt"
+      name: "Análisis de Riesgos No. (ART)"
+      type: "STRING"
+      standardRef: "PDVSA IR-S-17"
+      required: true
+
+    - id: "numeroProcedimiento"
+      name: "Procedimiento de Trabajo No."
+      type: "STRING"
+      standardRef: "PDVSA SI-S-20"
+      required: true
+
+    - id: "ejecutorTipo"
+      name: "Ejecutor del Trabajo"
+      type: "ENUM"
+      options: ["PDVSA", "CONTRATISTA"]
+      required: true
+
+    - id: "certificadosRequeridos"
+      name: "Certificados Requeridos"
+      type: "ARRAY_ENUM"
+      options: ["ANEXO_B", "ANEXO_C", "ANEXO_D", "ANEXO_E", "ANEXO_F", "ANEXO_G", "ANEXO_H", "ANEXO_I", "ANEXO_J", "ANEXO_K", "ANEXO_L", "NO_APLICA"]
+      required: true
+
+    - id: "pruebaGases"
+      name: "Pruebas de Gases"
+      type: "OBJECT"
+      fields:
+        explosividad: { target: "0% LEL", unit: "% v/v" }
+        oxigeno: { min: 19.5, max: 23.5, unit: "% v/v" }
+        h2s: { limitPpt: 10, unit: "ppm" }
+        so2: { limitPpt: 2, unit: "ppm" }
+        co: { limitPpt: 25, unit: "ppm" }
+        benceno: { limitPpt: 0.5, unit: "ppm" }
+      evaluador: { required: true, fields: ["nombre", "cedula", "firma", "equipoMedicion", "vencimientoCalibracion"] }
+
+  advisoryControls:
+    - id: "CTL-PTW-01"
+      rule: "Hora de inicio debe coincidir con hora de prueba de gas (§8.1.1.b)"
+      blocking: false
+    - id: "CTL-PTW-02"
+      rule: "Vigencia de carnet de Emisor, Receptor y Ejecutor (§8.9, 8.11, 8.12)"
+      blocking: false
+    - id: "CTL-PTW-03"
+      rule: "Trabajo en caliente requiere 0% LEL (§8.3.6)"
+      blocking: false
+    - id: "CTL-PTW-04"
+      rule: "Duración continua max 8 horas (ó 12h en paradas) (§8.4)"
+      blocking: false

@@ -1,0 +1,68 @@
+sourceRegister:
+  workflowId: "WF-043"
+  workflowName: "Sistema de Permisos de Trabajo"
+  agent: "Antigravity"
+  lastUpdated: "2026-08-10"
+
+  primarySources:
+    - id: "SRC-IR-S-04"
+      documentNumber: "PDVSA IR-S-04"
+      title: "Sistema de Permisos de Trabajo"
+      volume: "Volumen 1 - Manual de Ingeniería de Riesgos"
+      revision: "4"
+      revisionDate: "Agosto 2013"
+      authorityLevel: "NIVEL_A_PDF_OFICIAL"
+      status: "CONFIRMED"
+      pageCount: 69
+
+    - id: "SRC-IR-S-17"
+      documentNumber: "PDVSA IR-S-17"
+      title: "Análisis de Riesgos del Trabajo (ART)"
+      revision: "Octubre 2006"
+      authorityLevel: "NIVEL_A_PDF_OFICIAL"
+      status: "CONFIRMED"
+
+    - id: "SRC-SI-S-20"
+      documentNumber: "PDVSA SI-S-20"
+      title: "Procedimientos de Trabajo"
+      revision: "Noviembre 2006"
+      authorityLevel: "NIVEL_A_PDF_OFICIAL"
+      status: "CONFIRMED"
+
+    - id: "SRC-SI-S-28"
+      documentNumber: "PDVSA SI-S-28"
+      title: "Control de Fuentes de Energía (LOTO)"
+      revision: "Junio 2010"
+      authorityLevel: "NIVEL_A_PDF_OFICIAL"
+      status: "CONFIRMED"
+
+  missingSources:
+    - documentNumber: "PDVSA HO-H-06"
+      title: "Guía de Higiene y Seguridad para Trabajos en Espacios Confinados"
+      referencedIn: "PDVSA IR-S-04 Sección 11.2, Pág. 23"
+      status: "MISSING_SOURCE"
+
+    - documentNumber: "PDVSA SI-S-27"
+      title: "Andamios: Requisitos de Seguridad"
+      referencedIn: "PDVSA IR-S-04 Sección 19.3, Pág. 31"
+      status: "MISSING_SOURCE"
+
+    - documentNumber: "PDVSA SI-S-31"
+      title: "Seguridad Industrial para Trabajos en Altura"
+      referencedIn: "PDVSA IR-S-04 Sección 19.3, Pág. 31"
+      status: "MISSING_SOURCE"
+
+    - documentNumber: "PDVSA SI-S-29"
+      title: "Seguridad y Salud para Trabajos en Sistemas Eléctricos de Alta Tensión"
+      referencedIn: "PDVSA IR-S-04 Sección 15.16, Pág. 28"
+      status: "MISSING_SOURCE"
+
+    - documentNumber: "PDVSA SI-S-32"
+      title: "Seguridad y Salud para Trabajos en Sistemas Eléctricos de Baja Tensión"
+      referencedIn: "PDVSA IR-S-04 Sección 15.16, Pág. 28"
+      status: "MISSING_SOURCE"
+
+    - documentNumber: "COVENIN 2247"
+      title: "Excavaciones a Cielo Abierto y Subterráneas. Requisitos de Seguridad"
+      referencedIn: "PDVSA IR-S-04 Sección 14.9, Pág. 26"
+      status: "MISSING_SOURCE"
