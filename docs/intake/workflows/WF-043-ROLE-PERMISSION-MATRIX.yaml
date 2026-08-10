@@ -1,0 +1,33 @@
+workflow_id: wf-043-aprobacion-ptw
+title: Role & Permission Matrix for PTW
+roles:
+  - role: superadmin
+    can_create: true
+    can_review: true
+    can_approve: true
+    can_issue: true
+    can_close: true
+  - role: gerente
+    can_create: true
+    can_review: true
+    can_approve: true
+    can_issue: true
+    can_close: true
+  - role: inspector
+    can_create: true
+    can_review: true
+    can_approve: true
+    can_issue: true
+    can_close: true
+  - role: supervisor
+    can_create: true
+    can_review: true
+    can_approve: false
+    can_issue: true
+    can_close: true
+  - role: campo
+    can_create: true
+    can_review: false
+    can_approve: false
+    can_issue: false
+    can_close: false

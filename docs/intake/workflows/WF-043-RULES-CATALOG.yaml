@@ -1,0 +1,43 @@
+workflow_id: wf-043-aprobacion-ptw
+title: Business Rules Catalog for PTW (PDVSA IR-S-04)
+rules:
+  - rule_id: BR-043-01
+    name: Contratista Habilitado APTA
+    description: La empresa contratista ejecutora debe poseer calificación APTA vigente en el registro SIHOA.
+    severity: HARD_BLOCK
+  - rule_id: BR-043-02
+    name: Plan SIHOA Aprobado
+    description: La empresa debe tener su Plan SIHOA del proyecto aprobado por el custodio de la instalación.
+    severity: HARD_BLOCK
+  - rule_id: BR-043-03
+    name: ART Aprobado (PDVSA IR-S-17)
+    description: El Análisis de Riesgos del Trabajo debe estar firmado y aprobado antes del otorgamiento.
+    severity: HARD_BLOCK
+  - rule_id: BR-043-04
+    name: Procedimiento de Trabajo Aprobado (PDVSA SI-S-20)
+    description: El procedimiento específico debe estar aprobado.
+    severity: HARD_BLOCK
+  - rule_id: BR-043-05
+    name: Cero Explosividad en Caliente (0.0% LEL)
+    description: Todo trabajo en caliente exige prueba atmosférica con 0.0% LEL.
+    severity: HARD_BLOCK
+  - rule_id: BR-043-06
+    name: Coincidencia de Hora de Inicio y Prueba
+    description: La hora de inicio del trabajo debe ser idéntica a la hora de prueba inicial de gas.
+    severity: HARD_BLOCK
+  - rule_id: BR-043-07
+    name: Límite de Duración Operacional
+    description: Máximo 8 horas en operaciones normales, 12 horas en paradas de planta.
+    severity: HARD_BLOCK
+  - rule_id: BR-043-08
+    name: Restricción de Prórroga
+    description: La prórroga no puede exceder las 2 horas continuas y exige conservar condiciones iniciales y firmantes.
+    severity: HARD_BLOCK
+  - rule_id: BR-043-09
+    name: Firmas Tripartitas
+    description: Se requieren firmas obligatorias de Emisor Custodio, Receptor y Ejecutor.
+    severity: HARD_BLOCK
+  - rule_id: BR-043-10
+    name: Verificación de Cierre y Limpieza
+    description: El cierre exige confirmación de orden, limpieza, retiro de bloqueos LOTO y reconexión.
+    severity: HARD_BLOCK

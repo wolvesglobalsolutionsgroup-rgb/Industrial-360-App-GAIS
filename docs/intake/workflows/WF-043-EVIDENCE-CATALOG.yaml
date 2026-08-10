@@ -1,0 +1,28 @@
+workflow_id: wf-043-aprobacion-ptw
+title: Evidence Catalog for PTW
+evidence_items:
+  - evidence_id: EV-043-01
+    title: Certificado de Calibración de Explosímetro / Monitor Multigas
+    required_state: ISSUED
+    file_types: ["pdf", "png", "jpg"]
+    mandatory: true
+  - evidence_id: EV-043-02
+    title: Certificado Habilitación Contratista SIHOA
+    required_state: APPROVED
+    file_types: ["pdf"]
+    mandatory: true
+  - evidence_id: EV-043-03
+    title: Documento Aprobado ART (PDVSA IR-S-17)
+    required_state: APPROVED
+    file_types: ["pdf"]
+    mandatory: true
+  - evidence_id: EV-043-04
+    title: Foto de Demarcación y Equipos Contra Incendio en Sitio
+    required_state: ISSUED
+    file_types: ["png", "jpg"]
+    mandatory: false
+  - evidence_id: EV-043-05
+    title: Registro de Inspección Final de Orden y Limpieza
+    required_state: CLOSED
+    file_types: ["png", "jpg", "pdf"]
+    mandatory: true

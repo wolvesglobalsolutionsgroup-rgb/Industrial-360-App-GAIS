@@ -1,0 +1,31 @@
+workflow_id: wf-043-aprobacion-ptw
+title: Data Ingestion Specification for PTW (PDVSA IR-S-04)
+ingestion_sources:
+  - source_id: sap-pm
+    type: ERP / Enterprise System
+    description: "Órdenes de mantenimiento SAP PM para vincular el número de orden 400XXXXXX."
+    fields:
+      - sapOrderNumber
+      - installationArea
+      - equipmentDescription
+  - source_id: sihoa-contractor-registry
+    type: Internal Master Data
+    description: "Registro de Contratistas Habilitados SIHOA."
+    fields:
+      - contractorRif
+      - contractorName
+      - contractorStatus
+      - sihoaPlanApproved
+      - sihoaPlanCode
+  - source_id: telemetry-gas-monitors
+    type: IoT / Field Monitor
+    description: "Explosímetros y monitores multigas en sitio."
+    fields:
+      - lelPercentage
+      - o2Percentage
+      - h2sPpm
+      - testTime
+      - calibrationExpiryDate
+pending_external_parameters:
+  allow_external_registration: true
+  registration_policy: "Si un parámetro no está disponible vía interfaz de datos, se registra formalmente en pendingExternalParameters sin inventar ni simular valores."

@@ -151,7 +151,7 @@ function AppContent() {
             } />
             <Route path="siho-ptw" element={
               <ProtectedRoute allowedRoles={['superadmin', 'gerente', 'supervisor', 'inspector', 'campo']} moduleName="Módulo SIHO-A y Permisos PTW">
-                <SihoPtw />
+                <WorkflowRunnerPage overrideWorkflowId="wf-043-aprobacion-ptw" />
               </ProtectedRoute>
             } />
             <Route path="qa-qc-welding" element={

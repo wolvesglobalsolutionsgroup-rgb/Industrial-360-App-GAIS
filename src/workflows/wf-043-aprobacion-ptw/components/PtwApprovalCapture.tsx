@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { WorkflowComponentProps } from '../../../lib/workflows/contracts';
-import { PtwApprovalData } from '../types';
+import { PtwApprovalData, createDefaultPtwData } from '../types';
 import {
   ShieldAlert,
   Flame,
@@ -37,54 +37,108 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
     'eligibility'
   );
 
+  const defaults = createDefaultPtwData();
+  const safeData: PtwApprovalData = {
+    ...defaults,
+    ...data,
+    contractorEligibility: {
+      ...defaults.contractorEligibility,
+      ...(data?.contractorEligibility || {}),
+    },
+    preStartReadiness: {
+      ...defaults.preStartReadiness,
+      ...(data?.preStartReadiness || {}),
+      specialCertificatesRequired: data?.preStartReadiness?.specialCertificatesRequired || [],
+    },
+    gasTest: {
+      ...defaults.gasTest,
+      ...(data?.gasTest || {}),
+    },
+    preparationChecklist: {
+      ...defaults.preparationChecklist,
+      ...(data?.preparationChecklist || {}),
+    },
+    verificationConditions: {
+      ...defaults.verificationConditions,
+      ...(data?.verificationConditions || {}),
+    },
+    managementOfChange: {
+      ...defaults.managementOfChange,
+      ...(data?.managementOfChange || {}),
+    },
+    extension: {
+      ...defaults.extension,
+      ...(data?.extension || {}),
+    },
+    closeout: {
+      ...defaults.closeout,
+      ...(data?.closeout || {}),
+    },
+    signers: {
+      emisor: {
+        ...defaults.signers.emisor,
+        ...(data?.signers?.emisor || {}),
+      },
+      receptor: {
+        ...defaults.signers.receptor,
+        ...(data?.signers?.receptor || {}),
+      },
+      ejecutor: {
+        ...defaults.signers.ejecutor,
+        ...(data?.signers?.ejecutor || {}),
+      },
+    },
+    pendingExternalParameters: data?.pendingExternalParameters || [],
+  };
+
   // Helper for nested state updates
   const updateContractor = (patch: Partial<PtwApprovalData['contractorEligibility']>) => {
-    onChange({ contractorEligibility: { ...data.contractorEligibility, ...patch } });
+    onChange({ contractorEligibility: { ...safeData.contractorEligibility, ...patch } });
   };
 
   const updatePreStart = (patch: Partial<PtwApprovalData['preStartReadiness']>) => {
-    onChange({ preStartReadiness: { ...data.preStartReadiness, ...patch } });
+    onChange({ preStartReadiness: { ...safeData.preStartReadiness, ...patch } });
   };
 
   const updateGasTest = (patch: Partial<PtwApprovalData['gasTest']>) => {
-    onChange({ gasTest: { ...data.gasTest, ...patch } });
+    onChange({ gasTest: { ...safeData.gasTest, ...patch } });
   };
 
   const updatePrep = (patch: Partial<PtwApprovalData['preparationChecklist']>) => {
-    onChange({ preparationChecklist: { ...data.preparationChecklist, ...patch } });
+    onChange({ preparationChecklist: { ...safeData.preparationChecklist, ...patch } });
   };
 
   const updateVerification = (patch: Partial<PtwApprovalData['verificationConditions']>) => {
-    onChange({ verificationConditions: { ...data.verificationConditions, ...patch } });
+    onChange({ verificationConditions: { ...safeData.verificationConditions, ...patch } });
   };
 
   const updateMoc = (patch: Partial<PtwApprovalData['managementOfChange']>) => {
-    onChange({ managementOfChange: { ...data.managementOfChange, ...patch } });
+    onChange({ managementOfChange: { ...safeData.managementOfChange, ...patch } });
   };
 
   const updateExtension = (patch: Partial<PtwApprovalData['extension']>) => {
-    onChange({ extension: { ...data.extension, ...patch } });
+    onChange({ extension: { ...safeData.extension, ...patch } });
   };
 
   const updateCloseout = (patch: Partial<PtwApprovalData['closeout']>) => {
-    onChange({ closeout: { ...data.closeout, ...patch } });
+    onChange({ closeout: { ...safeData.closeout, ...patch } });
   };
 
   const updateSigner = (role: 'emisor' | 'receptor' | 'ejecutor', patch: Partial<PtwApprovalData['signers']['emisor']>) => {
     onChange({
       signers: {
-        ...data.signers,
-        [role]: { ...data.signers[role], ...patch },
+        ...safeData.signers,
+        [role]: { ...safeData.signers[role], ...patch },
       },
     });
   };
 
   const isSpecialRequired = (type: string) => {
-    return data.preStartReadiness.specialCertificatesRequired.includes(type as any);
+    return safeData.preStartReadiness.specialCertificatesRequired.includes(type as any);
   };
 
   const toggleSpecialAnexo = (type: any) => {
-    const current = data.preStartReadiness.specialCertificatesRequired;
+    const current = safeData.preStartReadiness.specialCertificatesRequired;
     const next = current.includes(type) ? current.filter((t) => t !== type) : [...current, type];
     updatePreStart({ specialCertificatesRequired: next });
   };
@@ -149,7 +203,7 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
           }`}
         >
           <FileSpreadsheet className="w-4 h-4" />
-          3. Anexos Especiales ({data.preStartReadiness.specialCertificatesRequired.length})
+          3. Anexos Especiales ({safeData.preStartReadiness.specialCertificatesRequired.length})
         </button>
         <button
           type="button"
@@ -196,7 +250,7 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 <label className="block text-xs font-semibold text-muted-foreground mb-1">Nombre Contratista *</label>
                 <input
                   type="text"
-                  value={data.contractorEligibility.contractorName}
+                  value={safeData.contractorEligibility.contractorName}
                   onChange={(e) => updateContractor({ contractorName: e.target.value })}
                   disabled={isReadOnly}
                   placeholder="Ej. PROINTECA C.A."
@@ -207,7 +261,7 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 <label className="block text-xs font-semibold text-muted-foreground mb-1">RIF Contratista *</label>
                 <input
                   type="text"
-                  value={data.contractorEligibility.contractorRif}
+                  value={safeData.contractorEligibility.contractorRif}
                   onChange={(e) => updateContractor({ contractorRif: e.target.value })}
                   disabled={isReadOnly}
                   placeholder="J-12345678-9"
@@ -217,7 +271,7 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
               <div>
                 <label className="block text-xs font-semibold text-muted-foreground mb-1">Estatus Habilitación SIHOA *</label>
                 <select
-                  value={data.contractorEligibility.contractorStatus}
+                  value={safeData.contractorEligibility.contractorStatus}
                   onChange={(e) => updateContractor({ contractorStatus: e.target.value as any })}
                   disabled={isReadOnly}
                   className="w-full px-3 py-2 text-sm bg-surface border border-border rounded-lg text-ink"
@@ -236,15 +290,15 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
               </div>
               <button
                 type="button"
-                onClick={() => !isReadOnly && updateContractor({ sihoaPlanApproved: !data.contractorEligibility.sihoaPlanApproved })}
+                onClick={() => !isReadOnly && updateContractor({ sihoaPlanApproved: !safeData.contractorEligibility.sihoaPlanApproved })}
                 disabled={isReadOnly}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${
-                  data.contractorEligibility.sihoaPlanApproved
+                  safeData.contractorEligibility.sihoaPlanApproved
                     ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
                     : 'bg-red-500/10 text-red-600 border-red-500/30'
                 }`}
               >
-                {data.contractorEligibility.sihoaPlanApproved ? 'Plan SIHOA Aprobado' : 'Plan SIHOA Pendiente'}
+                {safeData.contractorEligibility.sihoaPlanApproved ? 'Plan SIHOA Aprobado' : 'Plan SIHOA Pendiente'}
               </button>
             </div>
           </div>
@@ -259,7 +313,7 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 <label className="block text-xs font-semibold text-muted-foreground">Código ART (PDVSA IR-S-17) *</label>
                 <input
                   type="text"
-                  value={data.preStartReadiness.artCode}
+                  value={safeData.preStartReadiness.artCode}
                   onChange={(e) => updatePreStart({ artCode: e.target.value })}
                   disabled={isReadOnly}
                   placeholder="Ej. ART-2026-CR-102"
@@ -267,15 +321,15 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 />
                 <button
                   type="button"
-                  onClick={() => !isReadOnly && updatePreStart({ artApproved: !data.preStartReadiness.artApproved })}
+                  onClick={() => !isReadOnly && updatePreStart({ artApproved: !safeData.preStartReadiness.artApproved })}
                   disabled={isReadOnly}
                   className={`w-full py-1.5 text-xs font-semibold rounded-lg border ${
-                    data.preStartReadiness.artApproved
+                    safeData.preStartReadiness.artApproved
                       ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
                       : 'bg-amber-500/10 text-amber-600 border-amber-500/30'
                   }`}
                 >
-                  {data.preStartReadiness.artApproved ? 'ART Aprobado (IR-S-17)' : 'ART Pendiente de Aprobar'}
+                  {safeData.preStartReadiness.artApproved ? 'ART Aprobado (IR-S-17)' : 'ART Pendiente de Aprobar'}
                 </button>
               </div>
 
@@ -283,7 +337,7 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 <label className="block text-xs font-semibold text-muted-foreground">Código Procedimiento (PDVSA SI-S-20) *</label>
                 <input
                   type="text"
-                  value={data.preStartReadiness.procedureCode}
+                  value={safeData.preStartReadiness.procedureCode}
                   onChange={(e) => updatePreStart({ procedureCode: e.target.value })}
                   disabled={isReadOnly}
                   placeholder="Ej. PROC-MEC-2026-05"
@@ -291,15 +345,15 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 />
                 <button
                   type="button"
-                  onClick={() => !isReadOnly && updatePreStart({ procedureApproved: !data.preStartReadiness.procedureApproved })}
+                  onClick={() => !isReadOnly && updatePreStart({ procedureApproved: !safeData.preStartReadiness.procedureApproved })}
                   disabled={isReadOnly}
                   className={`w-full py-1.5 text-xs font-semibold rounded-lg border ${
-                    data.preStartReadiness.procedureApproved
+                    safeData.preStartReadiness.procedureApproved
                       ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
                       : 'bg-amber-500/10 text-amber-600 border-amber-500/30'
                   }`}
                 >
-                  {data.preStartReadiness.procedureApproved ? 'Procedimiento Aprobado (SI-S-20)' : 'Procedimiento Pendiente'}
+                  {safeData.preStartReadiness.procedureApproved ? 'Procedimiento Aprobado (SI-S-20)' : 'Procedimiento Pendiente'}
                 </button>
               </div>
             </div>
@@ -315,7 +369,7 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
               <label className="block text-xs font-semibold text-muted-foreground mb-1">Código de Permiso PTW *</label>
               <input
                 type="text"
-                value={data.ptwCode}
+                value={safeData.ptwCode || ''}
                 onChange={(e) => onChange({ ptwCode: e.target.value })}
                 disabled={isReadOnly}
                 placeholder="Ej. PTW-2026-CRP-089"
@@ -326,7 +380,7 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
               <label className="block text-xs font-semibold text-muted-foreground mb-1">Orden SAP N° (Si aplica)</label>
               <input
                 type="text"
-                value={data.sapOrderNumber}
+                value={safeData.sapOrderNumber || ''}
                 onChange={(e) => onChange({ sapOrderNumber: e.target.value })}
                 disabled={isReadOnly}
                 placeholder="400012345"
@@ -336,7 +390,7 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
             <div>
               <label className="block text-xs font-semibold text-muted-foreground mb-1">Tipo de Trabajo *</label>
               <select
-                value={data.workType}
+                value={safeData.workType || 'frio'}
                 onChange={(e) => onChange({ workType: e.target.value as any })}
                 disabled={isReadOnly}
                 className="w-full px-3 py-2 text-sm bg-surface border border-border rounded-lg text-ink"
@@ -352,7 +406,7 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
               <label className="block text-xs font-semibold text-muted-foreground mb-1">Instalación / Área / Unidad *</label>
               <input
                 type="text"
-                value={data.installationArea}
+                value={safeData.installationArea || ''}
                 onChange={(e) => onChange({ installationArea: e.target.value })}
                 disabled={isReadOnly}
                 placeholder="Ej. Planta de Fraccionamiento Ulé, Unidad 12"
@@ -363,7 +417,7 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
               <label className="block text-xs font-semibold text-muted-foreground mb-1">Equipo / Intervención</label>
               <input
                 type="text"
-                value={data.equipmentDescription}
+                value={safeData.equipmentDescription || ''}
                 onChange={(e) => onChange({ equipmentDescription: e.target.value })}
                 disabled={isReadOnly}
                 placeholder="Ej. Torre Deetanizadora TK-102"
@@ -376,7 +430,7 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
             <label className="block text-xs font-semibold text-muted-foreground mb-1">Descripción del Trabajo a Realizar *</label>
             <textarea
               rows={2}
-              value={data.workDescription}
+              value={safeData.workDescription || ''}
               onChange={(e) => onChange({ workDescription: e.target.value })}
               disabled={isReadOnly}
               placeholder="Describa brevemente las actividades..."
@@ -395,7 +449,7 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 <label className="block text-xs text-muted-foreground mb-1">Hora Inicio *</label>
                 <input
                   type="time"
-                  value={data.startTime}
+                  value={safeData.startTime || ''}
                   onChange={(e) => onChange({ startTime: e.target.value })}
                   disabled={isReadOnly}
                   className="w-full px-3 py-2 text-sm bg-surface border border-border rounded-lg text-ink"
@@ -405,11 +459,11 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 <label className="block text-xs text-muted-foreground mb-1">Hora Prueba Inicial Gas *</label>
                 <input
                   type="time"
-                  value={data.gasTest.testTime}
+                  value={safeData.gasTest.testTime || ''}
                   onChange={(e) => updateGasTest({ testTime: e.target.value })}
                   disabled={isReadOnly}
                   className={`w-full px-3 py-2 text-sm bg-surface border rounded-lg text-ink ${
-                    data.startTime && data.gasTest.testTime && data.startTime !== data.gasTest.testTime
+                    safeData.startTime && safeData.gasTest.testTime && safeData.startTime !== safeData.gasTest.testTime
                       ? 'border-red-500 text-red-600'
                       : 'border-border'
                   }`}
@@ -419,9 +473,9 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 <label className="block text-xs text-muted-foreground mb-1">Duración (Horas) *</label>
                 <input
                   type="number"
-                  max={data.isPlantShutdownOrMajorMaint ? 12 : 8}
+                  max={safeData.isPlantShutdownOrMajorMaint ? 12 : 8}
                   min={1}
-                  value={data.maxDurationHours}
+                  value={safeData.maxDurationHours || 8}
                   onChange={(e) => onChange({ maxDurationHours: parseInt(e.target.value, 10) || 8 })}
                   disabled={isReadOnly}
                   className="w-full px-3 py-2 text-sm bg-surface border border-border rounded-lg text-ink"
@@ -430,22 +484,22 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
               <div className="flex items-end">
                 <button
                   type="button"
-                  onClick={() => !isReadOnly && onChange({ isPlantShutdownOrMajorMaint: !data.isPlantShutdownOrMajorMaint })}
+                  onClick={() => !isReadOnly && onChange({ isPlantShutdownOrMajorMaint: !safeData.isPlantShutdownOrMajorMaint })}
                   disabled={isReadOnly}
                   className={`w-full py-2 px-3 text-xs font-semibold rounded-lg border ${
-                    data.isPlantShutdownOrMajorMaint
+                    safeData.isPlantShutdownOrMajorMaint
                       ? 'bg-purple-500/10 text-purple-600 border-purple-500/30'
                       : 'bg-muted text-muted-foreground border-border'
                   }`}
                 >
-                  {data.isPlantShutdownOrMajorMaint ? 'Parada Planta (Max 12h)' : 'Trabajo Normal (Max 8h)'}
+                  {safeData.isPlantShutdownOrMajorMaint ? 'Parada Planta (Max 12h)' : 'Trabajo Normal (Max 8h)'}
                 </button>
               </div>
             </div>
-            {data.startTime && data.gasTest.testTime && data.startTime !== data.gasTest.testTime && (
+            {safeData.startTime && safeData.gasTest.testTime && safeData.startTime !== safeData.gasTest.testTime && (
               <p className="text-xs text-red-600 font-semibold flex items-center gap-1">
                 <AlertTriangle className="w-3.5 h-3.5" />
-                HARD_BLOCK: La hora de inicio ({data.startTime}) DEBE coincidir exactamente con la hora de la prueba de gas ({data.gasTest.testTime}).
+                HARD_BLOCK: La hora de inicio ({safeData.startTime}) DEBE coincidir exactamente con la hora de la prueba de gas ({safeData.gasTest.testTime}).
               </p>
             )}
           </div>
@@ -462,11 +516,11 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 <input
                   type="number"
                   step="0.1"
-                  value={data.gasTest.lelPercentage}
+                  value={safeData.gasTest.lelPercentage ?? 0}
                   onChange={(e) => updateGasTest({ lelPercentage: parseFloat(e.target.value) || 0 })}
                   disabled={isReadOnly}
                   className={`w-full px-3 py-2 text-sm bg-surface border rounded-lg text-ink ${
-                    data.workType === 'caliente' && data.gasTest.lelPercentage !== 0 ? 'border-red-500 text-red-600' : 'border-emerald-500'
+                    safeData.workType === 'caliente' && safeData.gasTest.lelPercentage !== 0 ? 'border-red-500 text-red-600' : 'border-emerald-500'
                   }`}
                 />
               </div>
@@ -475,11 +529,11 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 <input
                   type="number"
                   step="0.1"
-                  value={data.gasTest.o2Percentage}
+                  value={safeData.gasTest.o2Percentage ?? 20.9}
                   onChange={(e) => updateGasTest({ o2Percentage: parseFloat(e.target.value) || 0 })}
                   disabled={isReadOnly}
                   className={`w-full px-3 py-2 text-sm bg-surface border rounded-lg text-ink ${
-                    data.gasTest.o2Percentage >= 19.5 && data.gasTest.o2Percentage <= 23.5 ? 'border-emerald-500' : 'border-red-500 text-red-600'
+                    safeData.gasTest.o2Percentage >= 19.5 && safeData.gasTest.o2Percentage <= 23.5 ? 'border-emerald-500' : 'border-red-500 text-red-600'
                   }`}
                 />
               </div>
@@ -487,11 +541,11 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 <label className="block text-xs text-muted-foreground mb-1">PPM H2S [Requerido: 0 PPM]</label>
                 <input
                   type="number"
-                  value={data.gasTest.h2sPpm}
+                  value={safeData.gasTest.h2sPpm ?? 0}
                   onChange={(e) => updateGasTest({ h2sPpm: parseInt(e.target.value, 10) || 0 })}
                   disabled={isReadOnly}
                   className={`w-full px-3 py-2 text-sm bg-surface border rounded-lg text-ink ${
-                    data.gasTest.h2sPpm === 0 ? 'border-emerald-500' : 'border-red-500 text-red-600'
+                    safeData.gasTest.h2sPpm === 0 ? 'border-emerald-500' : 'border-red-500 text-red-600'
                   }`}
                 />
               </div>
@@ -546,7 +600,7 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
 
           {/* Contextual Render of Active Special Anexos */}
           <div className="space-y-3">
-            {data.preStartReadiness.specialCertificatesRequired.map((cert) => (
+            {safeData.preStartReadiness.specialCertificatesRequired.map((cert) => (
               <div key={cert} className="p-3 bg-surface border border-brand-500/30 rounded-xl space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-ink uppercase tracking-wide">
@@ -561,7 +615,7 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 </p>
               </div>
             ))}
-            {data.preStartReadiness.specialCertificatesRequired.length === 0 && (
+            {safeData.preStartReadiness.specialCertificatesRequired.length === 0 && (
               <p className="text-xs text-muted-foreground italic text-center py-4">
                 No se han seleccionado Anexos Especiales adicionales. Solo aplicará el Permiso Core (Anexo A).
               </p>
@@ -586,25 +640,25 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
               <span className="text-xs font-semibold text-ink">¿Requiere Prórroga de Trabajo?</span>
               <button
                 type="button"
-                onClick={() => !isReadOnly && updateExtension({ requested: !data.extension.requested })}
+                onClick={() => !isReadOnly && updateExtension({ requested: !safeData.extension.requested })}
                 disabled={isReadOnly}
                 className={`px-3 py-1.5 rounded-lg text-xs font-bold border ${
-                  data.extension.requested
+                  safeData.extension.requested
                     ? 'bg-amber-500/10 text-amber-600 border-amber-500/30'
                     : 'bg-muted text-muted-foreground border-border'
                 }`}
               >
-                {data.extension.requested ? 'Prórroga Solicitada' : 'Sin Prórroga'}
+                {safeData.extension.requested ? 'Prórroga Solicitada' : 'Sin Prórroga'}
               </button>
             </div>
 
-            {data.extension.requested && (
+            {safeData.extension.requested && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
                 <div>
                   <label className="block text-xs font-semibold text-muted-foreground mb-1">Prorrogar Hasta (Hora)</label>
                   <input
                     type="time"
-                    value={data.extension.extendedUntilTime}
+                    value={safeData.extension.extendedUntilTime || ''}
                     onChange={(e) => updateExtension({ extendedUntilTime: e.target.value })}
                     disabled={isReadOnly}
                     className="w-full px-3 py-2 text-sm bg-surface border border-border rounded-lg text-ink"
@@ -616,11 +670,11 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                     type="number"
                     max={2}
                     min={1}
-                    value={data.extension.extensionHours}
+                    value={safeData.extension.extensionHours || 0}
                     onChange={(e) => updateExtension({ extensionHours: parseInt(e.target.value, 10) || 1 })}
                     disabled={isReadOnly}
                     className={`w-full px-3 py-2 text-sm bg-surface border rounded-lg text-ink ${
-                      data.extension.extensionHours > 2 ? 'border-red-500 text-red-600' : 'border-border'
+                      safeData.extension.extensionHours > 2 ? 'border-red-500 text-red-600' : 'border-border'
                     }`}
                   />
                 </div>
@@ -628,7 +682,7 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                   <label className="block text-xs font-semibold text-muted-foreground mb-1">Motivo Justificado</label>
                   <input
                     type="text"
-                    value={data.extension.reason}
+                    value={safeData.extension.reason || ''}
                     onChange={(e) => updateExtension({ reason: e.target.value })}
                     disabled={isReadOnly}
                     placeholder="Ej. Ajuste final de alineación de acople..."
@@ -656,12 +710,12 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-ink">1. EMISOR (PDVSA CUSTODIO)</span>
                   <span className="text-[10px] bg-brand-500/10 text-brand-600 px-1.5 py-0.5 rounded font-mono">
-                    {data.signers.emisor.status}
+                    {safeData.signers.emisor.status}
                   </span>
                 </div>
                 <input
                   type="text"
-                  value={data.signers.emisor.name}
+                  value={safeData.signers.emisor.name || ''}
                   onChange={(e) => updateSigner('emisor', { name: e.target.value })}
                   disabled={isReadOnly}
                   placeholder="Nombre y Apellido Emisor *"
@@ -669,7 +723,7 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 />
                 <input
                   type="text"
-                  value={data.signers.emisor.certNumber}
+                  value={safeData.signers.emisor.certNumber || ''}
                   onChange={(e) => updateSigner('emisor', { certNumber: e.target.value })}
                   disabled={isReadOnly}
                   placeholder="N° Certificado Emisor *"
@@ -682,12 +736,12 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-ink">2. RECEPTOR (MANTENIMIENTO)</span>
                   <span className="text-[10px] bg-brand-500/10 text-brand-600 px-1.5 py-0.5 rounded font-mono">
-                    {data.signers.receptor.status}
+                    {safeData.signers.receptor.status}
                   </span>
                 </div>
                 <input
                   type="text"
-                  value={data.signers.receptor.name}
+                  value={safeData.signers.receptor.name || ''}
                   onChange={(e) => updateSigner('receptor', { name: e.target.value })}
                   disabled={isReadOnly}
                   placeholder="Nombre y Apellido Receptor *"
@@ -695,7 +749,7 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 />
                 <input
                   type="text"
-                  value={data.signers.receptor.certNumber}
+                  value={safeData.signers.receptor.certNumber || ''}
                   onChange={(e) => updateSigner('receptor', { certNumber: e.target.value })}
                   disabled={isReadOnly}
                   placeholder="N° Certificado Receptor *"
@@ -708,12 +762,12 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-ink">3. EJECUTOR (OBRA/SERVICIO)</span>
                   <span className="text-[10px] bg-brand-500/10 text-brand-600 px-1.5 py-0.5 rounded font-mono">
-                    {data.signers.ejecutor.status}
+                    {safeData.signers.ejecutor.status}
                   </span>
                 </div>
                 <input
                   type="text"
-                  value={data.signers.ejecutor.name}
+                  value={safeData.signers.ejecutor.name || ''}
                   onChange={(e) => updateSigner('ejecutor', { name: e.target.value })}
                   disabled={isReadOnly}
                   placeholder="Nombre y Apellido Ejecutor *"
@@ -732,30 +786,30 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <button
                 type="button"
-                onClick={() => !isReadOnly && updateCloseout({ areaCleanAndOrderly: !data.closeout.areaCleanAndOrderly })}
+                onClick={() => !isReadOnly && updateCloseout({ areaCleanAndOrderly: !safeData.closeout.areaCleanAndOrderly })}
                 disabled={isReadOnly}
                 className={`p-3 text-xs font-semibold rounded-lg border text-left flex items-center justify-between ${
-                  data.closeout.areaCleanAndOrderly
+                  safeData.closeout.areaCleanAndOrderly
                     ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
                     : 'bg-surface text-muted-foreground border-border'
                 }`}
               >
                 <span>Orden y Limpieza Preservados en Sitio</span>
-                {data.closeout.areaCleanAndOrderly ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <XCircle className="w-4 h-4 text-muted-foreground" />}
+                {safeData.closeout.areaCleanAndOrderly ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <XCircle className="w-4 h-4 text-muted-foreground" />}
               </button>
 
               <button
                 type="button"
-                onClick={() => !isReadOnly && updateCloseout({ locksRemovedAndReconnected: !data.closeout.locksRemovedAndReconnected })}
+                onClick={() => !isReadOnly && updateCloseout({ locksRemovedAndReconnected: !safeData.closeout.locksRemovedAndReconnected })}
                 disabled={isReadOnly}
                 className={`p-3 text-xs font-semibold rounded-lg border text-left flex items-center justify-between ${
-                  data.closeout.locksRemovedAndReconnected
+                  safeData.closeout.locksRemovedAndReconnected
                     ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
                     : 'bg-surface text-muted-foreground border-border'
                 }`}
               >
                 <span>Bloqueos Retirados / Equipos Reconectados</span>
-                {data.closeout.locksRemovedAndReconnected ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <XCircle className="w-4 h-4 text-muted-foreground" />}
+                {safeData.closeout.locksRemovedAndReconnected ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <XCircle className="w-4 h-4 text-muted-foreground" />}
               </button>
             </div>
           </div>
@@ -774,11 +828,11 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
               Si existe algún parámetro técnico pendiente de telemetría o fuente externa, se registra con su fuente esperada sin inventar valores ficticios.
             </p>
 
-            {data.pendingExternalParameters.length === 0 ? (
+            {safeData.pendingExternalParameters.length === 0 ? (
               <p className="text-xs text-muted-foreground italic">No hay parámetros externos marcados como pendientes.</p>
             ) : (
               <div className="space-y-2">
-                {data.pendingExternalParameters.map((p) => (
+                {safeData.pendingExternalParameters.map((p) => (
                   <div key={p.parameterId} className="p-3 bg-surface border border-amber-500/30 rounded-lg text-xs space-y-1">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-ink">{p.parameterName}</span>

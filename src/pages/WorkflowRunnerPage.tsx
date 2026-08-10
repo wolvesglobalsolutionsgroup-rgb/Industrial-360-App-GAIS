@@ -24,6 +24,7 @@ import {
   HardHat,
 } from 'lucide-react';
 import { getPhaseByNumber } from '../components/navigation/phaseNavigation';
+import { createDefaultPtwData } from '../workflows/wf-043-aprobacion-ptw/types';
 
 interface WorkflowRunnerPageProps {
   overrideWorkflowId?: string;
@@ -113,16 +114,70 @@ export default function WorkflowRunnerPage({ overrideWorkflowId }: WorkflowRunne
       };
     }
     if (wfId === 'wf-043-aprobacion-ptw') {
+      const defaultPtw = createDefaultPtwData();
       return {
+        ...defaultPtw,
         ptwCode: 'PTW-2026-CRP-089',
+        sapOrderNumber: '400088921',
+        installationArea: 'Planta Compresión H-2 / Módulo 4',
+        equipmentDescription: 'Interconexión de tubería 12" Sch 40 en caliente',
+        workDescription: 'Corte y soldadura en línea de proceso en caliente con monitoreo atmosférico continuo.',
         workType: 'caliente',
-        lelPercentage: 0.0,
-        o2Percentage: 20.9,
-        h2sPpm: 0,
-        lotoVerified: true,
-        supervisorName: 'Ing. Manuel Rivas',
-        safetyInspectorName: 'Ing. Carlos Mendoza',
-        status: 'draft',
+        startTime: '08:00',
+        contractorEligibility: {
+          contractorRif: 'J-30491823-1',
+          contractorName: 'PROINTECA C.A.',
+          contractorStatus: 'APTA',
+          sihoaPlanApproved: true,
+          sihoaPlanCode: 'PLAN-SIHOA-2026-04',
+        },
+        preStartReadiness: {
+          artCode: 'ART-2026-CR-102',
+          artApproved: true,
+          procedureCode: 'PROC-MEC-2026-05',
+          procedureApproved: true,
+          emergencyPlanCode: 'PRE-2026-H2',
+          specialCertificatesRequired: ['izaje', 'altura'],
+        },
+        gasTest: {
+          ...defaultPtw.gasTest,
+          testTime: '08:00',
+          evaluatorName: 'Ing. Carlos Mendoza',
+          evaluatorId: '14.892.102',
+          evaluatorCertificate: 'CERT-GAS-9942',
+          equipmentUsed: 'Explosímetro Multi-Gas Calibrado',
+          calibrationExpiryDate: '2026-12-31',
+          lelPercentage: 0.0,
+          o2Percentage: 20.9,
+          h2sPpm: 0,
+        },
+        signers: {
+          emisor: {
+            name: 'Ing. Carlos Mendoza',
+            ci: '14.892.102',
+            certNumber: 'CERT-EM-9942',
+            role: 'EMISOR',
+            organization: 'PDVSA CUSTODIO',
+            status: 'PENDING',
+          },
+          receptor: {
+            name: 'Ing. Manuel Rivas',
+            ci: '12.345.678',
+            certNumber: 'CERT-REC-1042',
+            role: 'RECEPTOR',
+            organization: 'PROINTECA C.A.',
+            status: 'PENDING',
+          },
+          ejecutor: {
+            name: 'Tec. José Hernández',
+            ci: '18.234.567',
+            certNumber: 'CERT-EJ-5521',
+            role: 'EJECUTOR',
+            organization: 'PROINTECA C.A.',
+            status: 'PENDING',
+          },
+        },
+        status: 'DRAFT',
       };
     }
     if (wfId === 'wf-044-reporte-tabular') {

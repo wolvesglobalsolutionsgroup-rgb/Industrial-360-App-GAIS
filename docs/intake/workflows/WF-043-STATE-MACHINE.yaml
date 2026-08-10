@@ -1,0 +1,61 @@
+workflow_id: wf-043-aprobacion-ptw
+initial_state: DRAFT
+states:
+  - id: DRAFT
+    label: Borrador
+  - id: IN_PROGRESS
+    label: En Captura
+  - id: SUBMITTED
+    label: Enviado a Revisión
+  - id: UNDER_REVIEW
+    label: En Revisión Custodio / SIHO
+  - id: CHANGES_REQUESTED
+    label: Observaciones Solicitadas
+  - id: APPROVED
+    label: Prerrequisitos Aprobados
+  - id: ISSUED
+    label: Permiso Otorgado y Emitido
+  - id: SUSPENDED
+    label: Permiso Suspendido
+  - id: CLOSED
+    label: Permiso Cerrado
+  - id: ARCHIVED
+    label: Documentación Archivada
+transitions:
+  - from: DRAFT
+    to: IN_PROGRESS
+    label: Iniciar Captura
+  - from: IN_PROGRESS
+    to: SUBMITTED
+    label: Enviar a Revisión
+  - from: SUBMITTED
+    to: UNDER_REVIEW
+    label: Iniciar Revisión Custodio
+  - from: UNDER_REVIEW
+    to: CHANGES_REQUESTED
+    label: Solicitar Correcciones
+  - from: CHANGES_REQUESTED
+    to: IN_PROGRESS
+    label: Reabrir para Corrección
+  - from: UNDER_REVIEW
+    to: APPROVED
+    gate: gate-contractor-readiness
+    label: Aprobar Prerrequisitos
+  - from: APPROVED
+    to: ISSUED
+    gate: gate-issuance-hard-blocks
+    label: Otorgar y Emitir Permiso
+  - from: ISSUED
+    to: SUSPENDED
+    label: Suspender Permiso
+  - from: SUSPENDED
+    to: ISSUED
+    gate: gate-issuance-hard-blocks
+    label: Re-emitir Permiso
+  - from: ISSUED
+    to: CLOSED
+    gate: gate-closeout-verification
+    label: Cerrar Permiso
+  - from: CLOSED
+    to: ARCHIVED
+    label: Archivar Custodiado
