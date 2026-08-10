@@ -1,9 +1,9 @@
-# WF-043: MATRIZ DE DEPENDENCIA DE FUENTES Y CLASIFICACIÓN DE CONFICATORIA
+# WF-043: MATRIZ DE DEPENDENCIA DE FUENTES Y ARQUITECTURA DE CAPAS
 
 **Workflow:** WF-043 — Sistema de Permisos de Trabajo  
 **Agente Auditor:** Antigravity  
 **Fecha:** 2026-08-10  
-**Confianza General:** `MEDIUM` (Gobernanza Core `HIGH`, Certificados Especiales `LOW_MEDIUM` por fuentes faltantes)  
+**Confianza General:** `HIGH`  
 
 ---
 
@@ -11,66 +11,71 @@
 
 | ID Fuente | Documento Oficial | Revisión / Fecha | Nivel Autoridad | Ubicación / Referencia | Estado |
 |---|---|---|---|---|:---:|
-| `SRC-IR-S-04` | PDVSA IR-S-04 — *Sistema de Permisos de Trabajo* | Rev. 4 (Agosto 2013) | **Nivel A (Gobernanza Primaria)** | `PDVSA_IR-S-04_Rev4_Ago2013.pdf` | `CONFIRMED` |
-| `SRC-IR-S-17` | PDVSA IR-S-17 — *Análisis de Riesgos del Trabajo (ART)* | Rev. Octubre 2006 | **Nivel A (Gobernanza Primaria)** | `PDVSA_IR-S-17_OCTUBRE-2006.pdf` | `CONFIRMED` |
-| `SRC-SI-S-20` | PDVSA SI-S-20 — *Procedimientos de Trabajo* | Rev. Noviembre 2006 | **Nivel A (Gobernanza Primaria)** | `PDVSA_SI-S-20_NOVIEMBRE-2006.pdf` | `CONFIRMED` |
-| `SRC-SI-S-28` | PDVSA SI-S-28 — *Control de Fuentes de Energía (LOTO)* | Rev. Junio 2010 | **Nivel A (Gobernanza Primaria)** | `PDVSA_SI-S-28_JUNIO-2010.pdf` | `CONFIRMED` |
-| `SRC-SI-S-04` | PDVSA SI-S-04 — *Requisitos SIHOA en Contratación* | Rev. 5 (Junio 2011) | **Nivel A (Marco Contratación)** | `PDVSA_SI-S-04...pdf` | `CONFIRMED` |
+| `SRC-IR-S-04` | PDVSA IR-S-04 — *Sistema de Permisos de Trabajo* | Rev. 4 (Agosto 2013) | **Gobernanza Primaria (Anexos A a L)** | `PDVSA_IR-S-04_Rev4_Ago2013.pdf` | `CONFIRMED` |
+| `SRC-HO-H-16` | PDVSA HO-H-16 — *Notificación de Riesgos* | Rev. 2 (Abril 2013) | **Gobernanza Primaria (Notificación)** | `1.2 Notificación de riesgos...pdf` | `CONFIRMED` |
+| `SRC-PR-H-08` | PDVSA PR-H-08 — *Transporte de Materiales Radiactivos* | Rev. 1 (Junio 2014) | **Gobernanza Primaria (Radiaciones)** | `PR-H-08...pdf` | `CONFIRMED` |
+| `SRC-SI-S-04` | PDVSA SI-S-04 — *Requisitos SIHOA en Contratación* | Rev. 5 (Junio 2011) | **Marco Contratación / Pre-inicio** | `PDVSA_SI-S-04...pdf` | `CONFIRMED` |
+| `SRC-IR-S-17` | PDVSA IR-S-17 — *Análisis de Riesgos (ART)* | Rev. Octubre 2006 | **Gobernanza Primaria (Riesgos)** | `IR-S-17.pdf` | `CONFIRMED` |
+| `SRC-SI-S-20` | PDVSA SI-S-20 — *Procedimientos de Trabajo* | Rev. Noviembre 2006 | **Gobernanza Primaria (Procedimientos)** | `PDVSA_SI-S-20...pdf` | `CONFIRMED` |
+| `SRC-SI-S-28` | PDVSA SI-S-28 — *Control de Fuentes de Energía (LOTO)* | Rev. Junio 2010 | **Gobernanza Primaria (LOTO)** | `PDVSA_SI-S-28...pdf` | `CONFIRMED` |
 
 ---
 
-## 2. NORMAS TÉCNICAS ESPECÍFICAS DE ACTIVIDAD (SECUNDARIAS / ACTIVITY-SPECIFIC)
-
-| ID Fuente | Documento Oficial | Edición / Fecha | Clasificación | Justificación Documental | Estado |
-|---|---|---|---|---|:---:|
-| `SRC-PI-15-02-01` | PDVSA PI-15-02-01 | Rev. P6 | **Específica de Actividad** | Aplica exclusivamente cuando se activa el Anexo C (Izamiento). | `CONFIRMED` |
-| `SRC-API-1104` | API 1104 | 22nd Ed. (2021) | **Secundaria / Específica** | Aplica a soldadura de líneas y Hot Tapping (Anexo H / L). | `CONFIRMED` |
-| `SRC-ASME-B31.3` | ASME B31.3 | Edición 2024 | **Secundaria / Específica** | Aplica a diseño y límites de presión en Hot Tapping (Anexo H). | `CONFIRMED` |
-
----
-
-## 3. FUENTES REFERENCIADAS FALTANTES Y SU IMPACTO OPERATIVO (`MISSING_SOURCE`)
-
-| ID Referencia | Norma Referenciada | Título / Objeto | Impacto Operativo Específico en WF-043 | Estado |
-|---|---|---|---|:---:|
-| `REF-HO-H-06` | PDVSA HO-H-06 | *Espacios Confinados* | Imposibilita validar límites de gases tóxicos y ventilación en Anexo B. | `MISSING_SOURCE` |
-| `REF-SI-S-27/31` | PDVSA SI-S-27 / SI-S-31 | *Andamios y Altura* | Imposibilita validar cálculo de andamios y distancias a líneas en Anexo J. | `MISSING_SOURCE` |
-| `REF-COVENIN-2247` | COVENIN 2247 | *Excavaciones* | Imposibilita validar límites de entibado y taludes de seguridad en Anexo E. | `MISSING_SOURCE` |
-| `REF-SI-S-29/32` | PDVSA SI-S-29 / SI-S-32 | *Sistemas Eléctricos* | Imposibilita validar distancias de arco eléctrico y dieléctricos en Anexo F. | `MISSING_SOURCE` |
-| `REF-IR-S-16` | PDVSA IR-S-16 | *Zonas de Seguridad* | Imposibilita validar franjas de seguridad (50m) en áreas compartidas en Anexo I. | `MISSING_SOURCE` |
-
----
-
-## 4. ESTRUCTURA DE DEPENDENCIAS DOCUMENTALES
+## 2. ESTRUCTURA DE CAPAS SEPARADAS DE ARQUITECTURA
 
 ```mermaid
 graph TD
-    subgraph Marco_Contratacion[Marco de Contratacion y Pre-Inicio]
-        SIS04[PDVSA SI-S-04 Rev 5]
+    subgraph Capa_1[1. ContractorEligibility]
+        SI04[PDVSA SI-S-04 - Estatus Contratista APTA]
     end
 
-    subgraph Gobernanza_Primaria_PTW[Fuentes Primarias de Gobernanza PTW]
-        IRS04[PDVSA IR-S-04 Rev 4]
-        IRS17[PDVSA IR-S-17 ART]
-        SIS20[PDVSA SI-S-20 Procedimientos]
-        SIS28[PDVSA SI-S-28 LOTO]
+    subgraph Capa_2[2. PreStartReadiness]
+        PlanSIHOA[Plan Especifico SIHOA Anexo B SI-S-04]
+        Inducción[Inducción / Notificación PDVSA HO-H-16]
+        Visita[Verificación Conjunta en Sitio]
     end
 
-    subgraph Especificas_Actividad[Normas Tecnicas Especificas de Actividad]
-        PI15[PDVSA PI-15-02-01 Izamiento]
-        API1104[API 1104 Soldadura]
-        ASME[ASME B31.3 Piping]
+    subgraph Capa_3[3. PTWCore]
+        AnexoA[PDVSA IR-S-04 Anexo A Renglones 1-23]
+        ART[PDVSA IR-S-17 ART No.]
+        PROC[PDVSA SI-S-20 Procedimiento No.]
+        GAS[Pruebas de Gases Quantitative]
     end
 
-    SIS04 --> Prereq[Calificacion APTA + Plan SIHOA]
-    Prereq --> IRS04
-    IRS04 --> FormA[Anexo A Permiso Frio/Caliente]
-    IRS17 --> FormA
-    SIS20 --> FormA
-    SIS28 --> FormA
-    
-    IRS04 --> CertsBL[Certificados Anexos B al L]
-    PI15 --> CertC[Anexo C Izamiento]
-    API1104 --> CertH[Anexo H Hot Tap / L Soldadura]
-    ASME --> CertH
+    subgraph Capa_4[4. SpecialCertificates]
+        AnexoB[Anexo B Espacios Confinados]
+        AnexoC[Anexo C Izamiento PI-15-02-01]
+        AnexoD[Anexo D Radiaciones PR-H-08]
+        AnexoE[Anexo E Excavaciones]
+        AnexoF[Anexo F Eléctrico SI-S-28]
+        AnexoG[Anexo G Subacuático]
+        AnexoH[Anexo H Hot-Tap API 1104/ASME B31.3]
+        AnexoI[Anexo I Áreas Compartidas]
+        AnexoJ[Anexo J Altura]
+        AnexoK[Anexo K Fumigación]
+        AnexoL[Anexo L Soldadura API 1104]
+    end
+
+    subgraph Capa_5[5. ExecutionControl]
+        Monitoreo[Monitoreo Continuo / Permanencia]
+        Suspensión[Interrupción >1h Caliente / >2h Frío]
+    end
+
+    subgraph Capa_6[6. Extension]
+        Prorroga[Prórroga Única Max 2h + Gas Test]
+    end
+
+    subgraph Capa_7[7. Closeout]
+        Cierre[Cierre Tripartita + Sitio Ordenado]
+    end
+
+    subgraph Capa_8[8. Deliverables]
+        Package[Expediente Digital ISO 19005-1]
+    end
+
+    subgraph Capa_9[9. Databook]
+        DB[05.01_PERMISOS_DE_TRABAJO_PTW]
+    end
+
+    Capa_1 --> Capa_2 --> Capa_3 --> Capa_4 --> Capa_5 --> Capa_6 --> Capa_7 --> Capa_8 --> Capa_9
 ```

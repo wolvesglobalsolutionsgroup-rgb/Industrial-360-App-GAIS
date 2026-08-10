@@ -10,53 +10,12 @@
 
 ---
 
-## 1. CLASIFICACIÓN DE CONSTRUCCIÓN E IMPLEMENTACIÓN
+## 1. ANÁLISIS DE CÓDIGO GITHUB EXISTENTE Y REFACTORIZACIÓN
 
-### A. ANEXOS DISPONIBLES EN NORMA PRIMARIA (`AVAILABLE_IN_PRIMARY_STANDARD`)
-* **Anexo A (Permiso Principal Frío/Caliente):** Renglones 1 al 23 (Págs. 33-35).
-* **Anexo B (Espacios Confinados):** Formato y checklist normado (Págs. 36-38).
-* **Anexo C (Izamiento de Cargas):** Formato y cálculo de riggers/grúas (Págs. 39-42).
-* **Anexo D (Radiaciones Ionizantes):** Formato y controles de fuentes (Págs. 43-45).
-* **Anexo E (Excavaciones):** Formato y firmas de servicios públicos (Págs. 46-48).
-* **Anexo F (Sistema Eléctrico):** Formato y desenergización LOTO (Págs. 49-52).
-* **Anexo G (Subacuáticos):** Formato y buceo en pareja (Págs. 53-55).
-* **Anexo H (Hot-Tapping):** Formato y datos de línea/válvula (Págs. 56-58).
-* **Anexo I (Áreas Compartidas):** Formato y notificación a custodios (Págs. 59-60).
-* **Anexo J (Trabajos en Altura):** Formato y andamios/arnés (Págs. 61-63).
-* **Anexo K (Fumigación):** Formato y producto/MSDS (Págs. 64-66).
-* **Anexo L (Soldadura):** Formato y calificación EPS/soldador (Págs. 67-69).
-
-### B. REGLAS CONTENIDAS EN IR-S-04 (`HARD_BLOCK` & `ADVISORY`)
-* Duración máxima (8h continuo / 12h paradas).
-* Prórroga única por máximo 2h.
-* Coincidencia exacta de hora de inicio con hora de gas test.
-* Límite de 0% LEL en caliente.
-* Firma tripartita obligatoria (Emisor, Receptor, Ejecutor).
-* Prerrequisito de Contratista Calificado APTA y Plan SIHOA (PDVSA SI-S-04).
-* Notificación de Riesgos por puesto de trabajo (PDVSA HO-H-16 - **CONFIRMADO PDF**).
-* Requisitos de Transporte Radiológico (PDVSA PR-H-08 - **CONFIRMADO PDF**).
-
-### C. PARÁMETROS EXTERNOS PENDIENTES (`PENDING_EXTERNAL_PARAMETER`)
-* Tiempos de ventilación forzada específicos y límites de toxicidad secundarios (`PDVSA HO-H-06`).
-* Factores de carga estructural de andamios específicos (`PDVSA SI-S-27/31`).
-* Ángulo exacto de talud por tipo de suelo en excavaciones (`COVENIN 2247`).
-* Distancias mínimas de arco eléctrico por nivel de kilovoltios (`PDVSA SI-S-29/32`).
-
----
-
-## 2. ESTRUCTURA DE COMPONENTES DE SOFTWARE PERMITIDA
-
-```text
-src/
- ├── domain/
- │    └── ptw/
- │         ├── ptwDomain.ts            # Reglas de negocio de Anexo A y Anexos B-L
- │         ├── ptwTypes.ts             # Tipos TypeScript para Anexo A y Anexos B-L
- │         └── ptwAdvisoryRules.ts     # Reglas Advisory y Hard Blocks
- ├── pages/
- │    └── SihoPtwWizardView.tsx        # Vista asistida multi-paso para Anexo A + Anexos B-L
- └── services/
-      └── ptw/
-           ├── ptwDataService.ts       # Persistencia Firestore / Indexación Databook
-           └── ptwPdfExporter.ts       # Generación de entregables PDF/A ISO 19005-1
-```
+| Elemento en Repo GitHub | Diagnóstico Técnico | Acción Requerida |
+|---|---|---|
+| `src/pages/SihoPtw.tsx` | Formulario extenso monolítico sin validación de validez (8h/12h), prórroga ni firmas tripartitas. | **REEMPLAZAR** por asistente multi-paso `SihoPtwWizardView.tsx`. |
+| `src/lib/domain/` | Tipos TypeScript parciales de PTW. | **EXPANDIR** en `src/domain/ptw/ptwTypes.ts` agregando estructuras de Anexo A y Anexos B al L. |
+| `src/lib/factories/` | Ausencia de factories para instanciar certificados especiales. | **CREAR** `ptwAnnexFactory.ts` para instanciar sub-formularios B al L. |
+| `Componentes de Firma` | Botón único de aprobación. | **REEMPLAZAR** por pad de firma digital tripartita (Emisor, Receptor, Ejecutor). |
+| `Exportación Databook` | Generación básica de PDF. | **CONECTAR** con `ptwPdfExporter.ts` produciendo expediente PDF/A inmutable ISO 19005-1. |

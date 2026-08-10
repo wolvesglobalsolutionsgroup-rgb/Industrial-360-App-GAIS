@@ -1,0 +1,44 @@
+stateMachine:
+  workflowId: "WF-043"
+  initialState: "DRAFT"
+
+  states:
+    - id: "DRAFT"
+      description: "Permiso en borrador por el Receptor / Ejecutor. ART y Procedimiento en redacción."
+      allowedTransitions: ["PRE_START_VERIFIED", "CANCELLED"]
+
+    - id: "PRE_START_VERIFIED"
+      description: "Verificación de prerrequisitos SI-S-04 (Contratista APTA, Plan SIHOA y Notificación HO-H-16)."
+      allowedTransitions: ["GAS_TEST_RECORDED", "CANCELLED"]
+
+    - id: "GAS_TEST_RECORDED"
+      description: "Prueba de gas en sitio cuantitativa registrada por Evaluador Certificado."
+      allowedTransitions: ["ISSUED", "CANCELLED"]
+
+    - id: "ISSUED"
+      description: "Otorgado y firmado tripartitamente por Emisor, Receptor y Ejecutor."
+      allowedTransitions: ["EXECUTING", "CANCELLED"]
+
+    - id: "EXECUTING"
+      description: "Trabajo en ejecución en campo bajo monitoreo de gases y supervisión."
+      allowedTransitions: ["EXTENDED", "SUSPENDED", "CANCELLED", "CLOSED"]
+
+    - id: "EXTENDED"
+      description: "Prórroga única de hasta 2 horas concedida con re-prueba de gas y firmas."
+      allowedTransitions: ["EXECUTING", "CANCELLED", "CLOSED"]
+
+    - id: "SUSPENDED"
+      description: "Trabajo suspendido por interrupción >1h en caliente o >2h en frío, o variaciones climáticas."
+      allowedTransitions: ["GAS_TEST_RECORDED", "CANCELLED"]
+
+    - id: "CANCELLED"
+      description: "Permiso anulado por emergencia, violación de seguridad o cambio no autorizado."
+      allowedTransitions: ["DATABOOK_ARCHIVED"]
+
+    - id: "CLOSED"
+      description: "Trabajo culminado en sitio con firmas tripartitas de cierre y orden/limpieza comprobados."
+      allowedTransitions: ["DATABOOK_ARCHIVED"]
+
+    - id: "DATABOOK_ARCHIVED"
+      description: "Expediente digital inmutable indexado en 05.01_PERMISOS_DE_TRABAJO_PTW."
+      allowedTransitions: []

@@ -1,0 +1,115 @@
+rulesCatalog:
+  workflowId: "WF-043"
+  sourceStandard: "PDVSA IR-S-04 Rev 4 (Agosto 2013)"
+  governanceSources: ["PDVSA IR-S-04", "PDVSA SI-S-04", "PDVSA HO-H-16", "PDVSA PR-H-08", "PDVSA SI-S-28"]
+
+  rules:
+    - id: "RULE-HARD-01"
+      name: "Validez Máxima de Permiso Continuo (8 horas)"
+      type: "HARD_BLOCK"
+      citation:
+        document: "PDVSA IR-S-04 Rev 4"
+        section: "Sec. 8.4.1"
+        page: 19
+        exactQuote: "El Permiso de Trabajo tendrá una validez de un turno de trabajo, el cual no excederá de ocho (8) horas continuas."
+      logic: "duracion_permiso_horas <= 8"
+
+    - id: "RULE-HARD-02"
+      name: "Validez Máxima en Paradas de Planta (12 horas)"
+      type: "HARD_BLOCK"
+      citation:
+        document: "PDVSA IR-S-04 Rev 4"
+        section: "Sec. 8.4.2"
+        page: 20
+        exactQuote: "En los casos de Paradas de Planta o trabajos especiales, la validez del Permiso de Trabajo podrá ser de hasta doce (12) horas continuas."
+      logic: "es_parada_planta == true => duracion_permiso_horas <= 12"
+
+    - id: "RULE-HARD-03"
+      name: "Prórroga Única de Máximo 2 Horas"
+      type: "HARD_BLOCK"
+      citation:
+        document: "PDVSA IR-S-04 Rev 4"
+        section: "Sec. 8.5"
+        page: 20
+        exactQuote: "Se otorgará sólo una (1) prórroga por un tiempo no mayor de dos (2) horas continuas, siempre y cuando las condiciones bajo las cuales fue otorgado el Permiso de Trabajo inicial no hayan variado."
+      logic: "cantidad_prorrogas <= 1 AND duracion_prorroga_horas <= 2"
+
+    - id: "RULE-HARD-04"
+      name: "Coincidencia Coincidente Hora de Gas Test e Inicio"
+      type: "HARD_BLOCK"
+      citation:
+        document: "PDVSA IR-S-04 Rev 4"
+        section: "Sec. 8.1.1.b"
+        page: 14
+        exactQuote: "La hora de inicio del Permiso de Trabajo debe ser coincidente con la hora en que se efectuó la prueba de gas."
+      logic: "hora_inicio_permiso == hora_ejecucion_gas_test"
+
+    - id: "RULE-HARD-05"
+      name: "Límite de Explosividad 0% LEL en Caliente"
+      type: "HARD_BLOCK"
+      citation:
+        document: "PDVSA IR-S-04 Rev 4"
+        section: "Sec. 8.3.6"
+        page: 18
+        exactQuote: "Para trabajos en caliente en áreas probadas la concentración de gases o vapores inflamables debe ser cero por ciento (0%) L.E.L."
+      logic: "tipo_trabajo == 'EN_CALIENTE' => lel_medido == 0.0"
+
+    - id: "RULE-HARD-06"
+      name: "Firmas Tripartitas Obligatorias"
+      type: "HARD_BLOCK"
+      citation:
+        document: "PDVSA IR-S-04 Rev 4"
+        section: "Sec. 8.1.2.g, 8.5.c, 8.7.1"
+        page: "16, 20, 21"
+        exactQuote: "El Permiso de Trabajo debe estar firmado por el Emisor, Receptor y Ejecutor tanto para su otorgamiento, prórroga como para su cierre."
+      logic: "firmas_otorgamiento == ['EMISOR', 'RECEPTOR', 'EJECUTOR'] AND firmas_cierre == ['EMISOR', 'RECEPTOR', 'EJECUTOR']"
+
+    - id: "RULE-HARD-07"
+      name: "Estatus APTA de Contratista y Plan SIHOA"
+      type: "HARD_BLOCK"
+      citation:
+        document: "PDVSA SI-S-04 Rev 5"
+        section: "Sec. 6.6, 7.5.4"
+        page: "10, 16"
+        exactQuote: "Las gerencias contratantes se asegurarán que a las empresas contratistas se les haya realizado la Evaluación de Aptitud con calificación APTA y presentado el Plan Específico SIHOA aprobado."
+      logic: "calificacion_contratista == 'APTA' AND plan_sihoa_aprobado == true"
+
+    - id: "RULE-EXEC-01"
+      name: "Notificación de Riesgos Escrita a Trabajadores"
+      type: "REQUIRED_DURING_EXECUTION"
+      citation:
+        document: "PDVSA HO-H-16 Rev 2"
+        section: "Sec. 6.7, 7.2.2"
+        page: "11, 15"
+        exactQuote: "Previo al inicio de las actividades contratadas, las organizaciones contratantes y el responsable de la instalación notificarán los peligros y riesgos a los trabajadores de la contratista."
+      logic: "notificacion_ho_h_16_firmada == true"
+
+    - id: "RULE-EXEC-02"
+      name: "Verificación de Transporte Radiológico"
+      type: "REQUIRED_DURING_EXECUTION"
+      citation:
+        document: "PDVSA PR-H-08 Rev 1"
+        section: "Sec. 5.3.2, 6.3"
+        page: "5, 6"
+        exactQuote: "Cumplir con los requisitos de emisión del permiso de trabajo una vez que el formato del Certificado para Trabajos con Fuentes de Radiaciones Ionizantes haya sido avalado."
+      logic: "transporte_pr_h_08_verificado == true"
+
+    - id: "RULE-ADV-01"
+      name: "Alerta de Vencimiento de Calibración de Equipo de Gases"
+      type: "ADVISORY"
+      citation:
+        document: "PDVSA IR-S-04 Rev 4"
+        section: "Sec. 8.3.3"
+        page: 17
+        exactQuote: "El equipo de prueba de gas debe estar adecuadamente calibrado y certificado."
+      logic: "dias_vencimiento_calibracion < 30 => WARNING"
+
+    - id: "RULE-EXT-PARAM-01"
+      name: "Parámetros Técnicos Externos no Verificados"
+      type: "PENDING_EXTERNAL_PARAMETER"
+      citation:
+        document: "Normas Externas (HO-H-06, SI-S-27/31, COVENIN 2247, SI-S-29/32)"
+        section: "Parámetros Especializados"
+        page: 0
+        exactQuote: "Valores cuantitativos de normas externas no localizadas en PDF."
+      logic: "permitir_captura_y_flag_sin_afirmacion_automatica_de_validez"

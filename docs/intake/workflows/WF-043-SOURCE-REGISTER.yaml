@@ -7,10 +7,10 @@ sourceRegister:
   confidence:
     overall: "HIGH"
     byArea:
-      ptwCoreStandard: "HIGH"           # Supported by PDVSA IR-S-04 Rev 4 (PDF) - Includes Anexos A through L
-      riskNotification: "HIGH"          # Supported by PDVSA HO-H-16 Rev 2 (PDF)
-      radiologicalTransport: "HIGH"     # Supported by PDVSA PR-H-08 Rev 1 (PDF)
-      contractingAndLoto: "HIGH"        # Supported by PDVSA SI-S-04 Rev 5 and SI-S-28 (PDF)
+      ptwCoreStandard: "HIGH"           # PDVSA IR-S-04 Rev 4 (PDF) - Includes Anexos A to L
+      riskNotification: "HIGH"          # PDVSA HO-H-16 Rev 2 (PDF)
+      radiologicalTransport: "HIGH"     # PDVSA PR-H-08 Rev 1 (PDF)
+      contractingAndLoto: "HIGH"        # PDVSA SI-S-04 Rev 5 and SI-S-28 (PDF)
       specialCertificatesImplementation: "PERMITTED" # Fully available in IR-S-04
 
   primaryGovernanceSources:
@@ -51,18 +51,60 @@ sourceRegister:
       authorityLevel: "NIVEL_A_PDF_OFICIAL"
       status: "CONFIRMED"
 
+  activitySpecificTechnicalStandards:
+    - id: "SRC-PI-15-02-01"
+      documentNumber: "PDVSA PI-15-02-01"
+      title: "Requisitos de Seguridad en Izamiento de Cargas"
+      authorityLevel: "ACTIVITY_SPECIFIC_TECHNICAL_STANDARD"
+      status: "CONFIRMED"
+
+    - id: "SRC-API-1104"
+      documentNumber: "API 1104"
+      title: "Welding of Pipelines and Related Facilities"
+      edition: "22nd Ed. (2021)"
+      authorityLevel: "SECONDARY_ACTIVITY_SPECIFIC_STANDARD"
+      status: "CONFIRMED"
+
+    - id: "SRC-ASME-B31.3"
+      documentNumber: "ASME B31.3"
+      title: "Process Piping"
+      edition: "2024 Ed."
+      authorityLevel: "SECONDARY_ACTIVITY_SPECIFIC_STANDARD"
+      status: "CONFIRMED"
+
   pendingExternalParameters:
-    - documentNumber: "PDVSA HO-H-06"
-      parameter: "Tiempos de ventilación en espacios confinados"
-      status: "PENDING_EXTERNAL_PARAMETER"
-      developmentState: "PERMITTED"
+    - parameterId: "EXT-PARAM-01"
+      description: "Tiempos de ventilación forzada específicos y límites de toxicidad por gas secundario en espacios confinados"
+      requiredBy: "Anexo B (Espacios Confinados)"
+      sourceDocument: "PDVSA HO-H-06"
+      sourceStatus: "MISSING_SOURCE"
+      value: null
+      validationStatus: "PENDING_EXTERNAL_PARAMETER"
+      implementationBehavior:
+        - capture
+        - flag
+        - prevent_unverified_claim
 
-    - documentNumber: "PDVSA SI-S-27 / SI-S-31"
-      parameter: "Factores de carga estructural de andamios"
-      status: "PENDING_EXTERNAL_PARAMETER"
-      developmentState: "PERMITTED"
+    - parameterId: "EXT-PARAM-02"
+      description: "Factores de carga estructural de andamios y distancias a líneas energizadas"
+      requiredBy: "Anexo J (Trabajos en Altura)"
+      sourceDocument: "PDVSA SI-S-27 / SI-S-31"
+      sourceStatus: "MISSING_SOURCE"
+      value: null
+      validationStatus: "PENDING_EXTERNAL_PARAMETER"
+      implementationBehavior:
+        - capture
+        - flag
+        - prevent_unverified_claim
 
-    - documentNumber: "COVENIN 2247"
-      parameter: "Ángulo de talud por cohesión de suelo"
-      status: "PENDING_EXTERNAL_PARAMETER"
-      developmentState: "PERMITTED"
+    - parameterId: "EXT-PARAM-03"
+      description: "Ángulo exacto de talud por cohesión de suelo y profundidad para entibado obligatorio"
+      requiredBy: "Anexo E (Excavaciones)"
+      sourceDocument: "COVENIN 2247"
+      sourceStatus: "MISSING_SOURCE"
+      value: null
+      validationStatus: "PENDING_EXTERNAL_PARAMETER"
+      implementationBehavior:
+        - capture
+        - flag
+        - prevent_unverified_claim

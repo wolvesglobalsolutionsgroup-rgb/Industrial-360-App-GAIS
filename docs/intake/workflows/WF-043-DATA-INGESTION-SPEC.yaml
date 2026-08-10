@@ -2,7 +2,7 @@ dataIngestionSpec:
   workflowId: "WF-043"
   workflowName: "Sistema de Permisos de Trabajo"
   standardRef: "PDVSA IR-S-04 Rev 4 (Agosto 2013)"
-  governanceModel:
+  governance:
     advisoryOnly: false
     hardBlocksEnforced: true
     humanOverridePolicy:
@@ -15,66 +15,67 @@ dataIngestionSpec:
         - sitePhotoEvidenceRequired: true
       automaticLegalValidityAsserted: false
 
-  criticalRulesCatalog:
-    - id: "RULE-PTW-01"
-      name: "Duración Máxima de Permiso Continuo"
-      type: "HARD_BLOCK"
-      citation:
-        document: "PDVSA IR-S-04 Rev 4"
-        section: "Sec. 8.4.1 (Pág. 19) & Sec. 8.4.2 (Pág. 20)"
-        exactText: "El Permiso de Trabajo tendrá una validez de un turno de trabajo, el cual no excederá de ocho (8) horas continuas... En paradas de planta la validez podrá ser de hasta doce (12) horas continuas."
-      ruleLogic: "duracion_horas <= 8 (ó <= 12 en paradas de planta)"
+  fieldsAnexoA:
+    - id: "tipoTrabajo"
+      name: "Tipo de Trabajo"
+      type: "ENUM"
+      options: ["EN_FRIO", "EN_CALIENTE"]
+      required: true
 
-    - id: "RULE-PTW-02"
-      name: "Prórroga Única de Permiso"
-      type: "HARD_BLOCK"
-      citation:
-        document: "PDVSA IR-S-04 Rev 4"
-        section: "Sec. 8.5 (Pág. 20)"
-        exactText: "Se otorgará sólo una (1) prórroga por un tiempo no mayor de dos (2) horas continuas, siempre y cuando las condiciones bajo las cuales fue otorgado el Permiso de Trabajo inicial no hayan variado."
-      ruleLogic: "numero_prorrogas <= 1 AND duracion_prorroga_horas <= 2"
+    - id: "ordenSapNo"
+      name: "Orden SAP No."
+      type: "STRING"
+      required: false
 
-    - id: "RULE-PTW-03"
-      name: "Coincidencia de Hora de Prueba de Gas y Hora de Inicio"
-      type: "HARD_BLOCK"
-      citation:
-        document: "PDVSA IR-S-04 Rev 4"
-        section: "Sec. 8.1.1.b (Pág. 14)"
-        exactText: "La hora de inicio del Permiso de Trabajo debe ser coincidente con la hora en que se efectuó la prueba de gas."
-      ruleLogic: "hora_inicio_permiso == hora_ejecucion_prueba_gas"
+    - id: "numeroPermiso"
+      name: "Número del Permiso"
+      type: "STRING"
+      required: true
+      unique: true
 
-    - id: "RULE-PTW-04"
-      name: "Límite de Explosividad en Trabajos en Caliente"
-      type: "HARD_BLOCK"
-      citation:
-        document: "PDVSA IR-S-04 Rev 4"
-        section: "Sec. 8.3.6 (Pág. 18)"
-        exactText: "Para trabajos en caliente en áreas probadas la concentración de gases o vapores inflamables debe ser cero por ciento (0%) L.E.L."
-      ruleLogic: "tipo_trabajo == 'EN_CALIENTE' => LEL == 0.0"
+    - id: "ubicacion"
+      name: "Instalación / Área / Unidad / Equipo"
+      type: "COMPLEX"
+      fields: ["instalacion", "area", "unidad", "equipo", "tramoKm"]
+      required: true
 
-    - id: "RULE-PTW-05"
-      name: "Firmas Tripartitas Obligatorias"
-      type: "HARD_BLOCK"
-      citation:
-        document: "PDVSA IR-S-04 Rev 4"
-        section: "Sec. 8.1.2.g (Pág. 16), Sec. 8.5.c (Pág. 20), Sec. 8.7.1 (Pág. 21)"
-        exactText: "El Permiso de Trabajo debe ser firmado de forma obligatoria por el Emisor, Receptor y Ejecutor tanto en la emisión, prórroga como en el cierre del trabajo."
-      ruleLogic: "firmas_presentes == ['EMISOR', 'RECEPTOR', 'EJECUTOR']"
+    - id: "descripcionTrabajo"
+      name: "Descripción de los Trabajos"
+      type: "TEXT"
+      required: true
 
-    - id: "RULE-PTW-06"
-      name: "Prerrequisito de Calificación Contratista SI-S-04"
-      type: "HARD_BLOCK"
-      citation:
-        document: "PDVSA SI-S-04 Rev 5"
-        section: "Sec. 6.6 (Pág. 10) & Sec. 7.5.4 (Pág. 16)"
-        exactText: "La contratista debe contar con calificación APTA vigente y presentar el Plan Específico SIHOA aprobado por PDVSA previo al inicio de la obra o servicio."
-      ruleLogic: "estatus_contratista == 'APTA' AND plan_sihoa_aprobado == true"
+    - id: "numeroArt"
+      name: "Análisis de Riesgos No. (ART)"
+      type: "STRING"
+      standardRef: "PDVSA IR-S-17"
+      required: true
 
-    - id: "RULE-PTW-07"
-      name: "Alerta por Vencimiento de Calibración de Instrumento Multigas"
-      type: "ADVISORY"
-      citation:
-        document: "PDVSA IR-S-04 Rev 4"
-        section: "Sec. 8.3.3 (Pág. 17)"
-        exactText: "El equipo de prueba de gas debe estar adecuadamente calibrado y certificado según las especificaciones del fabricante."
-      ruleLogic: "dias_vencimiento_calibracion < 30 => ALERT"
+    - id: "numeroProcedimiento"
+      name: "Procedimiento de Trabajo No."
+      type: "STRING"
+      standardRef: "PDVSA SI-S-20"
+      required: true
+
+    - id: "ejecutorTipo"
+      name: "Ejecutor del Trabajo"
+      type: "ENUM"
+      options: ["PDVSA", "CONTRATISTA"]
+      required: true
+
+    - id: "certificadosRequeridos"
+      name: "Certificados Requeridos"
+      type: "ARRAY_ENUM"
+      options: ["ANEXO_B", "ANEXO_C", "ANEXO_D", "ANEXO_E", "ANEXO_F", "ANEXO_G", "ANEXO_H", "ANEXO_I", "ANEXO_J", "ANEXO_K", "ANEXO_L", "NO_APLICA"]
+      required: true
+
+    - id: "pruebaGases"
+      name: "Pruebas de Gases"
+      type: "OBJECT"
+      fields:
+        explosividad: { target: "0% LEL", unit: "% v/v" }
+        oxigeno: { min: 19.5, max: 23.5, unit: "% v/v" }
+        h2s: { limitPpt: 10, unit: "ppm" }
+        so2: { limitPpt: 2, unit: "ppm" }
+        co: { limitPpt: 25, unit: "ppm" }
+        benceno: { limitPpt: 0.5, unit: "ppm" }
+      evaluador: { required: true, fields: ["nombre", "cedula", "firma", "equipoMedicion", "vencimientoCalibracion"] }

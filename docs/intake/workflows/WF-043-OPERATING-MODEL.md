@@ -1,50 +1,40 @@
-# WF-043: MODELO OPERATIVO TRACEABLE
+# WF-043: MODELO OPERATIVO POR CAPAS
 
 **Documento Base:** PDVSA IR-S-04 — *Sistema de Permisos de Trabajo*, Rev. 4 (Agosto 2013).
 
 ---
 
-## 1. SECUENCIA OPERATIVA NORMATIVA
+## 1. SECUENCIA OPERATIVA POR CAPAS DE ARQUITECTURA
 
-0. PRERREQUISITOS DE CONTRATACIÓN Y PRE-INICIO (PDVSA SI-S-04 Rev. 5)
-   ├─ Calificación vigente de Contratista "APTA" (§6.6, Anexo A/C SI-S-04)
-   ├─ Aprobación por escrito del Plan Específico SIHOA (§7.3.4, 7.5.4, Anexo B SI-S-04)
-   ├─ Taller de Inducción / Notificación de Riesgos HO-H-16 (§7.5.3 SI-S-04)
-   └─ Inspección conjunta de Verificación en Sitio (§7.5.1, 7.5.5 SI-S-04)
+```text
+1. CONTRACTOR ELIGIBILITY (PDVSA SI-S-04 §6.6)
+   └─ Verificación de estatus Contratista "APTA" (Validez 4 años Aptitud / 1 año Desempeño)
 
-1. INICIO & PLANIFICACIÓN
-   └─ Identificación de actividad (§7.1.1)
-   └─ Elaboración de ART (PDVSA IR-S-17) (§7.1.2)
-   └─ Elaboración de Procedimiento de Trabajo (PDVSA SI-S-20) (§7.1.2)
+2. PRE-START READINESS (PDVSA SI-S-04 §7.5.3, §7.5.4)
+   ├─ Plan Específico SIHOA Aprobado por Escrito (Anexo B SI-S-04)
+   ├─ Taller de Inducción y Notificación Escrita de Riesgos (PDVSA HO-H-16)
+   └─ Inspección Conjunta de Verificación en Sitio (Emisor + SIHOA + Contratista)
 
-2. PREPARACIÓN & SOLICITUD
-   └─ Identificación de necesidad de Permiso Frío/Caliente (§7.2.a)
-   └─ Elaboración de Certificados Especiales Requeridos (Anexos B al L) (§7.2.b)
-   └─ Verificación de Certificaciones y Carnets de Emisor, Receptor y Ejecutor (§8.9, 8.11, 8.12)
+3. PTW CORE (PDVSA IR-S-04 §7.1, §8.1)
+   ├─ Solicitud Anexo A (Renglones 1 al 11) + ART No. (IR-S-17) + Procedimiento No. (SI-S-20)
+   └─ Prueba de Gases Cuantitativa en Sitio por Evaluador Certificado (§8.3)
 
-3. VERIFICACIÓN Y PRUEBA DE GAS EN SITIO
-   └─ Inspección conjunta Emisor + Receptor + Ejecutor en el sitio exacto (§8.1.1.c, 8.1.2.c)
-   └─ Verificación de aislamientos LOTO (PDVSA SI-S-28) y listas de preparación (§8.1.2.a)
-   └─ Ejecución de Prueba de Gas cuantitativa por Evaluador Certificado (§8.3.3)
-   └─ Registro de la hora de prueba de gas (debe coincidir con hora de inicio) (§8.1.1.b)
+4. SPECIAL CERTIFICATES (PDVSA IR-S-04 Págs. 36-69)
+   └─ Instanciación y firmas de Certificados Anexos B al L requeridos según el trabajo
 
-4. OTORGAMIENTO Y FIRMA
-   └─ Llenado completo de renglones 1 a 16 en Anexo A impreso (§8.1.2.d)
-   └─ Notificación escrita de riesgos a los trabajadores en sitio (§8.1.2.f)
-   └─ Firma tripartita obligatoria: Emisor, Receptor, Ejecutor (§8.1.2.g)
+5. EXECUTION CONTROL (PDVSA IR-S-04 §8.2, §8.3.1)
+   ├─ Firma Tripartita (Emisor, Receptor, Ejecutor) y mantenimiento de copia en sitio
+   └─ Monitoreo continuo de gases / Re-prueba si interrupción >1h (caliente) ó >2h (frío)
 
-5. EJECUCIÓN & MONITOREO
-   └─ Mantenimiento de copia física en el sitio de trabajo (§8.1.1.d, 8.2.2.f)
-   └─ Monitoreo continuo o periódico de gases según ART (§8.3.1)
-   └─ Permanencia continua del Receptor/Emisor en áreas desatendidas/alto riesgo (§8.1.1.e)
+6. EXTENSION (PDVSA IR-S-04 §8.5)
+   └─ Prórroga única por máximo 2h con re-prueba de gas y firmas tripartitas
 
-6. GESTIÓN DE INCIDENCIAS
-   ├─ Prórroga (Max 1 vez, Max 2h): Re-prueba de gas + Firmas (§8.5)
-   ├─ Interrupción > 1h (Caliente) / > 2h (Frío): Suspensión / Cancelación (§8.6.2)
-   └─ Cancelación: Variación de condiciones, emergencias o falta de firmas (§8.6)
+7. CLOSEOUT (PDVSA IR-S-04 §8.7)
+   └─ Verificación de sitio ordenado/limpio + Desaislamiento LOTO + Firma Tripartita de Cierre
 
-7. CIERRE Y CUSTODIA
-   └─ Inspección de sitio: Orden, limpieza, retirado LOTO, equipos reconectados (§8.1.2.i)
-   └─ Firma de cierre tripartita (Emisor, Receptor, Ejecutor) (§8.7.1)
-   └─ Archivo físico por mínimo 3 meses (Original: Emisor, Copia: Receptor) (§8.7.2, 8.7.3)
-   └─ Carga e indexación en el Databook de Infraestructura (05.01_PERMISOS_DE_TRABAJO_PTW)
+8. DELIVERABLES (PDVSA IR-S-04 §8.7.2)
+   └─ Generación de paquete PDF/A inmutable con sellos digitales y evidencias fotográficas
+
+9. DATABOOK (IC360-NEXUS Architecture)
+   └─ Indexación e ingestión final en 05.01_PERMISOS_DE_TRABAJO_PTW
+```
