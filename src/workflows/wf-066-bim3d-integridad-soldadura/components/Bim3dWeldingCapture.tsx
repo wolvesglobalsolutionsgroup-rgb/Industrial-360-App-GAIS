@@ -37,11 +37,12 @@ export const Bim3dWeldingCapture: React.FC<WorkflowComponentProps<Bim3dWeldingIn
             </label>
             <input
               type="number"
-              min="1"
+              min="0"
               step="0.5"
-              value={data.pipeDiameterInches || 24}
-              onChange={(e) => onChange({ pipeDiameterInches: parseFloat(e.target.value) || 24 })}
+              value={data.pipeDiameterInches || ''}
+              onChange={(e) => onChange({ pipeDiameterInches: parseFloat(e.target.value) || 0 })}
               disabled={isReadOnly}
+              placeholder="Ej. 24"
               className="w-full px-3 py-2 border border-border rounded-md bg-surface text-ink font-mono"
             />
           </div>
@@ -52,11 +53,12 @@ export const Bim3dWeldingCapture: React.FC<WorkflowComponentProps<Bim3dWeldingIn
             </label>
             <input
               type="number"
-              min="1"
+              min="0"
               step="0.1"
-              value={data.wallThicknessMm || 12.7}
-              onChange={(e) => onChange({ wallThicknessMm: parseFloat(e.target.value) || 12.7 })}
+              value={data.wallThicknessMm || ''}
+              onChange={(e) => onChange({ wallThicknessMm: parseFloat(e.target.value) || 0 })}
               disabled={isReadOnly}
+              placeholder="Ej. 12.7"
               className="w-full px-3 py-2 border border-border rounded-md bg-surface text-ink font-mono"
             />
           </div>
@@ -71,12 +73,13 @@ export const Bim3dWeldingCapture: React.FC<WorkflowComponentProps<Bim3dWeldingIn
             <input
               type="number"
               step="0.1"
-              min="1"
-              value={data.minRadiusD || 3.0}
-              onChange={(e) => onChange({ minRadiusD: parseFloat(e.target.value) || 3.0 })}
+              min="0"
+              value={data.minRadiusD || ''}
+              onChange={(e) => onChange({ minRadiusD: parseFloat(e.target.value) || 0 })}
               disabled={isReadOnly}
+              placeholder="Ej. 3.0"
               className={`w-full px-2 py-1 border rounded bg-surface font-mono font-bold ${
-                data.minRadiusD < 3.0 ? 'border-red-500 text-red-500' : 'border-border text-ink'
+                data.minRadiusD > 0 && data.minRadiusD < 3.0 ? 'border-red-500 text-red-500' : 'border-border text-ink'
               }`}
             />
             <span className="text-xs text-ink-muted mt-1 block">Requerido &gt;= 3D para PIG</span>
@@ -90,9 +93,10 @@ export const Bim3dWeldingCapture: React.FC<WorkflowComponentProps<Bim3dWeldingIn
               type="number"
               step="0.1"
               min="0"
-              value={data.ovalityPercentage || 1.5}
+              value={data.ovalityPercentage || ''}
               onChange={(e) => onChange({ ovalityPercentage: parseFloat(e.target.value) || 0 })}
               disabled={isReadOnly}
+              placeholder="Ej. 1.5"
               className={`w-full px-2 py-1 border rounded bg-surface font-mono font-bold ${
                 data.ovalityPercentage > 3.0 ? 'border-red-500 text-red-500' : 'border-border text-ink'
               }`}
@@ -109,9 +113,10 @@ export const Bim3dWeldingCapture: React.FC<WorkflowComponentProps<Bim3dWeldingIn
               step="0.5"
               min="0"
               max="90"
-              value={data.coldBendAngleDeg || 15}
+              value={data.coldBendAngleDeg || ''}
               onChange={(e) => onChange({ coldBendAngleDeg: parseFloat(e.target.value) || 0 })}
               disabled={isReadOnly}
+              placeholder="Ej. 15"
               className="w-full px-2 py-1 border border-border rounded bg-surface text-ink font-mono font-bold"
             />
           </div>

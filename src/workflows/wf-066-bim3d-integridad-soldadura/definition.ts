@@ -30,6 +30,21 @@ export const Bim3dWeldingIntegritySchema = z.object({
   inspectorNotes: z.string().min(5, 'Las observaciones de integridad deben tener al menos 5 caracteres'),
 });
 
+export function createDefaultBim3dWeldingData(): Bim3dWeldingIntegrityData {
+  return {
+    spoolId: '',
+    pipeDiameterInches: 0,
+    wallThicknessMm: 0,
+    minRadiusD: 0,
+    ovalityPercentage: 0,
+    coldBendAngleDeg: 0,
+    coldBendApprovedPDVSA: false,
+    pigNavigable: false,
+    defectCountILI: 0,
+    inspectorNotes: '',
+  };
+}
+
 export const wf066Definition: WorkflowDefinition<Bim3dWeldingIntegrityData> = {
   id: 'wf-066-bim3d-integridad-soldadura',
   title: 'Integridad de Soldadura, Modelo BIM 3D y Navegabilidad ILI (GPG Fase 5)',
@@ -77,38 +92,38 @@ export const wf066Definition: WorkflowDefinition<Bim3dWeldingIntegrityData> = {
         {
           id: 'sig-066-1',
           role: 'INSPECTOR' as const,
-          name: context.user.email,
+          name: '',
           title: 'Inspector NDT Nivel III / Integridad Operativa',
-          organization: context.contractorBrand.companyName || 'PROINTECA C.A.',
-          status: 'SIGNED' as const,
-          signedAt: new Date().toISOString(),
+          organization: context.contractorBrand.companyName || '',
+          status: 'PENDING' as const,
+          signedAt: undefined,
         },
         {
           id: 'sig-066-2',
           role: 'CONTRACTOR' as const,
-          name: 'Ing. Coordinador BIM 3D',
+          name: '',
           title: 'Modelador / Especialista Spooling',
-          organization: context.contractorBrand.companyName || 'PROINTECA C.A.',
-          status: 'SIGNED' as const,
-          signedAt: new Date().toISOString(),
+          organization: context.contractorBrand.companyName || '',
+          status: 'PENDING' as const,
+          signedAt: undefined,
         },
         {
           id: 'sig-066-3',
           role: 'OPERATOR' as const,
-          name: 'Ing. Custodio Integridad Ductos PDVSA',
+          name: '',
           title: 'Gerente de Integridad de Activos',
-          organization: context.operatorBrand.companyName || 'PDVSA PETRÓLEO S.A.',
-          status: 'SIGNED' as const,
-          signedAt: new Date().toISOString(),
+          organization: context.operatorBrand.companyName || '',
+          status: 'PENDING' as const,
+          signedAt: undefined,
         },
       ];
 
       return createDocumentViewModel({
-        documentId: `CERT-BIM-INTEGRIDAD-${data.spoolId}`,
+        documentId: `CERT-BIM-INTEGRIDAD-${data.spoolId || 'PENDIENTE'}`,
         title: 'CERTIFICADO DE INTEGRIDAD DE SOLDADURA Y NAVEGABILIDAD ILI BIM 3D',
-        code: `CERT-BIM-${data.spoolId}`,
-        date: new Date().toISOString().split('T')[0],
-        status: 'APPROVED',
+        code: `CERT-BIM-${data.spoolId || 'PENDIENTE'}`,
+        date: '',
+        status: 'DRAFT',
         contractorBrand: context.contractorBrand,
         operatorBrand: context.operatorBrand,
         signers,
@@ -118,7 +133,7 @@ export const wf066Definition: WorkflowDefinition<Bim3dWeldingIntegrityData> = {
             id: 'sec-bim-1',
             title: '1. PARÁMETROS GEOMÉTRICOS Y EVALUACIÓN DE NAVEGABILIDAD',
             content: [
-              `ID Spool / Elemento BIM: ${data.spoolId}`,
+              `ID Spool / Elemento BIM: ${data.spoolId || 'PENDIENTE'}`,
               `Diámetro Nominal: ${data.pipeDiameterInches} pulgadas`,
               `Espesor de Pared: ${data.wallThicknessMm} mm`,
               `Radio Mínimo Curvatura: ${data.minRadiusD}D`,
@@ -132,7 +147,7 @@ export const wf066Definition: WorkflowDefinition<Bim3dWeldingIntegrityData> = {
           {
             id: 'sec-bim-2',
             title: '2. DICTAMEN DE INSPECCIÓN Y TRAZABILIDAD 3D',
-            content: [data.inspectorNotes],
+            content: [data.inspectorNotes || 'Sin observaciones registradas.'],
           },
         ],
       });
