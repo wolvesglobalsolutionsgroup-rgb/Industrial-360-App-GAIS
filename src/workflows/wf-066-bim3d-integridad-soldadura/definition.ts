@@ -57,12 +57,12 @@ export const wf066Definition: WorkflowDefinition<Bim3dWeldingIntegrityData> = {
     {
       id: 'GATE_PIG_NAVIGABILITY',
       name: 'Navegabilidad de Rascador Inteligente (PIG Navigability)',
-      description: 'Bloquea la aprobación si la ovalidad supera el 3% o si el radio de curvatura es menor a 3D.',
+      description: 'Evalúa si la ovalidad supera el 3% o si el radio de curvatura es menor a 3D.',
       evaluator: (_context, data) => {
         if (!data.pigNavigable || data.ovalityPercentage > 3.0 || data.minRadiusD < 3.0) {
           return {
             passed: false,
-            message: `BLOQUEO DE NAVEGABILIDAD ILI: La geometría del spool presenta ovalidad del ${data.ovalityPercentage}% (>3%) o radio de curvatura (${data.minRadiusD}D < 3D), impidiendo el paso del rascador inteligente.`,
+            message: `ADVERTENCIA DE NAVEGABILIDAD ILI: La geometría del spool presenta ovalidad del ${data.ovalityPercentage}% (>3%) o radio de curvatura (${data.minRadiusD}D < 3D), lo que requiere revisión técnica antes del paso del rascador inteligente.`,
           };
         }
         return { passed: true };
@@ -71,12 +71,12 @@ export const wf066Definition: WorkflowDefinition<Bim3dWeldingIntegrityData> = {
     {
       id: 'GATE_COLD_BEND_PDVSA',
       name: 'Conformidad de Doblez en Frío (Norma PDVSA H-221 / ASME B31.4)',
-      description: 'Valida que la curvado en frío cumple con las restricciones dimensionales y ausencia de arrugas.',
+      description: 'Valida la disponibilidad de certificación de curvado en frío bajo PDVSA H-221.',
       evaluator: (_context, data) => {
         if (!data.coldBendApprovedPDVSA) {
           return {
             passed: false,
-            message: 'RECHAZO DE CURVADO EN FRÍO: La geometría del doblez no cuenta con el certificado de no corrugación y ovalidad bajo norma PDVSA H-221.',
+            message: 'REVISIÓN REQUERIDA DE CURVADO EN FRÍO: EVIDENCIA O APROBACIÓN PDVSA PENDIENTE para el certificado de no corrugación y ovalidad bajo norma PDVSA H-221.',
           };
         }
         return { passed: true };

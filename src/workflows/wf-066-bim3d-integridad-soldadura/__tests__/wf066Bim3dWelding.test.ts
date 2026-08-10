@@ -67,7 +67,7 @@ describe('Workflow wf-066: Integridad de Soldadura, BIM 3D y Navegabilidad ILI',
     expect(parseResult.success).toBe(true);
   });
 
-  it('5. El control de navegabilidad detecta condición inválida o incompleta', () => {
+  it('5. El control de navegabilidad detecta condición de navegabilidad con mensaje advisory', () => {
     const pigGate = wf066Definition.hardGates.find((g) => g.id === 'GATE_PIG_NAVIGABILITY');
     expect(pigGate).toBeDefined();
 
@@ -83,10 +83,13 @@ describe('Workflow wf-066: Integridad de Soldadura, BIM 3D y Navegabilidad ILI',
 
     const result = pigGate!.evaluator(dummyContext, invalidData);
     expect(result.passed).toBe(false);
-    expect(result.message).toContain('BLOQUEO DE NAVEGABILIDAD ILI');
+    expect(result.message).toContain('ADVERTENCIA DE NAVEGABILIDAD ILI');
+    expect(result.message).not.toContain('BLOQUEO');
+    expect(result.message).not.toContain('RECHAZO AUTOMÁTICO');
+    expect(result.message).not.toContain('NO SE PUEDE CONTINUAR');
   });
 
-  it('6. El control de doblado en frío / PDVSA detecta ausencia de aprobación si aplica', () => {
+  it('6. El control de doblado en frío detecta ausencia de aprobación con mensaje advisory', () => {
     const coldBendGate = wf066Definition.hardGates.find((g) => g.id === 'GATE_COLD_BEND_PDVSA');
     expect(coldBendGate).toBeDefined();
 
@@ -97,7 +100,10 @@ describe('Workflow wf-066: Integridad de Soldadura, BIM 3D y Navegabilidad ILI',
 
     const result = coldBendGate!.evaluator(dummyContext, unapprovedData);
     expect(result.passed).toBe(false);
-    expect(result.message).toContain('RECHAZO DE CURVADO EN FRÍO');
+    expect(result.message).toContain('REVISIÓN REQUERIDA DE CURVADO EN FRÍO');
+    expect(result.message).not.toContain('BLOQUEO');
+    expect(result.message).not.toContain('RECHAZO AUTOMÁTICO');
+    expect(result.message).not.toContain('NO SE PUEDE CONTINUAR');
   });
 
   it('7. El entregable inicial no aparece como APPROVED', () => {
