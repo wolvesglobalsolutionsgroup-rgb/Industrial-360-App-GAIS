@@ -1,28 +1,46 @@
-workflow_id: wf-043-aprobacion-ptw
-title: Evidence Catalog for PTW
-evidence_items:
-  - evidence_id: EV-043-01
-    title: Certificado de Calibración de Explosímetro / Monitor Multigas
-    required_state: ISSUED
-    file_types: ["pdf", "png", "jpg"]
-    mandatory: true
-  - evidence_id: EV-043-02
-    title: Certificado Habilitación Contratista SIHOA
-    required_state: APPROVED
-    file_types: ["pdf"]
-    mandatory: true
-  - evidence_id: EV-043-03
-    title: Documento Aprobado ART (PDVSA IR-S-17)
-    required_state: APPROVED
-    file_types: ["pdf"]
-    mandatory: true
-  - evidence_id: EV-043-04
-    title: Foto de Demarcación y Equipos Contra Incendio en Sitio
-    required_state: ISSUED
-    file_types: ["png", "jpg"]
-    mandatory: false
-  - evidence_id: EV-043-05
-    title: Registro de Inspección Final de Orden y Limpieza
-    required_state: CLOSED
-    file_types: ["png", "jpg", "pdf"]
-    mandatory: true
+evidenceCatalog:
+  workflowId: "WF-043"
+
+  evidences:
+    - id: "EVID-01"
+      name: "Formulario Anexo A Firmado"
+      format: "PDF / Imagen Sellada"
+      requiredStage: "ISSUED"
+      retentionPeriod: "3 meses mínimo en físico / Permanente digital"
+
+    - id: "EVID-02"
+      name: "Certificados Especiales Anexos B a L"
+      format: "PDF / Imagen Sellada"
+      requiredStage: "ISSUED"
+      retentionPeriod: "3 meses mínimo en físico / Permanente digital"
+
+    - id: "EVID-03"
+      name: "Constancia de Notificación de Riesgos HO-H-16"
+      format: "PDF / Formato Formulario G firmados por trabajadores"
+      requiredStage: "PRE_START_VERIFIED"
+      retentionPeriod: "10 años post-relación laboral"
+
+    - id: "EVID-04"
+      name: "Plan de Izamiento Rigger Plan (Anexo C)"
+      format: "PDF / Documento firmado"
+      requiredStage: "ISSUED"
+      retentionPeriod: "Permanente digital"
+
+    - id: "EVID-05"
+      name: "Prueba de Aislamiento LOTO SI-S-28 (Anexo F)"
+      format: "Fotografía de bloqueo + Registro firmado"
+      requiredStage: "ISSUED"
+      retentionPeriod: "Permanente digital"
+
+    - id: "EVID-06"
+      name: "Databook Package ISO 19005-1"
+      format: "PDF/A Inmutable"
+      requiredStage: "DATABOOK_ARCHIVED"
+      destinationPath: "05.01_PERMISOS_DE_TRABAJO_PTW"
+
+  brandAndPreviewMetadata:
+    previewRequiredBeforeEmission: true
+    sharedPreviewEmisorAuditor: true
+    operatorLogoVisibleByDefault: true
+    contractorLogoVisibleByDefault: false
+    visualVersionTraceability: "visualVersionHash registrado en Firestore y PDF/A"
