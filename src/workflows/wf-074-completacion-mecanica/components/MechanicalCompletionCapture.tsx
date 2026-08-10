@@ -27,7 +27,7 @@ export const MechanicalCompletionCapture: React.FC<WorkflowComponentProps<Mechan
               onChange={(e) => onChange({ subsystemCode: e.target.value })}
               disabled={isReadOnly}
               className="w-full px-3 py-2 border border-border rounded-md bg-surface text-ink font-mono"
-              placeholder="MC-SUB-301-A"
+              placeholder="Ej. SUB-01"
             />
           </div>
 
@@ -41,7 +41,7 @@ export const MechanicalCompletionCapture: React.FC<WorkflowComponentProps<Mechan
               onChange={(e) => onChange({ subsystemName: e.target.value })}
               disabled={isReadOnly}
               className="w-full px-3 py-2 border border-border rounded-md bg-surface text-ink"
-              placeholder="Sistema de Separación Bifásica de Entrada"
+              placeholder="Ej. Planta de Compresión"
             />
           </div>
 

@@ -209,4 +209,24 @@ describe('Workflow wf-074: Completación Mecánica y Dossier de Calidad MC', () 
     expect(docVM.signers[0].organization).not.toContain('PROINTECA');
     expect(docVM.signers[2].organization).not.toContain('PDVSA');
   });
+
+  it('12. Confirma que la captura y defaults iniciales no introducen SUB-01, Planta de Compresión, 85 ni notas por defecto', () => {
+    const initialData = createDefaultMechanicalCompletionData();
+
+    expect(initialData.subsystemCode).not.toBe('SUB-01');
+    expect(initialData.subsystemName).not.toBe('Planta de Compresión');
+    expect(initialData.inspectorNotes).not.toContain('Certificado de completación mecánica generado en sitio.');
+    expect(JSON.stringify(initialData)).not.toContain('85');
+
+    const emptyBrandContext = {
+      user: { email: 'test@ic360.io' },
+      contractorBrand: { companyName: '' },
+      operatorBrand: { companyName: '' },
+    };
+
+    const docVM = wf074Definition.deliverable.factory(emptyBrandContext, initialData);
+    expect(docVM.code).not.toBe('SUB-01');
+    expect(JSON.stringify(docVM)).not.toContain('Planta de Compresión');
+    expect(JSON.stringify(docVM)).not.toContain('Certificado de completación mecánica generado en sitio.');
+  });
 });
