@@ -1,49 +1,57 @@
-# WF-043: MAPA DOCUMENTAL COMPLETO (ANEXO A Y ANEXOS B-L)
+# Mapa Documental Integrado: `wf-043`
 
-**Documento Base:** PDVSA IR-S-04 — *Sistema de Permisos de Trabajo*, Rev. 4 (Agosto 2013).
-
----
-
-## 1. DESGLOSE CAMPO POR CAMPO DEL PERMISO DE TRABAJO (ANEXO A - PÁGS. 33-35)
-
-| Renglón No. | Campo / Elemento del Anexo A | Cita Normativa Exacta (Sección / Pág.) | Tipo de Dato / Opción | Estado |
-|---|---|---|---|:---:|
-| **1** | Tipo de Trabajo (En Frío / En Caliente) | Sec. 8.8.1, Anexo A, Pág. 33 | Radio / Enum ("EN_FRIO", "EN_CALIENTE") | `CONFIRMED` |
-| **2** | Orden SAP No. | Anexo A Renglón 2, Pág. 33 | String (Alfanumérico) | `CONFIRMED` |
-| **3** | Número del Permiso | Sec. 8.8.2, Anexo A, Pág. 33 | String Correlativo Único | `CONFIRMED` |
-| **4** | Instalación / Área / Unidad / Equipo | Anexo A Renglón 4, Pág. 33 | String / Ubicación Específica | `CONFIRMED` |
-| **5** | Descripción de los Trabajos | Anexo A Renglón 5, Pág. 33 | Texto Descriptivo + Fuente Ignición | `CONFIRMED` |
-| **6** | Análisis de Riesgos No. (ART) | Sec. 7.1.2, Anexo A Renglón 6, Pág. 33 | String (Ref: PDVSA IR-S-17) | `CONFIRMED` |
-| **7** | Procedimiento de Trabajo No. | Sec. 7.1.2, Anexo A Renglón 7, Pág. 33 | String (Ref: PDVSA SI-S-20) | `CONFIRMED` |
-| **8** | Ejecutor del Trabajo | Anexo A Renglón 8, Pág. 33 | Enum ("PDVSA", "CONTRATISTA"), No. Personas | `CONFIRMED` |
-| **9** | Certificados Requeridos | Sec. 7.2.b, Anexo A Renglón 9, Pág. 33 | Checkbox Group (Anexos B a L / No Aplica) | `CONFIRMED` |
-| **10** | Preparación de Recipientes/Equipos | Anexo A Renglón 10, Pág. 33 | Checkbox Group (Lavados, Aislados, Purgados, etc.) | `CONFIRMED` |
-| **11** | Condiciones a Verificar (items a-n) | Sec. 8.1.2, Anexo A Renglón 11, Pág. 33 | Checkbox List (a a n: LOTO, EPP, Clima, etc.) | `CONFIRMED` |
-| **12** | Pruebas de Gases | Sec. 8.3, Anexo A Renglón 12, Pág. 33 | Tabla Mediciones ($Ex, O_2, H_2S, SO_2, NH_3, CO, CO_2, \text{Benceno}$) | `CONFIRMED` |
-| **13** | Fecha de Emisión | Anexo A Renglón 13, Pág. 33 | Date (Día / Mes / Año) | `CONFIRMED` |
-| **14** | Hora de Inicio | Sec. 8.1.1.b, Anexo A Renglón 14, Pág. 33 | Time (Coincidente con Prueba de Gas) | `CONFIRMED` |
-| **15** | Validez Hasta | Sec. 8.4.1, Anexo A Renglón 15, Pág. 33 | Time (Max 8h continuo / Max 12h paradas) | `CONFIRMED` |
-| **16** | Manejo del Cambio No. (MDC) | Anexo A Renglón 16, Pág. 33 | Enum ("NO_APLICA", "TEMPORAL", "PERMANENTE", "EMERGENCIA") | `CONFIRMED` |
-| **17** | Firma Emisor | Sec. 8.1.2.g, Anexo A Renglón 17, Pág. 33 | Nombre, Cédula, Firma | `CONFIRMED` |
-| **18** | Firma Receptor | Sec. 8.1.2.g, Anexo A Renglón 18, Pág. 33 | Nombre, Cédula, Firma | `CONFIRMED` |
-| **19** | Firma Ejecutor | Sec. 8.1.2.g, Anexo A Renglón 19, Pág. 33 | Nombre, Cédula, Firma | `CONFIRMED` |
-| **20** | Prórroga del Permiso | Sec. 8.5, Anexo A Renglón 20, Pág. 33 | Hora Hasta (Max 2h), Firmas, Re-prueba Gas | `CONFIRMED` |
-| **21** | Cancelación del Permiso | Sec. 8.6, Anexo A Renglón 21, Pág. 33 | Motivo, Fecha/Hora, Acción tomada por, Firma | `CONFIRMED` |
-| **22** | Cierre del Permiso | Sec. 8.7, Anexo A Renglón 22, Pág. 33 | Hora, Firmas Emisor/Receptor/Ejecutor | `CONFIRMED` |
-| **23** | Observaciones | Anexo A Renglón 23, Pág. 33 | Texto / Firmas Custodios Afectados | `CONFIRMED` |
+Este mapa establece la conexión exacta entre los tres documentos normativos nucleares procesados (`PDVSA IR-S-04`, `PDVSA IR-S-17` y `PDVSA SI-S-20`) para conformar el expediente de permisoría técnica.
 
 ---
 
-## 2. RESUMEN DE MAPEO DE ANEXOS B A L (CERTIFICADOS ESPECIALES)
+## 1. Cadena de Tríada de Seguridad (`PTS ➔ ART ➔ PTW`)
 
-* **Anexo B (Espacios Confinados):** Sec. 11 (Págs. 23, 36-38). Factores de riesgo, aislamiento mecánico, LOTO, voltaje max (6/12/24/50V), EPP respiratorio, prueba de gas, Observador/Rescatista.
-* **Anexo C (Izamiento de Cargas):** Sec. 12 (Págs. 24, 39-42). Tipo de grúa, serial, prueba de carga, capacidad nominal, cálculo de ratio ($<80\%$), señalero, interferencias de alta tensión.
-* **Anexo D (Radiaciones Ionizantes):** Sec. 13 (Págs. 24, 43-45). Tipo emisión, actividad (Ci), RNPFEGRI, tasa de dosis ($<0.5\ \mu\text{Sv/h}$ en barrera), dosímetro, CAPRA.
-* **Anexo E (Excavación):** Sec. 14 (Págs. 25, 46-48). Dimensiones ($L \times A \times P$), tipo de suelo, firmas supervisores de servicios (electricidad, agua, telecom, gas), entibado/talud.
-* **Anexo F (Sistema Eléctrico):** Sec. 15 (Págs. 26, 49-52). LOTO (PDVSA SI-S-28), desenergización, diagramas unifilares, aprobación Despacho Carga (72h preventivo, 24h urgente).
-* **Anexo G (Subacuáticos y Superficies Acuáticas):** Sec. 16 (Págs. 28, 53-55). Buceo en pareja, tablas descompresión, bote emergencia, mangueras/compresor.
-* **Anexo H (Hot-Tapping):** Sec. 17 (Págs. 29, 56-58). Datos de línea (diámetro, fluido, presión, temp, espesor), válvula apertura completa, hermeticidad, EPS soldadura, aprobación Gerente Custodio.
-* **Anexo I (Áreas Compartidas):** Sec. 18 (Págs. 29, 59-60). Notificación 5 días continuos antes, franja seguridad (50m en líneas eléctricas según IR-S-16), firmas custodios afectados.
-* **Anexo J (Trabajos en Altura):** Sec. 19 (Págs. 31, 61-63). Trabajos $>1.50\text{m}$, andamiero certificado, relación base/altura (4:1), arnés doble cabo de vida.
-* **Anexo K (Fumigación):** Anexo K (Págs. 64-66). Método, producto comercial, permisos INSAI/MPPSALUD, Hoja MSDS, tiempo reentrada.
-* **Anexo L (Soldadura):** Anexo L (Págs. 67-69). EPS No., calificación soldadores (PDVSA PI-06-06-01), certificación máquinas de soldar, matachispas.
+```text
+┌────────────────────────────────────────────────────────────────────────┐
+│ 1. PROCEDIMIENTO DE TRABAJO SEGURO (PTS) - PDVSA SI-S-20              │
+│    • Contiene las 15 Secciones Obligatorias (Pág. 5-11).               │
+│    • Secuencia de Tareas en Infinitivo (Pág. 8, Secc. 6.9).            │
+│    • Manejo de Desechos, Efluentes y Emisiones - Dec. 2635 (Pág. 9).  │
+│    • Emite: N° de Procedimiento Único (ej. PTS-MEC-2026-014).          │
+└──────────────────────────────────┬─────────────────────────────────────┘
+                                   │
+                                   ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│ 2. ANÁLISIS DE RIESGOS DEL TRABAJO (ART) - PDVSA IR-S-17              │
+│    • Sección A (Gabinete): Identificación y N° de ART (Pág. 12).       │
+│    • Sección B (Gabinete): Renglones 10-12 (Peligros y Controles).     │
+│    • Sección C (Campo): Preguntas 25.A-E de Cambios en Sitio (Pág. 13). │
+│    • Firmas de Cuadrilla (Renglones 29-32) y Autorización (33-35).     │
+│    • Emite: N° de ART Único (ej. ART-2026-0891).                       │
+└──────────────────────────────────┬─────────────────────────────────────┘
+                                   │
+                                   ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│ 3. PERMISO DE TRABAJO BASE (EN FRÍO / CALIENTE) - PDVSA IR-S-04 ANEXO A│
+│    • Renglón 6: Registra N° de ART (PDVSA IR-S-17) (Pág. 33).         │
+│    • Renglón 7: Registra N° de Procedimiento PTS (PDVSA SI-S-20).      │
+│    • Renglón 9: Tilda Certificados Especiales Anexos B-L requeridos.   │
+│    • Renglón 11: Valida 14 Condiciones Mínimas (LOTO SI-S-28, EPP).    │
+│    • Renglón 12: Registra Prueba de Gases (0% LEL, O2, Tóxicos).       │
+│    • Renglones 17-19: Firma Tripartita en Sitio (Emisor/Receptor/Ejec).│
+│    • Emite: Permiso Oficial Autorizado (ej. PTW-2026-00412).           │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 2. Mapa de Mapeo de Secciones y Citas Exactas de Páginas
+
+| Etapa del Proceso | Documento Origen | Sección Oficial | Páginas | Objeto Extraído |
+|---|---|---|---|---|
+| **Estructuración PTS** | `PDVSA SI-S-20` | Sección 6 (15 Puntos) | Págs. 5-11 | Portada, Roles, Tareas en Infinitivo, Equipos, Desechos Dec. 2635 y Emergencias. |
+| **Identificación ART** | `PDVSA IR-S-17` | Anexo A - Sección A | Pág. 12 | Renglones 1 al 9 (Identificación, Instalación, Descripción y Aprobadores). |
+| **Peligros y Controles** | `PDVSA IR-S-17` | Anexo A - Sección B | Pág. 12 | Renglones 10, 11 y 12 (Tareas básicas, Peligros y Medidas en Fuente-Trayectoria-Receptor). |
+| **Revisión en Campo** | `PDVSA IR-S-17` | Anexo A - Sección C | Pág. 13 | Renglón 25 (Preguntas A, B, C, D, E de Cambios en Sitio) y Renglones 26-28. |
+| **Divulgación Cuadrilla** | `PDVSA IR-S-17` | Anexo A - Sección C | Pág. 13 | Renglones 29 al 32 (Nombre, C.I., Empresa y Firma de todos los trabajadores). |
+| **Aprobación ART Campo** | `PDVSA IR-S-17` | Anexo A - Sección C | Pág. 13 | Renglones 33, 34 y 35 (Custodio/Emisor, Supervisor/Receptor, Capataz/Ejecutor). |
+| **Permiso Base PTW** | `PDVSA IR-S-04` | Anexo A (23 Renglones) | Págs. 33-35 | Renglones 1 al 23 del Permiso de Trabajo en Frío o en Caliente. |
+| **Prueba de Gases** | `PDVSA IR-S-04` | Sección 8.3 & Anexo A | Págs. 19, 33 | Renglón 12 (Mediciones LEL, O2, H2S, SO2, CO, CO2, Benceno y Evaluador). |
+| **Prórroga** | `PDVSA IR-S-04` | Sección 8.5 & Anexo A | Págs. 19, 33 | Renglón 20 (Máximo 1 única prórroga por 2 horas). |
+| **Cancelación** | `PDVSA IR-S-04` | Sección 8.6 & Anexo A | Págs. 20, 33 | Renglón 21 (Causales operacionales, clima o interrupción $>1\text{h}$). |
+| **Cierre y Custodia** | `PDVSA IR-S-04` | Sección 8.7 & Anexo A | Págs. 20, 33 | Renglón 22 (Firmas de Cierre en sitio) y archivo mínimo por 3 meses. |

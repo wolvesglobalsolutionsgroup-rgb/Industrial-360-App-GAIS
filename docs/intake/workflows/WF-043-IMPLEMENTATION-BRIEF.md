@@ -1,21 +1,25 @@
-# WF-043: BRIEF TÉCNICO DE ARQUITECTURA E IMPLEMENTACIÓN
+# Resumen de Implementación y Guía Técnica: `wf-043`
 
-**Workflow:** WF-043 — Sistema de Permisos de Trabajo  
-**Documento Base:** PDVSA IR-S-04 Rev. 4 (Agosto 2013)  
-**Estado:** `PERMITTED_WITH_PENDING_EXTERNAL_PARAMS`  
-
-> [!NOTE]
-> **ESTADO DE CONSTRUCCIÓN Y DESARROLLO PERMITIDO:**  
-> Todos los Anexos B al L (Certificados Especiales) están completamente disponibles en la norma primaria `PDVSA IR-S-04 Rev 4` (Págs. 36 a 69). Se **PERMITE** el modelado de datos, la construcción de componentes UX/UI, la lógica de formularios, la trazabilidad y la generación de entregables para todos los Anexos B al L. Las normas externas no localizadas únicamente condicionan el ajuste fino de parámetros especializados (`PENDING_EXTERNAL_PARAMETER`).
+**ID Workflow**: `wf-043-aprobacion-ptw`  
+**Estatus**: `PROPOSED_SPECIFICATION`  
+**Cambios de Código en este Sprint**: `0` (Solo Análisis y Especificación Documental)
 
 ---
 
-## 1. ANÁLISIS DE CÓDIGO GITHUB EXISTENTE Y REFACTORIZACIÓN
+## 1. Módulos y Componentes del Repositorio Evaluados
 
-| Elemento en Repo GitHub | Diagnóstico Técnico | Acción Requerida |
-|---|---|---|
-| `src/pages/SihoPtw.tsx` | Formulario extenso monolítico sin validación de validez (8h/12h), prórroga ni firmas tripartitas. | **REEMPLAZAR** por asistente multi-paso `SihoPtwWizardView.tsx`. |
-| `src/lib/domain/` | Tipos TypeScript parciales de PTW. | **EXPANDIR** en `src/domain/ptw/ptwTypes.ts` agregando estructuras de Anexo A y Anexos B al L. |
-| `src/lib/factories/` | Ausencia de factories para instanciar certificados especiales. | **CREAR** `ptwAnnexFactory.ts` para instanciar sub-formularios B al L. |
-| `Componentes de Firma` | Botón único de aprobación. | **REEMPLAZAR** por pad de firma digital tripartita (Emisor, Receptor, Ejecutor). |
-| `Exportación Databook` | Generación básica de PDF. | **CONECTAR** con `ptwPdfExporter.ts` produciendo expediente PDF/A inmutable ISO 19005-1. |
+| Ruta en Repositorio | Función Actual | Reutilizable | Mejoras Propuestas |
+|---|---|---|---|
+| `src/workflows/wf-043-aprobacion-ptw/definition.ts` | Definición de contrato `WorkflowDefinition` | Sí | Ampliar esquema Zod para incluir los 23 Renglones del Anexo A de IR-S-04. |
+| `src/workflows/wf-043-aprobacion-ptw/components/PtwApprovalCapture.tsx` | Componente UI de captura | Sí | Rediseñar interfaz en 3 pasos progresivos y hacer tabla de gases responsive. |
+| `src/pages/WorkflowRunnerPage.tsx` | Runner dinámico universal | Sí | Eliminar selector de 16 números de la cabecera y conectar con el selector por Módulo. |
+| `src/components/navigation/phaseNavigation.ts` | Navegación por Fases | Sí | Integrar el mapping de módulos técnicos (`SIHO_A`). |
+| `src/lib/documentViewModel.ts` | Modelo de vista para entregables | Sí | Garantizar soporte para doble membrete (Co-Branding Operador/Contratista) y hash. |
+
+---
+
+## 2. Pruebas Unitarias Requeridas para Futura Fase de Código (`Vitest`)
+
+1. **`test_anexo_a_zod_schema`**: Verificar que los 23 renglones obligatorios del Anexo A pasen la validación de Zod con datos válidos y fallen con campos requeridos vacíos.
+2. **`test_gas_test_advisory_evaluator`**: Confirmar que lecturas fuera de rango ($LEL > 0\%$, $O_2 < 19.5\%$) generen un resultado `WARNING_ATMOSPHERE_OUT_OF_RANGE` con requerimiento de decisión humana (`humanDecisionRequiredOnException: true`).
+3. **`test_extension_max_2_hours`**: Comprobar que prórrogas mayores a 2 horas o segundas prórrogas emitan una advertencia de vencimiento normativo (Secc. 8.5, `IR-S-04`).

@@ -1,110 +1,101 @@
-sourceRegister:
-  workflowId: "WF-043"
-  workflowName: "Sistema de Permisos de Trabajo"
-  agent: "Antigravity"
-  lastUpdated: "2026-08-10"
+# Registro Oficial de Fuentes: `wf-043`
 
-  confidence:
-    overall: "HIGH"
-    byArea:
-      ptwCoreStandard: "HIGH"           # PDVSA IR-S-04 Rev 4 (PDF) - Includes Anexos A to L
-      riskNotification: "HIGH"          # PDVSA HO-H-16 Rev 2 (PDF)
-      radiologicalTransport: "HIGH"     # PDVSA PR-H-08 Rev 1 (PDF)
-      contractingAndLoto: "HIGH"        # PDVSA SI-S-04 Rev 5 and SI-S-28 (PDF)
-      specialCertificatesImplementation: "PERMITTED" # Fully available in IR-S-04
+workflowId: wf-043-aprobacion-ptw
+title: "Permiso de Trabajo Seguro En Frío o En Caliente"
+status: PROPOSED_SPECIFICATION
+confidence: HIGH
 
-  primaryGovernanceSources:
-    - id: "SRC-IR-S-04"
-      documentNumber: "PDVSA IR-S-04"
-      title: "Sistema de Permisos de Trabajo"
-      volume: "Volumen 1 - Manual de Ingeniería de Riesgos"
-      revision: "4 (Agosto 2013)"
-      authorityLevel: "NIVEL_A_PDF_OFICIAL"
-      status: "CONFIRMED"
-      containsAnexosBL: true
+primarySource:
+  documentId: PDVSA-IR-S-04
+  officialTitle: "Manual de Ingeniería de Riesgos: Sistema de Permisos de Trabajo"
+  volume: "Volumen 1"
+  revision: "4"
+  date: "2013-08"
+  publisher: "Petróleos de Venezuela, S.A."
+  authorityLevel: CONFIRMED_PDF
+  fileVerified: true
+  pagesScanned: 69
+  sectionsUsed:
+    - section: "1. INTRODUCCIÓN"
+      page: 5
+    - section: "2. OBJETIVOS"
+      page: 5
+    - section: "3. ALCANCE"
+      page: 5
+    - section: "4. REFERENCIAS"
+      pages: [6, 7]
+    - section: "5. DEFINICIONES"
+      pages: [7, 8, 9, 10, 11, 12]
+    - section: "6. LINEAMIENTOS GENERALES"
+      pages: [12, 13]
+    - section: "7. PROCEDIMIENTO GENERAL"
+      pages: [13, 14, 15]
+    - section: "8. PERMISO DE TRABAJO EN FRÍO O EN CALIENTE"
+      pages: [15, 16, 17, 18, 19, 20, 21, 22]
+    - section: "ANEXO A - Formato e Instructivo de Llenado Permiso de Trabajo"
+      pages: [33, 34, 35]
 
-    - id: "SRC-HO-H-16"
-      documentNumber: "PDVSA HO-H-16"
-      title: "Identificación y Notificación de Peligros y Riesgos"
-      revision: "2 (Abril 2013)"
-      authorityLevel: "NIVEL_A_PDF_OFICIAL"
-      status: "CONFIRMED"
+secondaryConfirmedSources:
+  - documentId: PDVSA-IR-S-17
+    officialTitle: "Manual de Ingeniería de Riesgos: Análisis de Riesgos del Trabajo (ART)"
+    volume: "Volumen 1"
+    revision: "0"
+    date: "2006-10"
+    publisher: "Petróleos de Venezuela, S.A."
+    authorityLevel: CONFIRMED_PDF
+    fileVerified: true
+    pagesScanned: 38
+    sectionsUsed:
+      - section: "1. OBJETIVOS"
+        page: 3
+      - section: "5. CONDICIONES GENERALES"
+        pages: [4, 5, 6]
+      - section: "6. METODOLOGÍA"
+        pages: [6, 7, 8]
+      - section: "ANEXO A - Formato e Instructivo ART (Secciones A, B y C)"
+        pages: [12, 13, 14, 15]
+      - section: "ANEXO B - Clasificación de Peligros y Medidas"
+        pages: [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38]
 
-    - id: "SRC-PR-H-08"
-      documentNumber: "PDVSA PR-H-08"
-      title: "Requisitos para el Transporte de Materiales Radiactivos"
-      revision: "1 (Junio 2014)"
-      authorityLevel: "NIVEL_A_PDF_OFICIAL"
-      status: "CONFIRMED"
+  - documentId: PDVSA-SI-S-20
+    officialTitle: "Manual de Seguridad Industrial: Procedimientos de Trabajo"
+    volume: "Volumen 1"
+    revision: "0"
+    date: "2006-11"
+    publisher: "Petróleos de Venezuela, S.A."
+    authorityLevel: CONFIRMED_PDF
+    fileVerified: true
+    pagesScanned: 12
+    sectionsUsed:
+      - section: "1. OBJETIVO & 2. ALCANCE"
+        page: 3
+      - section: "5. LINEAMIENTOS GENERALES"
+        pages: [4, 5]
+      - section: "6. CONTENIDO DE UN PROCEDIMIENTO DE TRABAJO (15 Secciones)"
+        pages: [5, 6, 7, 8, 9, 10, 11, 12]
 
-    - id: "SRC-SI-S-04"
-      documentNumber: "PDVSA SI-S-04"
-      title: "Requisitos SIHOA en Contratación"
-      revision: "5 (Junio 2011)"
-      authorityLevel: "NIVEL_A_PDF_OFICIAL"
-      status: "CONFIRMED"
-
-    - id: "SRC-SI-S-28"
-      documentNumber: "PDVSA SI-S-28"
-      title: "Control de Fuentes de Energía (LOTO)"
-      revision: "Junio 2010"
-      authorityLevel: "NIVEL_A_PDF_OFICIAL"
-      status: "CONFIRMED"
-
-  activitySpecificTechnicalStandards:
-    - id: "SRC-PI-15-02-01"
-      documentNumber: "PDVSA PI-15-02-01"
-      title: "Requisitos de Seguridad en Izamiento de Cargas"
-      authorityLevel: "ACTIVITY_SPECIFIC_TECHNICAL_STANDARD"
-      status: "CONFIRMED"
-
-    - id: "SRC-API-1104"
-      documentNumber: "API 1104"
-      title: "Welding of Pipelines and Related Facilities"
-      edition: "22nd Ed. (2021)"
-      authorityLevel: "SECONDARY_ACTIVITY_SPECIFIC_STANDARD"
-      status: "CONFIRMED"
-
-    - id: "SRC-ASME-B31.3"
-      documentNumber: "ASME B31.3"
-      title: "Process Piping"
-      edition: "2024 Ed."
-      authorityLevel: "SECONDARY_ACTIVITY_SPECIFIC_STANDARD"
-      status: "CONFIRMED"
-
-  pendingExternalParameters:
-    - parameterId: "EXT-PARAM-01"
-      description: "Tiempos de ventilación forzada específicos y límites de toxicidad por gas secundario en espacios confinados"
-      requiredBy: "Anexo B (Espacios Confinados)"
-      sourceDocument: "PDVSA HO-H-06"
-      sourceStatus: "MISSING_SOURCE"
-      value: null
-      validationStatus: "PENDING_EXTERNAL_PARAMETER"
-      implementationBehavior:
-        - capture
-        - flag
-        - prevent_unverified_claim
-
-    - parameterId: "EXT-PARAM-02"
-      description: "Factores de carga estructural de andamios y distancias a líneas energizadas"
-      requiredBy: "Anexo J (Trabajos en Altura)"
-      sourceDocument: "PDVSA SI-S-27 / SI-S-31"
-      sourceStatus: "MISSING_SOURCE"
-      value: null
-      validationStatus: "PENDING_EXTERNAL_PARAMETER"
-      implementationBehavior:
-        - capture
-        - flag
-        - prevent_unverified_claim
-
-    - parameterId: "EXT-PARAM-03"
-      description: "Ángulo exacto de talud por cohesión de suelo y profundidad para entibado obligatorio"
-      requiredBy: "Anexo E (Excavaciones)"
-      sourceDocument: "COVENIN 2247"
-      sourceStatus: "MISSING_SOURCE"
-      value: null
-      validationStatus: "PENDING_EXTERNAL_PARAMETER"
-      implementationBehavior:
-        - capture
-        - flag
-        - prevent_unverified_claim
+missingReferencedSources:
+  - documentId: PDVSA-SI-S-28
+    purpose: "Control de Fuentes de Energía (LOTO)"
+    citedIn: ["PDVSA-IR-S-04 (Pág. 7, 17)", "PDVSA-SI-S-20 (Pág. 3)"]
+    status: MISSING_SOURCE
+  - documentId: PDVSA-HO-H-06
+    purpose: "Trabajos en Espacios Confinados"
+    citedIn: ["PDVSA-IR-S-04 (Pág. 7, 23)"]
+    status: MISSING_SOURCE
+  - documentId: PDVSA-PI-15-02-01
+    purpose: "Izamiento de Cargas"
+    citedIn: ["PDVSA-IR-S-04 (Pág. 7, 24)"]
+    status: MISSING_SOURCE
+  - documentId: PDVSA-SI-S-31
+    purpose: "Trabajos en Altura"
+    citedIn: ["PDVSA-IR-S-04 (Pág. 7, 31)"]
+    status: MISSING_SOURCE
+  - documentId: PDVSA-SI-S-29
+    purpose: "Alta Tensión Eléctrica"
+    citedIn: ["PDVSA-IR-S-04 (Pág. 7, 28)"]
+    status: MISSING_SOURCE
+  - documentId: COVENIN-2247
+    purpose: "Excavaciones"
+    citedIn: ["PDVSA-IR-S-04 (Pág. 6, 26)"]
+    status: MISSING_SOURCE

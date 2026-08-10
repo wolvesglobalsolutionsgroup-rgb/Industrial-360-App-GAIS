@@ -1,17 +1,75 @@
-# WF-043: MATRIZ DE ENTREGABLES Y EVIDENCIAS
+# Matriz de Entregables y Asignación al Databook: `wf-043`
 
-**Documento Base:** PDVSA IR-S-04 — *Sistema de Permisos de Trabajo*, Rev. 4 (Agosto 2013).
+**ID Workflow**: `wf-043-aprobacion-ptw`  
+**Estatus**: `PROPOSED_SPECIFICATION`
 
 ---
 
-## 1. ENTREGABLES FÍSICOS Y DIGITALES NORMATIVOS
+## 1. Definición del Entregable Oficial (`DeliverableDefinition`)
 
-| Entregable / Evidencia | Formato / Soporte | Responsable Emisión | Custodia / Destino | Ref. Normativa |
-|---|---|---|---|---|
-| **Permiso de Trabajo Principal (Anexo A)** | Impreso original y copia en papel / PDF sellado | Emisor en sitio | Original: Custodio / Copia: Receptor (Min 3 meses) | Sec. 8.1.1.d, 8.7.2, 8.8.1 |
-| **Certificados Especiales (Anexos B a L)** | Formatos impresos adjuntos / PDF sellado | Emisor / Receptores Especialidad | Adjunto al Anexo A en sitio / Databook | Sec. 7.2.b, 8.7.3, Págs. 36-69 |
-| **Análisis de Riesgos (ART No.)** | Documento escrito (PDVSA IR-S-17) | Receptor / Ejecutor | Copia física adjunta al Permiso en sitio | Sec. 7.1.2, 8.1.2.b |
-| **Procedimiento de Trabajo No.** | Documento escrito (PDVSA SI-S-20) | Receptor / Ejecutor | Copia física adjunta al Permiso en sitio | Sec. 7.1.2, 8.1.2.b |
-| **Notificación de Riesgos HO-H-16** | Formato Formulario G firmados | Gerencia / Contratista | Expediente de Recursos Humanos (10 años) | PDVSA HO-H-16 Sec. 7.3 |
-| **Registro de Pruebas de Gases** | Tabla en Anexo A (Renglón 12) | Evaluador de Gas Certificado | Sobre el mismo Anexo A físico / Digital | Sec. 8.3.3, Anexo A |
-| **Databook Package (ISO 19005-1)** | Expediente PDF/A inmutable sellado | Sistema IC360-NEXUS | `05.01_PERMISOS_DE_TRABAJO_PTW` | Propuesta IC360 |
+```yaml
+deliverableDefinition:
+  deliverableId: DEL-PTW-ANEXO-A
+  officialTitle: "PERMISO DE TRABAJO SEGURO EN FRÍO O EN CALIENTE"
+  documentClass: PERMISO_DE_TRABAJO_OFICIAL
+  officialFormat: "PDVSA IR-S-04 ANEXO A (Pág. 33)"
+  allowedFormats: ["PDF", "XLSX", "JSON"]
+
+  coBrandingRule:
+    headerLeft: "Logo y Membrete Oficial del Cliente / Operador (ej. PDVSA Petróleo S.A.)"
+    headerRight: "Logo y Membrete Oficial de la Empresa Contratista (ej. PROINTECA C.A.)"
+    securityFeatures:
+      - "Hash criptográfico de archivo fuente (sourceHash)"
+      - "Código QR con URL de verificación de autenticidad en servidor"
+      - "Sello de tiempo inviolable de firma electrónica"
+
+  requiredSignatures:
+    - role: EMISOR
+      title: "Custodio de la Instalación PDVSA"
+      requiredPage: 33
+      requiredRenglón: 17
+    - role: RECEPTOR
+      title: "Supervisor Responsable"
+      requiredPage: 33
+      requiredRenglón: 18
+    - role: EJECUTOR
+      title: "Responsable de la Ejecución de Obra"
+      requiredPage: 33
+      requiredRenglón: 19
+```
+
+---
+
+## 2. Asignación y Compilación Automática en el Databook
+
+Cuando la `WorkflowInstance` de `wf-043` alcanza el estado **`ISSUED`** o **`CLOSED`**, el **Compilador del Databook** procesa los metadatos obligatorios y archiva el documento automáticamente:
+
+```text
+PROYECTO: Reemplazo y Reparación Propanoducto 6" Cardón - Amuay
+ └── CAPÍTULO 02: SEGURIDAD INDUSTRIAL, HIGIENE Y AMBIENTE (SIHO-A)
+      └── SECCIÓN 2.1: PERMISOS DE TRABAJO Y CERTIFICADOS ESPECIALES
+           ├── [ISSUED] PTW-2026-00412_AnexoA_Caliente.pdf  (Hash: e8a91...)
+           ├── [ISSUED] ART-2026-0891_AnalisisRiesgos.pdf    (Hash: b4c01...)
+           └── [ISSUED] PTS-MEC-2026-014_Procedimiento.pdf   (Hash: 7f3d2...)
+```
+
+### Contrato de Indexación en Databook (`DossierDocument`)
+
+```yaml
+dossierDocumentContract:
+  chapterId: "CH-02-SIHO-A"
+  sectionId: "SEC-2.1-PERMISOS-Y-CERTIFICADOS"
+  documentClass: PERMISO_DE_TRABAJO_OFICIAL
+  requiredMetadata:
+    - projectId
+    - contractId
+    - workPackageId
+    - workflowInstanceId
+    - ptwCode
+    - workType
+    - issueDate
+    - emisorNationalId
+    - receptorNationalId
+    - sourceHash
+  retentionPolicyMonths: 3 # Retención mínima de 3 meses en archivo físico/digital (IR-S-04 Secc. 8.7.2)
+```

@@ -1,81 +1,46 @@
-# WF-043: MATRIZ DE DEPENDENCIA DE FUENTES Y ARQUITECTURA DE CAPAS
+# Matriz de Dependencias Documentales: `wf-043` (Permiso de Trabajo Seguro)
 
-**Workflow:** WF-043 — Sistema de Permisos de Trabajo  
-**Agente Auditor:** Antigravity  
-**Fecha:** 2026-08-10  
-**Confianza General:** `HIGH`  
-
----
-
-## 1. FUENTES PRIMARIAS DE GOBERNANZA DEL PERMISO DE TRABAJO
-
-| ID Fuente | Documento Oficial | Revisión / Fecha | Nivel Autoridad | Ubicación / Referencia | Estado |
-|---|---|---|---|---|:---:|
-| `SRC-IR-S-04` | PDVSA IR-S-04 — *Sistema de Permisos de Trabajo* | Rev. 4 (Agosto 2013) | **Gobernanza Primaria (Anexos A a L)** | `PDVSA_IR-S-04_Rev4_Ago2013.pdf` | `CONFIRMED` |
-| `SRC-HO-H-16` | PDVSA HO-H-16 — *Notificación de Riesgos* | Rev. 2 (Abril 2013) | **Gobernanza Primaria (Notificación)** | `1.2 Notificación de riesgos...pdf` | `CONFIRMED` |
-| `SRC-PR-H-08` | PDVSA PR-H-08 — *Transporte de Materiales Radiactivos* | Rev. 1 (Junio 2014) | **Gobernanza Primaria (Radiaciones)** | `PR-H-08...pdf` | `CONFIRMED` |
-| `SRC-SI-S-04` | PDVSA SI-S-04 — *Requisitos SIHOA en Contratación* | Rev. 5 (Junio 2011) | **Marco Contratación / Pre-inicio** | `PDVSA_SI-S-04...pdf` | `CONFIRMED` |
-| `SRC-IR-S-17` | PDVSA IR-S-17 — *Análisis de Riesgos (ART)* | Rev. Octubre 2006 | **Gobernanza Primaria (Riesgos)** | `IR-S-17.pdf` | `CONFIRMED` |
-| `SRC-SI-S-20` | PDVSA SI-S-20 — *Procedimientos de Trabajo* | Rev. Noviembre 2006 | **Gobernanza Primaria (Procedimientos)** | `PDVSA_SI-S-20...pdf` | `CONFIRMED` |
-| `SRC-SI-S-28` | PDVSA SI-S-28 — *Control de Fuentes de Energía (LOTO)* | Rev. Junio 2010 | **Gobernanza Primaria (LOTO)** | `PDVSA_SI-S-28...pdf` | `CONFIRMED` |
+**ID Workflow**: `wf-043-aprobacion-ptw`  
+**Nombre Operativo**: Permiso de Trabajo Seguro "En Frío o En Caliente" (PDVSA SIHO-A)  
+**Dominio Técnico**: Seguridad Industrial, Higiene Ocupacional y Ambiente (SIHO-A) / Permisoría de Campo  
+**Estado de Análisis**: `PROPOSED_SPECIFICATION`  
+**Nivel de Confianza**: `HIGH` (Basado en 3 PDFs oficiales confirmados + 10 fuentes dependientes registradas)
 
 ---
 
-## 2. ESTRUCTURA DE CAPAS SEPARADAS DE ARQUITECTURA
+## 1. Fuentes Documentales Confirmadas (PDFs Oficiales Reales)
 
-```mermaid
-graph TD
-    subgraph Capa_1[1. ContractorEligibility]
-        SI04[PDVSA SI-S-04 - Estatus Contratista APTA]
-    end
+| ID Documento | Título Oficial | Revisión / Fecha | Nivel de Autoridad | Ámbito en `wf-043` |
+|---|---|---|---|---|
+| **`PDVSA IR-S-04`** | Manual de Ingeniería de Riesgos: Sistema de Permisos de Trabajo | Rev. 4, Agosto 2013 | `CONFIRMED_PDF` | Norma marco, Renglones 1-23 del Permiso Base (Anexo A), procedimientos de otorgamiento, prueba de gases, prórroga, cancelación y cierre. |
+| **`PDVSA IR-S-17`** | Manual de Ingeniería de Riesgos: Análisis de Riesgos del Trabajo (ART) | Rev. 0, Octubre 2006 | `CONFIRMED_PDF` | Matriz de 35 Renglones, identificación de peligros, jerarquía de controles (Fuente-Trayectoria-Receptor), Sección C de campo y firmas de cuadrilla. |
+| **`PDVSA SI-S-20`** | Manual de Seguridad Industrial: Procedimientos de Trabajo | Rev. 0, Noviembre 2006 | `CONFIRMED_PDF` | Estructura de 15 Secciones Obligatorias, secuencia de tareas en infinitivo y manejo ambiental de desechos (Decreto 2635). |
 
-    subgraph Capa_2[2. PreStartReadiness]
-        PlanSIHOA[Plan Especifico SIHOA Anexo B SI-S-04]
-        Inducción[Inducción / Notificación PDVSA HO-H-16]
-        Visita[Verificación Conjunta en Sitio]
-    end
+---
 
-    subgraph Capa_3[3. PTWCore]
-        AnexoA[PDVSA IR-S-04 Anexo A Renglones 1-23]
-        ART[PDVSA IR-S-17 ART No.]
-        PROC[PDVSA SI-S-20 Procedimiento No.]
-        GAS[Pruebas de Gases Quantitative]
-    end
+## 2. Fuentes Referenciadas Faltantes (`MISSING_SOURCE`)
 
-    subgraph Capa_4[4. SpecialCertificates]
-        AnexoB[Anexo B Espacios Confinados]
-        AnexoC[Anexo C Izamiento PI-15-02-01]
-        AnexoD[Anexo D Radiaciones PR-H-08]
-        AnexoE[Anexo E Excavaciones]
-        AnexoF[Anexo F Eléctrico SI-S-28]
-        AnexoG[Anexo G Subacuático]
-        AnexoH[Anexo H Hot-Tap API 1104/ASME B31.3]
-        AnexoI[Anexo I Áreas Compartidas]
-        AnexoJ[Anexo J Altura]
-        AnexoK[Anexo K Fumigación]
-        AnexoL[Anexo L Soldadura API 1104]
-    end
+| ID Documento | Título Referenciado en Norma | Norma Origen que Cita | Páginas Citadas | Estado | Impacto en `wf-043` |
+|---|---|---|---|---|---|
+| **`PDVSA SI-S-28`** | Control de Fuentes de Energía (LOTO) | PDVSA IR-S-04 / SI-S-20 | IR-S-04 Pág. 7, 17, 26 | `MISSING_SOURCE` | Requerido para la validación detallada del Aislamiento LOTO (Renglón 11.a de IR-S-04). |
+| **`PDVSA HO-H-06`** | Guía para Trabajos en Espacios Confinados | PDVSA IR-S-04 | IR-S-04 Pág. 7, 23 | `MISSING_SOURCE` | Requerido para la integración completa del Certificado Anexo B. |
+| **`PDVSA PI-15-02-01`** | Requisitos en Izamiento de Cargas | PDVSA IR-S-04 | IR-S-04 Pág. 7, 24 | `MISSING_SOURCE` | Requerido para la integración del Certificado Anexo C / ASME B30.5. |
+| **`PDVSA SI-S-27`** | Andamios: Requisitos de Seguridad | PDVSA IR-S-04 | IR-S-04 Pág. 7, 31 | `MISSING_SOURCE` | Requerido para la integración del Certificado Anexo J (Altura). |
+| **`PDVSA SI-S-31`** | Seguridad Industrial para Trabajos en Altura | PDVSA IR-S-04 | IR-S-04 Pág. 7, 31 | `MISSING_SOURCE` | Requerido para la validación de arnés, puntos de anclaje y líneas de vida. |
+| **`PDVSA SI-S-29`** | Trabajos en Sistemas Eléctricos Alta Tensión | PDVSA IR-S-04 | IR-S-04 Pág. 7, 28 | `MISSING_SOURCE` | Requerido para la integración del Certificado Anexo F (Eléctrico). |
+| **`PDVSA SI-S-32`** | Trabajos en Sistemas Eléctricos Baja Tensión | PDVSA IR-S-04 | IR-S-04 Pág. 7, 28 | `MISSING_SOURCE` | Requerido para la validación de interruptores, tableros y tierras temporales. |
+| **`COVENIN 2247`** | Excavaciones a Cielo Abierto y Subterráneas | PDVSA IR-S-04 | IR-S-04 Pág. 6, 26 | `MISSING_SOURCE` | Requerido para la integración del Certificado Anexo E (Excavaciones). |
+| **`PDVSA IR-E-01`** | Clasificación Eléctrica de Áreas | PDVSA IR-S-04 | IR-S-04 Pág. 7, 16 | `MISSING_SOURCE` | Requerido para verificar compatibilidad de equipos en áreas restringidas. |
+| **`PDVSA IR-S-16`** | Zonas de Seguridad en Áreas Compartidas | PDVSA IR-S-04 | IR-S-04 Pág. 7, 29 | `MISSING_SOURCE` | Requerido para la integración del Certificado Anexo I (Corredores). |
+| **`PDVSA 10606.1.401`**| Guidelines for Hot-Tapping | PDVSA IR-S-04 | IR-S-04 Pág. 7, 29 | `MISSING_SOURCE` | Requerido para la integración del Certificado Anexo H (Perforación en Caliente). |
+| **`Decreto 2635`** | Manejo de Desechos y Efluentes Peligrosos | PDVSA SI-S-20 | SI-S-20 Pág. 3, 9 | `MISSING_SOURCE` | Requerido para la clasificación de desechos en la Sección 6.13 de los PTS. |
 
-    subgraph Capa_5[5. ExecutionControl]
-        Monitoreo[Monitoreo Continuo / Permanencia]
-        Suspensión[Interrupción >1h Caliente / >2h Frío]
-    end
+---
 
-    subgraph Capa_6[6. Extension]
-        Prorroga[Prórroga Única Max 2h + Gas Test]
-    end
+## 3. Matriz de Conflictos y Desviaciones Identificadas
 
-    subgraph Capa_7[7. Closeout]
-        Cierre[Cierre Tripartita + Sitio Ordenado]
-    end
-
-    subgraph Capa_8[8. Deliverables]
-        Package[Expediente Digital ISO 19005-1]
-    end
-
-    subgraph Capa_9[9. Databook]
-        DB[05.01_PERMISOS_DE_TRABAJO_PTW]
-    end
-
-    Capa_1 --> Capa_2 --> Capa_3 --> Capa_4 --> Capa_5 --> Capa_6 --> Capa_7 --> Capa_8 --> Capa_9
-```
+| Conflicto / Desviación | Fuente 1 (Autoridad Mayor) | Fuente 2 (Secundaria) | Análisis del Conflicto | Resolución Adoptada |
+|---|---|---|---|---|
+| **Bloqueo Automático vs Evaluador Advisory** | Práctica UX/UI previa en repo (`blocking: true`) | PDVSA IR-S-04 Secc. 8.3 / 8.6 | La norma establece que las desviaciones atmosféricas o de seguridad exigen intervención y decisión humana (Emisor/Receptor), no rechazos automáticos de software. | `RESOLVED_ADVISORY`: La app notifica la alerta y exige justificación humana/firma de excepción. |
+| **Ciclo de Estados Abreviado** | Interfaz previa (`DRAFT -> APPROVED`) | PDVSA IR-S-04 Secc. 8.1 - 8.7 | La norma describe fases operativas de inspección en sitio, entrega de copia, suspensión por clima, prórroga, cancelación y cierre. | `RESOLVED_LIFECYCLE`: Implementada máquina de 10 estados (`DRAFT` a `ARCHIVED`). |
+| **Firma Tripartita Unificada** | Suposición de 3 firmas fijas para todo | PDVSA IR-S-04 / SI-S-20 | El Permiso `IR-S-04` exige 3 firmas (Emisor, Receptor, Ejecutor), pero el ART `IR-S-17` Sección C exige firmas de toda la cuadrilla. | `RESOLVED_SIGNATURES`: Distinguir firmas de aprobación de permiso vs firmas de divulgación de cuadrilla. |

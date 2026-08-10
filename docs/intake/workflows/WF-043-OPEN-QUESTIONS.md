@@ -1,27 +1,25 @@
-# WF-043: REGISTRO DE FUENTES PRIMARIAS, FUENTES INCORPORADAS Y PARÁMETROS EXTERNOS PENDIENTES
+# Preguntas Abiertas y Elementos Pendientes de Reconciliación: `wf-043`
 
-**Documento Base:** PDVSA IR-S-04 — *Sistema de Permisos de Trabajo*, Rev. 4 (Agosto 2013).
-
----
-
-## 1. FUENTES NUEVAS INCORPORADAS EN PDF REAL (`CONFIRMED`)
-
-1. **`PDVSA HO-H-16`** (*Identificación y Notificación de Peligros y Riesgos Asociados a las Instalaciones y Puestos de Trabajos*, Rev. 2, Abril 2013, 31 Págs.):  
-   *Estatus:* **CONFIRMADO PDF REAL**. Rige el procedimiento de notificación de riesgos en sitio (§7.5.3 de SI-S-04 y Renglón 11.k del Anexo A de IR-S-04).
-
-2. **`PDVSA PR-H-08`** (*Requisitos para el Transporte de Materiales Radiactivos o Equipos que los Contengan*, Rev. 1, Junio 2014, 23 Págs.):  
-   *Estatus:* **CONFIRMADO PDF REAL**. Rige el transporte de fuentes y bultos radiológicos para el Anexo D (Radiaciones Ionizantes).
+**ID Workflow**: `wf-043-aprobacion-ptw`  
+**Estatus**: `PROPOSED_SPECIFICATION`
 
 ---
 
-## 2. PARÁMETROS EXTERNOS PENDIENTES (`PENDING_EXTERNAL_PARAMETER`)
+## 1. Preguntas Abiertas Normativas y Operativas
 
-Las fuentes externas no localizadas no bloquean el desarrollo del flujo PTW ni de los Anexos B al L. Únicamente se mantienen etiquetadas como `PENDING_EXTERNAL_PARAMETER` para los siguientes valores numéricos especializados:
+1. **¿Existen variaciones en el formato del Anexo A entre filiales de PDVSA?**:
+   * *Pregunta*: La norma `PDVSA IR-S-04` Rev. 4 (2013) establece el formato oficial del Anexo A. ¿Algunos clientes/empresas mixtas (ej. Petroboscán, Petrocedeño) utilizan variaciones con renglones adicionales?
+   * *Estatus*: `PENDING_HUMAN_REVIEW`.
+2. **Integración con la firma de la Sección C del ART (`PDVSA IR-S-17`)**:
+   * *Pregunta*: ¿La firma de la cuadrilla en el ART debe realizarse en el mismo dispositivo móvil antes de habilitar el botón de aprobación del Permiso Base en `wf-043`?
+   * *Estatus*: `PROPOSED`.
+3. **Verificación de Calibración de Multigas**:
+   * *Pregunta*: ¿El número de serie del explosímetro/multigas debe validarse contra una base de datos central de equipos calibrados de la empresa antes de autorizar la firma del evaluador de atmósferas?
+   * *Estatus*: `PROPOSED`.
 
-| Documento Referenciado | Objeto Técnico | Parámetro Externo Pendiente | Estado de Desarrollo |
-|---|---|---|:---:|
-| **PDVSA HO-H-06** | *Espacios Confinados* | Tiempos de ventilación forzada específicos por volumen. | `PERMITTED` (Campos de Anexo B construibles) |
-| **PDVSA SI-S-27 / SI-S-31** | *Andamios y Altura* | Tabla de factores de carga estructural según tipo de tubo. | `PERMITTED` (Campos de Anexo J construibles) |
-| **COVENIN 2247** | *Excavaciones* | Ángulo exacto de talud seguro por cohesión de suelo. | `PERMITTED` (Campos de Anexo E construibles) |
-| **PDVSA SI-S-29 / SI-S-32** | *Sistemas Eléctricos* | Distancias de seguridad por niveles de voltaje $>34.5\text{kV}$. | `PERMITTED` (Campos de Anexo F construibles) |
-| **PDVSA IR-S-16** | *Zonas de Seguridad* | Ancho de franja de seguridad en corredores marinos. | `PERMITTED` (Campos de Anexo I construibles) |
+---
+
+## 2. Cuestiones Pendientes de Fuentes Faltantes (`MISSING_SOURCE`)
+
+1. **`PDVSA SI-S-28` (LOTO)**: Extracción pendiente de los requerimientos específicos de cajas de bloqueo y color de candados para completar la validación del Renglón 11.a de `IR-S-04`.
+2. **`PDVSA SI-S-20` (Manejo de Desechos Dec. 2635)**: Extracción pendiente del catálogo completo de tipos de desechos para la pestaña ambiental.
