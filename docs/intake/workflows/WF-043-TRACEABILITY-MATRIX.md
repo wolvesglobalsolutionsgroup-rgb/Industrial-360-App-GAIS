@@ -16,3 +16,4 @@
 | **Certificados Especiales B-L** | 11 Anexos específicos normados (Págs. 36-69) | `SihoPtw.tsx` muestra lista estática sin sub-formularios | `CONFLICTED` | No captura los renglones específicos de excavación, izamiento, etc. |
 | **Firma Tripartita (Emisor/Receptor/Ejecutor)** | Obligatoria en Otorgamiento, Prórroga y Cierre (§8.1.2.g) | Un solo botón de aprobación sin rol diferenciado | `CONFLICTED` | Rompe la corresponsabilidad tripartita requerida por la norma. |
 | **Notificación a Trabajadores** | Constancia escrita requerida (§8.1.2.f) | Ausente en la UI actual | `CONFLICTED` | Falta evidencia de divulgación de riesgos en sitio. |
+| **Prerrequisito Calificación Contratista SI-S-04** | Calificación APTA + Plan Específico SIHOA aprobados antes de inicio (§6.6, §7.5.4) | Sin validación previa de estatus de contratista en UI | `CONFLICTED` | Riesgo de emisión de PTW a contratistas sin calificación APTA o sin Plan SIHOA. |

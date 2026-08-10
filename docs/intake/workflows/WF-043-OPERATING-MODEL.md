@@ -6,7 +6,12 @@
 
 ## 1. SECUENCIA OPERATIVA NORMATIVA
 
-```text
+0. PRERREQUISITOS DE CONTRATACIÓN Y PRE-INICIO (PDVSA SI-S-04 Rev. 5)
+   ├─ Calificación vigente de Contratista "APTA" (§6.6, Anexo A/C SI-S-04)
+   ├─ Aprobación por escrito del Plan Específico SIHOA (§7.3.4, 7.5.4, Anexo B SI-S-04)
+   ├─ Taller de Inducción / Notificación de Riesgos HO-H-16 (§7.5.3 SI-S-04)
+   └─ Inspección conjunta de Verificación en Sitio (§7.5.1, 7.5.5 SI-S-04)
+
 1. INICIO & PLANIFICACIÓN
    └─ Identificación de actividad (§7.1.1)
    └─ Elaboración de ART (PDVSA IR-S-17) (§7.1.2)
@@ -43,4 +48,3 @@
    └─ Firma de cierre tripartita (Emisor, Receptor, Ejecutor) (§8.7.1)
    └─ Archivo físico por mínimo 3 meses (Original: Emisor, Copia: Receptor) (§8.7.2, 8.7.3)
    └─ Carga e indexación en el Databook de Infraestructura (05.01_PERMISOS_DE_TRABAJO_PTW)
-```

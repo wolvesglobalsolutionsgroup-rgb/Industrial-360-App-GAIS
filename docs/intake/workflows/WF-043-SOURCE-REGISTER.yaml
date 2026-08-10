@@ -36,6 +36,17 @@ sourceRegister:
       authorityLevel: "NIVEL_A_PDF_OFICIAL"
       status: "CONFIRMED"
 
+    - id: "SRC-SI-S-04"
+      documentNumber: "PDVSA SI-S-04"
+      title: "Requisitos de Seguridad Industrial, Higiene Ocupacional y Ambiente en el Proceso de Contratación"
+      volume: "Volumen 1 - Manual de Seguridad Industrial"
+      revision: "5"
+      revisionDate: "Junio 2011"
+      authorityLevel: "NIVEL_A_PDF_OFICIAL"
+      status: "CONFIRMED"
+      relationType: "SUPPORTING_SOURCE"
+      pageCount: 48
+
   missingSources:
     - documentNumber: "PDVSA HO-H-06"
       title: "Guía de Higiene y Seguridad para Trabajos en Espacios Confinados"

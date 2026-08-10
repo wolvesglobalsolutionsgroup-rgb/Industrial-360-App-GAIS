@@ -15,6 +15,7 @@
 | `SRC-IR-S-17` | PDVSA IR-S-17 — *Análisis de Riesgos del Trabajo (ART)* | Rev. Octubre 2006 | **Nivel A (PDF Oficial)** | `PDVSA_IR-S-17_OCTUBRE-2006.pdf` | `CONFIRMED` |
 | `SRC-SI-S-20` | PDVSA SI-S-20 — *Procedimientos de Trabajo* | Rev. Noviembre 2006 | **Nivel A (PDF Oficial)** | `PDVSA_SI-S-20_NOVIEMBRE-2006.pdf` | `CONFIRMED` |
 | `SRC-SI-S-28` | PDVSA SI-S-28 — *Control de Fuentes de Energía (LOTO)* | Rev. Junio 2010 | **Nivel A (PDF Oficial)** | `PDVSA_SI-S-28_JUNIO-2010.pdf` | `CONFIRMED` |
+| `SRC-SI-S-04` | PDVSA SI-S-04 — *Requisitos SIHOA en Contratación* | Rev. 5 (Junio 2011) | **Nivel A (PDF Marco / Supporting)** | `PDVSA_SI-S-04...pdf` | `CONFIRMED` |
 | `SRC-PI-15-02-01` | PDVSA PI-15-02-01 — *Requisitos de Seguridad en Izamiento* | Rev. P6 Compress | **Nivel A (PDF Oficial)** | `pi-15-02-01...pdf` | `CONFIRMED` |
 | `SRC-API-1104` | API 1104 — *Welding of Pipelines and Related Facilities* | 22nd Ed. (2021) | **Nivel A (PDF Oficial)** | `API-1104_22ed_2021.pdf` | `CONFIRMED` |
 | `SRC-ASME-B31.3` | ASME B31.3 — *Process Piping* | Edición 2024 | **Nivel A (PDF Oficial)** | `ASME-B31.3-2024.pdf` | `CONFIRMED` |
@@ -24,7 +25,7 @@
 ## 2. FUENTES REFERENCIADAS FALTANTES (`MISSING_SOURCE`)
 
 | ID Referencia | Norma Referenciada | Título / Objeto Técnico | Ámbito de Aplicación en WF-043 | Estado |
-|---|---|---|---|---|:---:|
+|---|---|---|---|:---:|
 | `REF-HO-H-06` | PDVSA HO-H-06 | *Guía de Higiene y Seguridad en Espacios Confinados* | Anexo B (Espacios Confinados) | `MISSING_SOURCE` |
 | `REF-SI-S-27` | PDVSA SI-S-27 | *Andamios: Requisitos de Seguridad* | Anexo J (Trabajos en Altura) | `MISSING_SOURCE` |
 | `REF-SI-S-31` | PDVSA SI-S-31 | *Seguridad Industrial para Trabajos en Altura* | Anexo J (Trabajos en Altura) | `MISSING_SOURCE` |
@@ -44,6 +45,8 @@
 
 ```mermaid
 graph TD
+    SRC_SIS04[PDVSA SI-S-04 Rev 5] --> PrereqApta[Calificación Contratista APTA & Plan SIHOA Anexo B]
+    PrereqApta --> SRC_IRS04[PDVSA IR-S-04 Rev 4 PTW]
     SRC_IRS04[PDVSA IR-S-04 Rev 4] --> FormAnexoA[Formulario Anexo A - Permiso Frío/Caliente]
     SRC_IRS04 --> CertsBL[Certificados Anexos B a L]
     SRC_IRS17[PDVSA IR-S-17 ART] --> FormAnexoA

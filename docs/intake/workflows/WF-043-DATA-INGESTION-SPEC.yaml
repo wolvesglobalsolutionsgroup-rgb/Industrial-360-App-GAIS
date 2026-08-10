@@ -87,3 +87,6 @@ dataIngestionSpec:
     - id: "CTL-PTW-04"
       rule: "Duración continua max 8 horas (ó 12h en paradas) (§8.4)"
       blocking: false
+    - id: "CTL-PTW-05"
+      rule: "Verificación de Contratista Calificado APTA y Plan Específico SIHOA aprobado (PDVSA SI-S-04 §6.6, §7.5.4)"
+      blocking: false
