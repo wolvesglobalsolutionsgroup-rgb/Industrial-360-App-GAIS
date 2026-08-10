@@ -123,8 +123,8 @@ https://app.ic360.io/workflows/wf-045-inspeccion-recubrimientos/inst-001
 | `wf-073-medicion-avance-ingenieria` | Curva S y Medición de Avance Físico de Ingeniería | 2 | EVIDENCE_READY (Ola 3) |
 | `wf-075-libro-de-obra` | Libro de Obra Digital y Asientos de Bitácora | 4 | EVIDENCE_READY (Ola 3) |
 | `wf-065-gis-alignment-sheets-kp` | Alignment Sheets GIS y Estacionamiento KP | 2 | EVIDENCE_READY (Ola 3) |
-| `wf-077-supervision-ingenieria` | Supervisión de Ingeniería de Detalle y Certificación ORC | 2 | PLANIFICADO (Ola 4) |
-| `wf-066-bim3d-integridad-soldadura` | Integridad de Soldadura, BIM 3D y Navegabilidad ILI | 5 | PLANIFICADO (Ola 4) |
-| `wf-074-completacion-mecanica` | Acta de Completación Mecánica y Dossier MC | 7 | PLANIFICADO (Ola 4) |
+| `wf-077-supervision-ingenieria` | Supervisión de Ingeniería de Detalle y Certificación ORC | 2 | EVIDENCE_READY (Ola 4) |
+| `wf-066-bim3d-integridad-soldadura` | Integridad de Soldadura, BIM 3D y Navegabilidad ILI | 5 | EVIDENCE_READY (Ola 4) |
+| `wf-074-completacion-mecanica` | Acta de Completación Mecánica y Dossier MC | 7 | EVIDENCE_READY (Ola 4) |
 | `wf-076-terminacion-construccion` | Acta de Terminación de Construcción y Custodia | 7 | RESERVADO (Ola 5) |
 

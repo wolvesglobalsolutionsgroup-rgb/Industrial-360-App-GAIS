@@ -42,9 +42,9 @@ El objetivo de la migración por olas es desacoplar progresivamente los módulos
 │                 │ wf-075-libro-de-obra              │ Fase 4 │ EVIDENCE_READY │
 │                 │ wf-065-gis-alignment-sheets-kp    │ Fase 5 │ EVIDENCE_READY │
 ├─────────────────┼───────────────────────────────────┼────────┼──────────────┤
-│ Ola 4 (F-D2+4)  │ wf-077-supervision-ingenieria     │ Fase 2 │ PLANIFICADO  │
-│                 │ wf-066-bim3d-integridad-soldadura │ Fase 5 │ PLANIFICADO  │
-│                 │ wf-074-completacion-mecanica      │ Fase 7 │ PLANIFICADO  │
+│ Ola 4 (F-D2+4)  │ wf-077-supervision-ingenieria     │ Fase 2 │ EVIDENCE_READY │
+│                 │ wf-066-bim3d-integridad-soldadura │ Fase 5 │ EVIDENCE_READY │
+│                 │ wf-074-completacion-mecanica      │ Fase 7 │ EVIDENCE_READY │
 ├─────────────────┼───────────────────────────────────┼────────┼──────────────┤
 │ Ola 5 (Reserv)  │ wf-076-terminacion-construccion   │ Fase 7 │ RESERVADO    │
 └─────────────────┴───────────────────────────────────┴────────┴──────────────┘
@@ -112,9 +112,9 @@ Ambas URLs (`/environmental-management` y `/workflows/wf-048-gestion-ambiental-s
 
 | Ola | Workflow | Fase | Estado | Motivo | Dependencias |
 |---|---|---:|---|---|---|
-| Ola 4 | `wf-077-supervision-ingenieria` | 2 | PLANIFICADO | Certificación ORC de ingeniería de detalle; compuerta FEL-2 crítica para validar entregables técnicos antes de la ejecución física. | Paquetes de ingeniería de detalle, memorias de cálculo de especialidad. |
-| Ola 4 | `wf-066-bim3d-integridad-soldadura` | 5 | PLANIFICADO | Control NDT de spools BIM 3D, doblado en frío PDVSA H-221 y navegabilidad ILI PIG en Fase 5 de inspección y calidad. | Contrato Spooling 3D, registros NDT de soldadura. |
-| Ola 4 | `wf-074-completacion-mecanica` | 7 | PLANIFICADO | Certificación de Completación Mecánica y Punchlist Cat A (0 ítems abiertos); requisito previo indispensable para precomisionado y transferencia. | Hitos de montaje mecánico, dossier Databook, certificados de pruebas hidrostáticas. |
+| Ola 4 | `wf-077-supervision-ingenieria` | 2 | EVIDENCE_READY | Certificación ORC de ingeniería de detalle; compuerta FEL-2 crítica para validar entregables técnicos antes de la ejecución física. | Paquetes de ingeniería de detalle, memorias de cálculo de especialidad. |
+| Ola 4 | `wf-066-bim3d-integridad-soldadura` | 5 | EVIDENCE_READY | Control NDT de spools BIM 3D, doblado en frío PDVSA H-221 y navegabilidad ILI PIG en Fase 5 de inspección y calidad. | Contrato Spooling 3D, registros NDT de soldadura. |
+| Ola 4 | `wf-074-completacion-mecanica` | 7 | EVIDENCE_READY | Certificación de Completación Mecánica y Punchlist Cat A (0 ítems abiertos); requisito previo indispensable para precomisionado y transferencia. | Hitos de montaje mecánico, dossier Databook, certificados de pruebas hidrostáticas. |
 | Ola 5 | `wf-076-terminacion-construccion` | 7 | RESERVADO | Transferencia formal de custodia a Operaciones PDVSA. Reservado para la Ola 5 al depender lógicamente de la certificación de Completación Mecánica (`wf-074`). | Requiere `wf-074` certificado, calibración PSV vigente, caminata de entrega y planos As-Built aprobados. |
 
 ### 5.2 Criterio de Priorización y Justificación
