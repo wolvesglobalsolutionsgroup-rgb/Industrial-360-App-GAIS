@@ -1,0 +1,43 @@
+rolePermissionMatrix:
+  workflowId: "WF-053"
+
+  roles:
+    - id: "RESIDENTE_CONTRATISTA"
+      name: "Ingeniero Residente Contratista (CIV)"
+      permissions:
+        - "CREATE_DAILY_LOG"
+        - "SUBMIT_MEASUREMENT"
+        - "FORMULATE_VALUATION"
+        - "SUBMIT_PUNCH_LIST"
+        - "SUBMIT_AS_BUILT"
+        - "SIGN_PROVISIONAL_ACCEPTANCE"
+
+    - id: "INSPECTOR_CONSTRUCCION"
+      name: "Ingeniero Inspector PDVSA (CIV)"
+      permissions:
+        - "VERIFY_DAILY_LOG"
+        - "VERIFY_MEASUREMENT"
+        - "APPROVE_VALUATION"
+        - "SIGN_MECH_COMPLETION"
+        - "SIGN_PROVISIONAL_ACCEPTANCE"
+
+    - id: "INSPECTOR_ACCC"
+      name: "Inspector ACCC de Calidad PDVSA"
+      permissions:
+        - "AUDIT_QUALITY_SPECIFICATIONS"
+        - "SIGN_ACCC_VALUATION_APPROVAL"
+        - "AUDIT_DOSSIER_QUALITY"
+
+    - id: "LIBERADOR_SAP"
+      name: "Administrador de Contratos / Liberador SAP"
+      permissions:
+        - "RELEASE_HES_SAP"
+        - "PROCESS_FINAL_VALUATION"
+        - "EXECUTE_CONTRACTUAL_CLOSURE"
+
+    - id: "CUSTODIO_INSTALACION"
+      name: "Gerencia Custodia de la Instalación / Equipo de Arranque"
+      permissions:
+        - "RECEIVE_MECH_COMPLETION_MEMO"
+        - "SIGN_MECH_COMPLETION_ACTA_B"
+        - "SIGN_PROVISIONAL_ACCEPTANCE_ACTA_C"

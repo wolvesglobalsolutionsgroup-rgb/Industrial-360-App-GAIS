@@ -1,0 +1,45 @@
+evidenceCatalog:
+  workflowId: "WF-053"
+
+  evidences:
+    - id: "EVID-01"
+      name: "Libro de Obra Digital Foliado (16 Secciones)"
+      format: "PDF Foliado con firmas inmutables"
+      requiredStage: "DAILY_LOGGED"
+      retentionPeriod: "Permanente"
+
+    - id: "EVID-02"
+      name: "Planilla de Cómputos Métricos y Hojas de Medición"
+      format: "Excel / PDF firmado por Residente e Inspector"
+      requiredStage: "MEASURED"
+      retentionPeriod: "Permanente"
+
+    - id: "EVID-03"
+      name: "Hoja de Entrada de Servicios (HES SAP)"
+      format: "Documento oficial generado en SAP"
+      requiredStage: "HES_ISSUED"
+      retentionPeriod: "Permanente"
+
+    - id: "EVID-04"
+      name: "Acta de Verificación de Completación Mecánica (Anexo B PIC-03-01-09)"
+      format: "PDF firmado por ORP y Custodio"
+      requiredStage: "MECH_COMPLETED"
+      retentionPeriod: "Permanente"
+
+    - id: "EVID-05"
+      name: "Acta de Recepción Provisional (Anexo C PIC-03-01-09)"
+      format: "PDF firmado por Inspector, Custodio y Contratista"
+      requiredStage: "PROVISIONALLY_ACCEPTED"
+      retentionPeriod: "Permanente"
+
+    - id: "EVID-06"
+      name: "Planos Como Construidos (As-Built) Sello MID"
+      format: "DWG / PDF alta resolución debidamente sellados"
+      requiredStage: "AS_BUILT_RATIFIED"
+      retentionPeriod: "Permanente"
+
+    - id: "EVID-07"
+      name: "Dossier de Calidad e Inspección (3 Libros Gate)"
+      format: "PDF/A ISO 19005-1 Inmutable"
+      requiredStage: "DATABOOK_ARCHIVED"
+      destinationPath: "05.01_PERMISOS_DE_TRABAJO_PTW"

@@ -1,0 +1,65 @@
+dataIngestionSpec:
+  workflowId: "WF-053"
+  workflowName: "Completación Mecánica, Cómputos Métricos, Valuaciones y Cierre Contractual SGE"
+  standardRefs:
+    - "PDVSA PIC-03-01-09 (Julio 2009)"
+    - "PDVSA PIC-03-01-16 (Diciembre 2009)"
+    - "PDVSA PIC-03-01-19 (Diciembre 2009)"
+    - "PDVSA PIC-03-01-13 (Diciembre 2009)"
+  governance:
+    advisoryOnly: false
+    hardBlocksEnforced: true
+    humanOverridePolicy:
+      allowed: true
+      strictPrerequisites:
+        - requiredRole: "GERENTE_ORP_O_SUPERVISOR_CONTRATOS_PDVSA"
+        - technicalJustificationRequired: true
+        - formalExceptionRecordRequired: "ACTA_EXCEPCION_CONTRACTUAL_SGE"
+        - auditTrailMandatory: true
+      automaticLegalValidityAsserted: false
+
+  fieldsValuations:
+    - id: "numeroValuacion"
+      name: "Número de Valuación"
+      type: "STRING"
+      required: true
+    - id: "periodoInicio"
+      name: "Fecha Inicio Período"
+      type: "DATE"
+      required: true
+    - id: "periodoFin"
+      name: "Fecha Fin Período"
+      type: "DATE"
+      required: true
+    - id: "montoBrutoValuado"
+      name: "Monto Bruto Valuado (Bs. / USD)"
+      type: "NUMBER"
+      required: true
+    - id: "retencionFianzaFielCumplimiento"
+      name: "Retención de Garantía (5%)"
+      type: "NUMBER"
+      required: true
+    - id: "hesSapNumero"
+      name: "Número de Hoja de Entrada de Servicios (HES SAP)"
+      type: "STRING"
+      required: true
+
+  fieldsMechanicalCompletion:
+    - id: "punchListCatalogA"
+      name: "Punch List Catálogo A (Pendientes Críticos Operativos)"
+      type: "ARRAY_OBJECT"
+      fields: ["itemNo", "descripcion", "responsable", "status"]
+      required: true
+    - id: "punchListCatalogB"
+      name: "Punch List Catálogo B (Pendientes Menores de Pintura/Limpieza)"
+      type: "ARRAY_OBJECT"
+      fields: ["itemNo", "descripcion", "responsable", "status"]
+      required: false
+    - id: "actaCompletacionMecanicaFecha"
+      name: "Fecha Firma Acta Anexo B (PIC-03-01-09)"
+      type: "DATE"
+      required: true
+    - id: "actaRecepcionProvisionalFecha"
+      name: "Fecha Firma Acta Anexo C (PIC-03-01-09)"
+      type: "DATE"
+      required: true

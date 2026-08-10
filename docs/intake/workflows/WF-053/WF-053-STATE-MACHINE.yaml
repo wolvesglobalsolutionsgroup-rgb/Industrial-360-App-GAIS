@@ -1,0 +1,40 @@
+stateMachine:
+  workflowId: "WF-053"
+  initialState: "DRAFT"
+
+  states:
+    - id: "DRAFT"
+      description: "Asientos diarios registrados en el Libro de Obra Digital."
+      allowedTransitions: ["MEASURED", "CANCELLED"]
+
+    - id: "MEASURED"
+      description: "Medición de obra ejecutada y cómputos métricos avalados por Inspector."
+      allowedTransitions: ["ACCC_VERIFIED", "CANCELLED"]
+
+    - id: "ACCC_VERIFIED"
+      description: "Validación de aseguramiento y control de calidad por el Inspector ACCC."
+      allowedTransitions: ["HES_ISSUED", "CANCELLED"]
+
+    - id: "HES_ISSUED"
+      description: "Valuación parcial aprobada y Hoja de Entrada de Servicios (HES SAP) liberada."
+      allowedTransitions: ["MECH_COMPLETED", "MEASURED", "CANCELLED"]
+
+    - id: "MECH_COMPLETED"
+      description: "Completación Mecánica alcanzada con Punch List Cero Catálogo A y Actas Anexo A y B firmadas."
+      allowedTransitions: ["PROVISIONALLY_ACCEPTED", "CANCELLED"]
+
+    - id: "PROVISIONALLY_ACCEPTED"
+      description: "Acta de Recepción Provisional Anexo C firmada por Custodio, Inspector y Contratista."
+      allowedTransitions: ["AS_BUILT_RATIFIED", "CANCELLED"]
+
+    - id: "AS_BUILT_RATIFIED"
+      description: "Planos Como Construidos ratificados por Líder de Ingeniería y archivados en Sala Técnica."
+      allowedTransitions: ["FINAL_VALUATION_CLOSED", "CANCELLED"]
+
+    - id: "FINAL_VALUATION_CLOSED"
+      description: "Valuación Final procesada con balance de materiales y evaluación de contratista."
+      allowedTransitions: ["DATABOOK_ARCHIVED"]
+
+    - id: "DATABOOK_ARCHIVED"
+      description: "Expediente digital inmutable PDF/A archivado en 05.01_PERMISOS_DE_TRABAJO_PTW y SGE."
+      allowedTransitions: []
