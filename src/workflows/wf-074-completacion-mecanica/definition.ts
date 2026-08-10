@@ -26,6 +26,19 @@ export const MechanicalCompletionSchema = z.object({
   inspectorNotes: z.string().min(5, 'Las observaciones de completación deben tener al menos 5 caracteres'),
 });
 
+export function createDefaultMechanicalCompletionData(): MechanicalCompletionData {
+  return {
+    subsystemCode: '',
+    subsystemName: '',
+    categoryAPunchCount: 0,
+    categoryBPunchCount: 0,
+    databookComplete: false,
+    hydrotestCertified: false,
+    completionDate: '',
+    inspectorNotes: '',
+  };
+}
+
 export const wf074Definition: WorkflowDefinition<MechanicalCompletionData> = {
   id: 'wf-074-completacion-mecanica',
   title: 'Acta de Completación Mecánica y Dossier de Calidad MC (GPG Fase 7)',
@@ -38,12 +51,12 @@ export const wf074Definition: WorkflowDefinition<MechanicalCompletionData> = {
     {
       id: 'PUNCHLIST_CRITICAL_ITEMS',
       name: 'Ausencia de Pendientes Críticos (Punchlist Categoría A)',
-      description: 'Bloquea la firma del acta de completación si existe algún ítem abierto de Punchlist Categoría A.',
+      description: 'Evalúa la presencia de pendientes críticos de Punchlist Categoría A.',
       evaluator: (_context, data) => {
         if (data.categoryAPunchCount > 0) {
           return {
             passed: false,
-            message: `BLOQUEO DE COMPLETACIÓN MECÁNICA: Existen ${data.categoryAPunchCount} pendientes de Punchlist Categoría A (críticos) sin solventar.`,
+            message: `REVISIÓN REQUERIDA DE PUNCHLIST CATEGORÍA A: Existen ${data.categoryAPunchCount} pendientes de Punchlist Categoría A (críticos) sin solventar.`,
           };
         }
         return { passed: true };
@@ -52,12 +65,12 @@ export const wf074Definition: WorkflowDefinition<MechanicalCompletionData> = {
     {
       id: 'DATABOOK_INCOMPLETE',
       name: 'Integridad del Databook de Calidad y Pruebas Hidrostáticas',
-      description: 'Valida que el Dossier de Calidad y los certificados de pruebas hidrostáticas estén 100% archivados y firmados.',
+      description: 'Valida la integridad del Dossier de Calidad y certificados de pruebas hidrostáticas.',
       evaluator: (_context, data) => {
         if (!data.databookComplete || !data.hydrotestCertified) {
           return {
             passed: false,
-            message: 'BLOQUEO TÉCNICO: El Dossier de Calidad (Databook) o las certificaciones de pruebas de presión se encuentran incompletas.',
+            message: 'ADVERTENCIA DE DATABOOK DE CALIDAD: El Dossier de Calidad (Databook) o las certificaciones de pruebas de presión se encuentran pendientes de completar.',
           };
         }
         return { passed: true };
@@ -73,38 +86,38 @@ export const wf074Definition: WorkflowDefinition<MechanicalCompletionData> = {
         {
           id: 'sig-074-1',
           role: 'INSPECTOR' as const,
-          name: context.user.email,
+          name: '',
           title: 'Líder de Inspección Mecánica y Equipos',
-          organization: context.contractorBrand.companyName || 'PROINTECA C.A.',
-          status: 'SIGNED' as const,
-          signedAt: new Date().toISOString(),
+          organization: context.contractorBrand.companyName || '',
+          status: 'PENDING' as const,
+          signedAt: undefined,
         },
         {
           id: 'sig-074-2',
           role: 'CONTRACTOR' as const,
-          name: 'Ing. Gerente de Construcción y Montaje',
+          name: '',
           title: 'Superintendente de Obra Contratista',
-          organization: context.contractorBrand.companyName || 'PROINTECA C.A.',
-          status: 'SIGNED' as const,
-          signedAt: new Date().toISOString(),
+          organization: context.contractorBrand.companyName || '',
+          status: 'PENDING' as const,
+          signedAt: undefined,
         },
         {
           id: 'sig-074-3',
           role: 'OPERATOR' as const,
-          name: 'Ing. Presidente de Comisión de Precomisionado',
+          name: '',
           title: 'Representante Operativo PDVSA',
-          organization: context.operatorBrand.companyName || 'PDVSA PETRÓLEO S.A.',
-          status: 'SIGNED' as const,
-          signedAt: new Date().toISOString(),
+          organization: context.operatorBrand.companyName || '',
+          status: 'PENDING' as const,
+          signedAt: undefined,
         },
       ];
 
       return createDocumentViewModel({
-        documentId: `ACTA-MC-${data.subsystemCode}`,
+        documentId: `ACTA-MC-${data.subsystemCode || 'PENDIENTE'}`,
         title: 'ACTA DE COMPLETACIÓN MECÁNICA Y ACEPTACIÓN DE SUBSISTEMA',
-        code: data.subsystemCode,
-        date: data.completionDate,
-        status: 'APPROVED',
+        code: data.subsystemCode || 'PENDIENTE',
+        date: data.completionDate || '',
+        status: 'DRAFT',
         contractorBrand: context.contractorBrand,
         operatorBrand: context.operatorBrand,
         signers,
@@ -114,9 +127,9 @@ export const wf074Definition: WorkflowDefinition<MechanicalCompletionData> = {
             id: 'sec-mc-1',
             title: '1. DECLARACIÓN DE COMPLETACIÓN MECÁNICA',
             content: [
-              `Código de Subsistema: ${data.subsystemCode}`,
-              `Nombre del Subsistema: ${data.subsystemName}`,
-              `Fecha de Aceptación: ${data.completionDate}`,
+              `Código de Subsistema: ${data.subsystemCode || 'PENDIENTE'}`,
+              `Nombre del Subsistema: ${data.subsystemName || 'PENDIENTE'}`,
+              `Fecha de Aceptación: ${data.completionDate || 'PENDIENTE'}`,
               `Pendientes Punchlist Categoría A: ${data.categoryAPunchCount} (0 requeridos)`,
               `Pendientes Punchlist Categoría B: ${data.categoryBPunchCount}`,
               `Estado de Databook de Calidad: ${data.databookComplete ? 'COMPLETO Y CONFORME' : 'INCOMPLETO'}`,
@@ -126,7 +139,7 @@ export const wf074Definition: WorkflowDefinition<MechanicalCompletionData> = {
           {
             id: 'sec-mc-2',
             title: '2. OBSERVACIONES DE LA COMISIÓN DE ACEPTACIÓN',
-            content: [data.inspectorNotes],
+            content: [data.inspectorNotes || 'Sin observaciones registradas.'],
           },
         ],
       });

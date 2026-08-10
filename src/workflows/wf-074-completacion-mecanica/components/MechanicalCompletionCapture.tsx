@@ -51,7 +51,7 @@ export const MechanicalCompletionCapture: React.FC<WorkflowComponentProps<Mechan
             </label>
             <input
               type="date"
-              value={data.completionDate || new Date().toISOString().split('T')[0]}
+              value={data.completionDate || ''}
               onChange={(e) => onChange({ completionDate: e.target.value })}
               disabled={isReadOnly}
               className="w-full px-3 py-2 border border-border rounded-md bg-surface text-ink"
