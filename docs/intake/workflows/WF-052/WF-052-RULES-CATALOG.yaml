@@ -1,0 +1,17 @@
+workflowId: wf-052-instrumentacion-lazos-pid
+rulesCatalog:
+  - ruleId: RULE_TOLERANCE_FS
+    name: "Control de Tolerancia Fondo de Escala (%FS)"
+    blocking: false
+    humanOverrideAllowed: true
+    humanDecisionRequiredOnException: true
+    condition: "maxErrorPercentFs <= toleranceFsPercent"
+    description: "Verifica que el error máximo calculado en los 5 puntos no sobrepase la tolerancia de diseño."
+
+  - ruleId: RULE_CALIBRATION_STANDARD_VALIDITY
+    name: "Vigencia del Certificado del Patrón de Pruebas"
+    blocking: false
+    humanOverrideAllowed: true
+    humanDecisionRequiredOnException: true
+    condition: "standardExpirationDate >= currentDate"
+    description: "Alerta si el equipo patrón utilizado para calibrar tiene la certificación vencida."

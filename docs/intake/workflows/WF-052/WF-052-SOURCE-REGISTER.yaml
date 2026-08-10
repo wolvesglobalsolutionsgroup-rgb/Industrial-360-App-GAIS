@@ -1,0 +1,27 @@
+workflowId: wf-052-instrumentacion-lazos-pid
+title: "Control, Calibración de Instrumentos y Prueba de Lazos P&ID"
+status: PROPOSED_SPECIFICATION
+confidence: HIGH
+
+primarySources:
+  - documentId: ISA-5.1
+    officialTitle: "Instrumentation Symbols and Identification"
+    publisher: "International Society of Automation (ISA)"
+    authorityLevel: CONFIRMED_SPECIFICATION
+  - documentId: ISA-20
+    officialTitle: "Specification Forms for Process Measurement and Control Instruments"
+    publisher: "International Society of Automation (ISA)"
+    authorityLevel: CONFIRMED_SPECIFICATION
+  - documentId: PDVSA-IR-S-04
+    officialTitle: "Manual de Ingeniería de Riesgos: Sistema de Permisos de Trabajo"
+    revision: "4"
+    date: "2013-08"
+    publisher: "Petróleos de Venezuela, S.A."
+    authorityLevel: CONFIRMED_PDF
+    pagesScanned: 69
+
+missingSources:
+  - documentId: PDVSA-IR-E-01
+    purpose: "Clasificación Eléctrica de Áreas para Instrumentación Antiexplosiva"
+    citedIn: ["PDVSA-IR-S-04 Pág. 7"]
+    status: MISSING_SOURCE
