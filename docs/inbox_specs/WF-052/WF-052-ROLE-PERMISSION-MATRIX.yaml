@@ -1,0 +1,5 @@
+roles:
+  - id: "METROLOGO"
+    permissions: ["RECORD_CALIBRATION", "ISSUE_CERTIFICATE"]
+  - id: "AUDITOR_SIHOA"
+    permissions: ["VERIFY_CALIBRATION"]

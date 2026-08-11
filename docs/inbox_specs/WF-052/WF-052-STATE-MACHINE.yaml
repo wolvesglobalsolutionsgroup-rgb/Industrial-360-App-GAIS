@@ -1,0 +1,3 @@
+stateMachine:
+  workflowId: "WF-052"
+  states: ["REGISTERED", "CALIBRATED", "ISSUED_VALID", "EXPIRED", "OUT_OF_SERVICE"]

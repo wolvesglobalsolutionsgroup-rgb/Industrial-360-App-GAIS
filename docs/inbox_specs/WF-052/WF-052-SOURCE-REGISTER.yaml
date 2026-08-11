@@ -1,0 +1,9 @@
+workflowId: "WF-052"
+workflowTitle: "Certificación y Calibración de Equipos e Instrumentos (PDVSA / ISO 17025)"
+primarySource:
+  title: "Manual de Calibración e Inspección de Equipos de Medición"
+  code: "PDVSA MET-01 / ISO 17025"
+  status: "AVAILABLE"
+supportingSources:
+  - code: "PDVSA IR-S-04"
+    title: "Sistema de Permisos de Trabajo (Prueba de Gases)"

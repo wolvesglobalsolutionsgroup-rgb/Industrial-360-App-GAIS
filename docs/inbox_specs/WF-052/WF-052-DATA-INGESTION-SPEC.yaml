@@ -1,0 +1,16 @@
+workflowId: "WF-052"
+ingestionSchema:
+  header:
+    certificadoNumero: { type: "STRING", required: true }
+    equipoSerial: { type: "STRING", required: true }
+    marcaModelo: { type: "STRING", required: true }
+    laboratorioCertificado: { type: "STRING", required: true }
+    fechaCalibracion: { type: "DATE", required: true }
+    fechaVencimiento: { type: "DATE", required: true }
+  gasCalibrationData:
+    gasPatronLote: { type: "STRING", required: true }
+    gasPatronVencimiento: { type: "DATE", required: true }
+    lecturaO2: { type: "FLOAT", expected: 20.9 }
+    lecturaLel: { type: "FLOAT", expected: 50.0 }
+    lecturaH2s: { type: "FLOAT", expected: 25.0 }
+    lecturaCo: { type: "FLOAT", expected: 100.0 }
