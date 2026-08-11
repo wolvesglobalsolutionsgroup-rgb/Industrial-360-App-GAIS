@@ -63,8 +63,8 @@ export function generateQrSvg(qrUrl: string, size: number = 84): string {
  * - Logo Contratista OCULTO por defecto (contratistaLogoVisible === true).
  */
 export function renderHeaderHtml(header: DeliverableHeader): string {
-  const showOperador = header.operadorLogoVisible !== false;
-  const showContratista = header.contratistaLogoVisible === true;
+  const showOperador = header.showOperatorLogo !== undefined ? header.showOperatorLogo : header.operadorLogoVisible !== false;
+  const showContratista = header.showContractorLogo !== undefined ? header.showContractorLogo : header.contratistaLogoVisible === true;
 
   const operadorContent = showOperador
     ? (header.operadorLogoUrl
@@ -198,9 +198,6 @@ export function renderFooterHtml(footer: DeliverableFooter): string {
       <!-- BLOQUE DE VERIFICACIÓN QR Y INTEGRIDAD HASH -->
       <table style="width: 100%; border-collapse: collapse; border: 1px solid #0f172a; font-size: 9px; background-color: #f8fafc;">
         <tr>
-          <td style="width: 100px; padding: 8px; text-align: center; vertical-align: middle; border-right: 1px solid #cbd5e1;">
-            ${qrSvg}
-          </td>
           <td style="padding: 10px; vertical-align: middle;">
             <div style="font-size: 10px; font-weight: bold; color: #0b2239; text-transform: uppercase;">VERIFICACIÓN DE VALIDEZ INMUTABLE Y SELLO DIGITAL (QR)</div>
             <div style="font-size: 8px; color: #475569; margin-top: 4px;">Escanee el código QR o acceda a la URL oficial para validar la autenticidad en tiempo real:</div>
@@ -210,7 +207,13 @@ export function renderFooterHtml(footer: DeliverableFooter): string {
             <div style="font-size: 8px; font-family: monospace; color: #334155; margin-top: 6px;">
               HASH DE VERSIÓN VISUAL (SHA-256): <span style="font-weight: bold; color: #0f172a;">${footer.visualVersionHash || 'SHA256-PENDING-CALCULATION'}</span>
             </div>
+            ${footer.timestampRFC3161 ? `<div style="font-size: 8px; font-family: monospace; color: #059669; font-weight: bold; margin-top: 4px;">ESTAMPA DE TIEMPO OFICIAL (RFC 3161 TSA): ${footer.timestampRFC3161}</div>` : ''}
             ${footer.archivedAt ? `<div style="font-size: 8px; color: #b91c1c; font-weight: bold; margin-top: 4px;">DOCUMENTO ARCHIVADO E INMUTABLE (Fecha de Cierre: ${footer.archivedAt})</div>` : ''}
+          </td>
+          <!-- CÓDIGO QR EN LA ESQUINA INFERIOR DERECHA -->
+          <td style="width: 100px; padding: 8px; text-align: center; vertical-align: middle; border-left: 1px solid #cbd5e1;">
+            ${qrSvg}
+            <div style="font-size: 7px; color: #64748b; font-weight: bold; margin-top: 2px;">CÓDIGO QR AUDITORÍA</div>
           </td>
         </tr>
       </table>

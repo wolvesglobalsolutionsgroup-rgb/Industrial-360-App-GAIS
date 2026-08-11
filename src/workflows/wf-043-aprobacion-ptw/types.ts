@@ -47,6 +47,7 @@ export interface GasTestRecord {
   evaluatorId: string;
   evaluatorCertificate: string;
   equipmentUsed: string;
+  equipoMultigasSerial: string;
   calibrationExpiryDate: string;
   lelPercentage: number;
   o2Percentage: number;
@@ -323,6 +324,7 @@ export function createDefaultPtwData(): PtwApprovalData {
       evaluatorId: '',
       evaluatorCertificate: '',
       equipmentUsed: '',
+      equipoMultigasSerial: '',
       calibrationExpiryDate: '',
       lelPercentage: 0,
       o2Percentage: 20.9,
@@ -469,6 +471,7 @@ export const PtwApprovalSchema: z.ZodType<PtwApprovalData> = z.object({
     evaluatorId: z.string(),
     evaluatorCertificate: z.string(),
     equipmentUsed: z.string(),
+    equipoMultigasSerial: z.string().min(1, 'Serial Multigas es obligatorio (PDVSA IR-S-04)'),
     calibrationExpiryDate: z.string(),
     lelPercentage: z.number().min(0).max(100),
     o2Percentage: z.number().min(0).max(100),
@@ -526,7 +529,7 @@ export const PtwApprovalSchema: z.ZodType<PtwApprovalData> = z.object({
   extension: z.object({
     requested: z.boolean(),
     extendedUntilTime: z.string(),
-    extensionHours: z.number(),
+    extensionHours: z.number().max(2, 'La prórroga no puede exceder de 2 horas (PDVSA IR-S-04 8.6)'),
     initialConditionsUnchanged: z.boolean(),
     sameEmisorReceptorEjecutor: z.boolean(),
     reason: z.string(),

@@ -205,7 +205,15 @@ export const wf043Definition: WorkflowDefinition<PtwApprovalData> = {
           };
         }
 
-        // 5. Firmas Tripartitas requeridas (si signers está definido)
+        // 5. Serial Multigas Obligatorio (PDVSA IR-S-04 Renglón 12)
+        if (data.gasTest && !data.gasTest.equipoMultigasSerial) {
+          return {
+            passed: false,
+            message: 'HARD_BLOCK: Debe registrar el Serial del Equipo Multigas / Gasotéster utilizado para la prueba atmosférica (PDVSA IR-S-04 Renglón 12).',
+          };
+        }
+
+        // 6. Firmas Tripartitas requeridas (si signers está definido)
         if (data.signers) {
           if (!data.signers.emisor?.name || !data.signers.emisor?.certNumber) {
             return { passed: false, message: 'HARD_BLOCK: Falta la identificación o número de certificado del EMISOR autorizante.' };
@@ -218,15 +226,18 @@ export const wf043Definition: WorkflowDefinition<PtwApprovalData> = {
           }
         }
 
-        // 6. Prórroga si fue solicitada
+        // 7. Prórroga si fue solicitada (PDVSA IR-S-04 8.6)
         if (data.extension?.requested) {
           if (data.extension.extensionHours > 2) {
-            return { passed: false, message: 'HARD_BLOCK: La prórroga no puede exceder las dos (2) horas continuas (Punto 8.5).' };
+            return { passed: false, message: 'HARD_BLOCK: La prórroga no puede exceder las dos (2) horas continuas (PDVSA IR-S-04 8.6).' };
+          }
+          if (!data.extension.emisorSigned) {
+            return { passed: false, message: 'HARD_BLOCK: La prórroga de PTW requiere la firma digital obligatoria del EMISOR (PDVSA IR-S-04 8.6).' };
           }
           if (!data.extension.initialConditionsUnchanged || !data.extension.sameEmisorReceptorEjecutor) {
             return {
               passed: false,
-              message: 'HARD_BLOCK: La prórroga exige que las condiciones iniciales no hayan variado y los firmantes sean los mismos (Punto 8.5).',
+              message: 'HARD_BLOCK: La prórroga exige que las condiciones iniciales no hayan variado y los firmantes sean los mismos (PDVSA IR-S-04 8.6).',
             };
           }
         }

@@ -550,6 +550,46 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
                 />
               </div>
             </div>
+
+            {/* Datos de Instrumentación Atmosférica Obligatoria */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t border-border mt-3">
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground mb-1">
+                  Serial Multigas / Gasotéster (PDVSA IR-S-04 Renglón 12) *
+                </label>
+                <input
+                  type="text"
+                  value={safeData.gasTest.equipoMultigasSerial || ''}
+                  onChange={(e) => updateGasTest({ equipoMultigasSerial: e.target.value })}
+                  disabled={isReadOnly}
+                  placeholder="Ej. MULTI-RAE-9021-X"
+                  className={`w-full px-3 py-2 text-sm bg-surface border rounded-lg text-ink ${
+                    !safeData.gasTest.equipoMultigasSerial ? 'border-amber-500' : 'border-emerald-500'
+                  }`}
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground mb-1">Marca / Modelo Instrumento</label>
+                <input
+                  type="text"
+                  value={safeData.gasTest.equipmentUsed || ''}
+                  onChange={(e) => updateGasTest({ equipmentUsed: e.target.value })}
+                  disabled={isReadOnly}
+                  placeholder="Ej. RAE Systems MultiRAE Pro"
+                  className="w-full px-3 py-2 text-sm bg-surface border border-border rounded-lg text-ink"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-muted-foreground mb-1">Vencimiento Calibración</label>
+                <input
+                  type="date"
+                  value={safeData.gasTest.calibrationExpiryDate || ''}
+                  onChange={(e) => updateGasTest({ calibrationExpiryDate: e.target.value })}
+                  disabled={isReadOnly}
+                  className="w-full px-3 py-2 text-sm bg-surface border border-border rounded-lg text-ink"
+                />
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -653,41 +693,68 @@ export const PtwApprovalCapture: React.FC<WorkflowComponentProps<PtwApprovalData
             </div>
 
             {safeData.extension.requested && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                <div>
-                  <label className="block text-xs font-semibold text-muted-foreground mb-1">Prorrogar Hasta (Hora)</label>
-                  <input
-                    type="time"
-                    value={safeData.extension.extendedUntilTime || ''}
-                    onChange={(e) => updateExtension({ extendedUntilTime: e.target.value })}
-                    disabled={isReadOnly}
-                    className="w-full px-3 py-2 text-sm bg-surface border border-border rounded-lg text-ink"
-                  />
+              <div className="space-y-3 pt-2">
+                {safeData.extension.extensionHours > 2 && (
+                  <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-600 text-xs font-semibold flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                    HARD_BLOCK: La prórroga no puede exceder las dos (2) horas continuas (PDVSA IR-S-04 8.6).
+                  </div>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground mb-1">Prorrogar Hasta (Hora)</label>
+                    <input
+                      type="time"
+                      value={safeData.extension.extendedUntilTime || ''}
+                      onChange={(e) => updateExtension({ extendedUntilTime: e.target.value })}
+                      disabled={isReadOnly}
+                      className="w-full px-3 py-2 text-sm bg-surface border border-border rounded-lg text-ink"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground mb-1">Horas Solicitadas (Límite Máx 2h) *</label>
+                    <input
+                      type="number"
+                      max={2}
+                      min={1}
+                      value={safeData.extension.extensionHours || 0}
+                      onChange={(e) => updateExtension({ extensionHours: parseInt(e.target.value, 10) || 1 })}
+                      disabled={isReadOnly}
+                      className={`w-full px-3 py-2 text-sm bg-surface border rounded-lg text-ink ${
+                        safeData.extension.extensionHours > 2 ? 'border-red-500 text-red-600 font-bold' : 'border-border'
+                      }`}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-muted-foreground mb-1">Motivo Justificado *</label>
+                    <input
+                      type="text"
+                      value={safeData.extension.reason || ''}
+                      onChange={(e) => updateExtension({ reason: e.target.value })}
+                      disabled={isReadOnly}
+                      placeholder="Ej. Ajuste final de alineación de acople..."
+                      className="w-full px-3 py-2 text-sm bg-surface border border-border rounded-lg text-ink"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-xs font-semibold text-muted-foreground mb-1">Horas Solicitadas (Máx 2h)</label>
-                  <input
-                    type="number"
-                    max={2}
-                    min={1}
-                    value={safeData.extension.extensionHours || 0}
-                    onChange={(e) => updateExtension({ extensionHours: parseInt(e.target.value, 10) || 1 })}
+
+                <div className="p-3 bg-surface border border-border rounded-lg flex flex-col md:flex-row md:items-center justify-between gap-3">
+                  <div>
+                    <span className="text-xs font-bold text-ink block">Firma Digital de Autorización del Emisor (Obligatoria)</span>
+                    <span className="text-[10px] text-muted-foreground">Requerido por PDVSA IR-S-04 Sección 8.6 para validar invariabilidad de condiciones</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => !isReadOnly && updateExtension({ emisorSigned: !safeData.extension.emisorSigned })}
                     disabled={isReadOnly}
-                    className={`w-full px-3 py-2 text-sm bg-surface border rounded-lg text-ink ${
-                      safeData.extension.extensionHours > 2 ? 'border-red-500 text-red-600' : 'border-border'
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-colors ${
+                      safeData.extension.emisorSigned
+                        ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30'
+                        : 'bg-red-500/10 text-red-600 border-red-500/30'
                     }`}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-muted-foreground mb-1">Motivo Justificado</label>
-                  <input
-                    type="text"
-                    value={safeData.extension.reason || ''}
-                    onChange={(e) => updateExtension({ reason: e.target.value })}
-                    disabled={isReadOnly}
-                    placeholder="Ej. Ajuste final de alineación de acople..."
-                    className="w-full px-3 py-2 text-sm bg-surface border border-border rounded-lg text-ink"
-                  />
+                  >
+                    {safeData.extension.emisorSigned ? '✓ Prórroga Firmada por Emisor' : 'Firma de Emisor Pendiente'}
+                  </button>
                 </div>
               </div>
             )}

@@ -207,6 +207,8 @@ export const DeliverableHeaderSchema = z.object({
   estatus: DeliverableLifecycleStatusSchema,
   operadorLogoVisible: z.boolean().default(true),
   contratistaLogoVisible: z.boolean().default(false),
+  showOperatorLogo: z.boolean().default(true),
+  showContractorLogo: z.boolean().default(false),
   operadorNombre: z.string().default('PDVSA GAS C.A.'),
   contratistaNombre: z.string().default('PROINTECA C.A.'),
   operadorLogoUrl: z.string().optional(),
@@ -235,6 +237,7 @@ export const DeliverableFooterSchema = z.object({
   firmasDigitales: z.array(DeliverableDigitalSignatureSchema).default([]),
   visualVersionHash: z.string().default(''),
   qrVerificationUrl: z.string().default(''),
+  timestampRFC3161: z.string().optional(),
   archivedAt: z.string().optional(),
 });
 

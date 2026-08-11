@@ -135,14 +135,21 @@ export function renderWorkflowSpecificBodyHtml(workflowId: string, body: Deliver
         </table>
       </div>
     `;
-  } else if (wf.includes('WF-053') || wf.includes('VALUACION') || wf.includes('CIERRE')) {
-    // WF-053: Valuaciones, Retención Legal y Cierre de Obra
+  } else if (wf.includes('WF-053') || wf.includes('VALUACION') || wf.includes('CIERRE') || wf.includes('ACTA_B') || wf.includes('ACTA_C')) {
+    // WF-053: Valuaciones, Retención Legal y Cierre de Obra / Actas B y C (PIC-03-01-09)
+    const isActaC = wf.includes('ACTA_C') || specs.tipoActa === 'C' || specs.actaType === 'ACTA_C';
+    const isActaB = wf.includes('ACTA_B') || specs.tipoActa === 'B' || specs.actaType === 'ACTA_B';
+    
     specificContent = `
       <div style="border: 1px solid #0f172a; padding: 12px; border-radius: 4px; margin-bottom: 12px; background-color: #fafafa;">
         <div style="font-weight: bold; font-size: 11px; color: #0b2239; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; margin-bottom: 8px;">
-          VALUACIÓN DE AVANCE DE OBRA, RETENCIÓN LEGAL (5%) Y VERIFICACIÓN SAP
+          ${isActaC ? 'ACTA C: ACEPTACIÓN DEFINITIVA Y TRANSFERENCIA DE CUSTODIA (PDVSA PIC-03-01-09)' : isActaB ? 'ACTA B: COMPLETACIÓN MECÁNICA DE SUBSISTEMA (PDVSA PIC-03-01-09)' : 'VALUACIÓN DE AVANCE DE OBRA, RETENCIÓN LEGAL (5%) Y VERIFICACIÓN SAP'}
         </div>
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; font-size: 10px;">
+          <div><strong>Código de Registro:</strong> ${specs.codigoActa || origin.codigoActa || 'ACTA-PIC-03-01-09-001'}</div>
+          <div><strong>Subsistema / Área:</strong> ${specs.subsystemName || specs.ubicacion || 'Planta de Procesamiento Ulé'}</div>
+          <div><strong>Pendientes Categoría A:</strong> ${specs.punchlistACount ?? 0} (0 requeridos)</div>
+          <div><strong>Pendientes Categoría B:</strong> ${specs.punchlistBCount ?? 0} (con programa de cierre)</div>
           <div><strong>Monto Bruto Valuado:</strong> ${specs.montoBruto || '$125,000.00'}</div>
           <div><strong>Retención Legal (5%):</strong> ${specs.retencionLegal || '$6,250.00'}</div>
           <div><strong>Monto Neto a Pagar:</strong> ${specs.montoNeto || '$118,750.00'}</div>

@@ -495,10 +495,54 @@ export default function Valuations() {
       docPdf.text('Pendiente de aprobación', 18 + (boxW + 4) * 2, sigY + 20);
     }
 
-    // Footer
+    // Footer & QR Verification Box (Esquina Inferior Derecha - DEV-01 Formato Maestro Rev. 1)
+    const qrUrl = `https://ic360-nexus.pdvsa.com/verify?docId=ROE-${val.projectId}-${val.number}&hash=${val.id || 'SHA256-ROE-VERIFIED'}`;
+    const footerY = 236;
+
+    docPdf.setDrawColor(15, 23, 42);
+    docPdf.setFillColor(248, 250, 252);
+    docPdf.roundedRect(14, footerY, pageWidth - 28, 32, 2, 2, 'FD');
+
     docPdf.setFontSize(8);
+    docPdf.setFont('helvetica', 'bold');
+    docPdf.setTextColor(11, 34, 57);
+    docPdf.text('VERIFICACIÓN PÚBLICA DE FIRMAS Y VALIDEZ INMUTABLE (FORMATO MAESTRO REV. 1 / SECCIÓN 3.2)', 18, footerY + 6);
+
+    docPdf.setFont('helvetica', 'normal');
+    docPdf.setFontSize(7);
+    docPdf.setTextColor(71, 85, 105);
+    docPdf.text('Escanee el código QR de auditoría o ingrese a la URL para validar el sello digital y trazabilidad del certificado:', 18, footerY + 12);
+
+    docPdf.setTextColor(37, 99, 235);
+    docPdf.text(qrUrl, 18, footerY + 18);
+
+    docPdf.setTextColor(15, 23, 42);
+    docPdf.text(`HASH DE VERSIÓN VISUAL (SHA-256): SHA256-${val.id?.substring(0, 16) || 'PENDING'}-ROE-VAL`, 18, footerY + 24);
+
+    // QR Box Draw (Bottom Right Corner)
+    const qrX = pageWidth - 42;
+    const qrYPos = footerY + 3;
+    docPdf.setDrawColor(11, 34, 57);
+    docPdf.setFillColor(255, 255, 255);
+    docPdf.roundedRect(qrX, qrYPos, 24, 26, 1, 1, 'FD');
+
+    // QR Markers & Pattern
+    docPdf.setFillColor(11, 34, 57);
+    docPdf.rect(qrX + 2, qrYPos + 2, 6, 6, 'F');
+    docPdf.rect(qrX + 16, qrYPos + 2, 6, 6, 'F');
+    docPdf.rect(qrX + 2, qrYPos + 18, 6, 6, 'F');
+    docPdf.rect(qrX + 10, qrYPos + 10, 4, 4, 'F');
+    docPdf.rect(qrX + 16, qrYPos + 16, 4, 4, 'F');
+
+    docPdf.setFontSize(5);
+    docPdf.setFont('helvetica', 'bold');
+    docPdf.setTextColor(11, 34, 57);
+    docPdf.text('QR AUDITORÍA', qrX + 12, qrYPos + 24, { align: 'center' });
+
+    // Footer Caption
+    docPdf.setFontSize(7);
     docPdf.setTextColor(140, 140, 140);
-    docPdf.text('Documento auditado por el sistema Industrial Control 360 · Cumplimiento de especificaciones PDVSA y normas internacionales de construcción.', pageWidth / 2, 280, { align: 'center' });
+    docPdf.text('Documento auditado por el sistema Industrial Control 360 · Cumplimiento de especificaciones PDVSA y normas internacionales de construcción.', pageWidth / 2, 276, { align: 'center' });
 
     docPdf.save(`Valuacion_ROE_N${val.number}_${currentProject?.id || 'Proyecto'}.pdf`);
   };

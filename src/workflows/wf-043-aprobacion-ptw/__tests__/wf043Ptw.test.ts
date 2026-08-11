@@ -54,6 +54,7 @@ describe('Workflow wf-043: Permisos de Trabajo Seguro PTW (PDVSA IR-S-04)', () =
     validData.preStartReadiness.procedureCode = 'PROC-MEC-01';
     validData.preStartReadiness.procedureApproved = true;
     validData.gasTest.testTime = '08:00';
+    validData.gasTest.equipoMultigasSerial = 'MULTI-RAE-9021-X';
     validData.startTime = '08:00';
     validData.signers.emisor = { name: 'Ing. Carlos Mendoza', ci: '12345678', certNumber: 'CERT-EM-10', role: 'EMISOR', organization: 'PDVSA', status: 'SIGNED' };
     validData.signers.receptor = { name: 'Ing. Manuel Rivas', ci: '87654321', certNumber: 'CERT-REC-20', role: 'RECEPTOR', organization: 'PROINTECA', status: 'SIGNED' };
@@ -89,6 +90,7 @@ describe('Workflow wf-043: Permisos de Trabajo Seguro PTW (PDVSA IR-S-04)', () =
     const hotWorkWithLel = createDefaultPtwData();
     hotWorkWithLel.workType = 'caliente';
     hotWorkWithLel.gasTest.lelPercentage = 2.5; // > 0.0%
+    hotWorkWithLel.gasTest.equipoMultigasSerial = 'MULTI-RAE-9021';
     hotWorkWithLel.startTime = '08:00';
     hotWorkWithLel.gasTest.testTime = '08:00';
     hotWorkWithLel.signers.emisor = { name: 'Emisor Test', ci: '123', certNumber: 'C1', role: 'EMISOR', organization: 'PDVSA', status: 'SIGNED' };
@@ -181,5 +183,39 @@ describe('Workflow wf-043: Permisos de Trabajo Seguro PTW (PDVSA IR-S-04)', () =
     expect(dataWithPending.pendingExternalParameters.length).toBe(1);
     expect(dataWithPending.pendingExternalParameters[0].status).toBe('PENDING_EXTERNAL_PARAMETER');
     expect(dataWithPending.pendingExternalParameters[0].value).toBeUndefined();
+  });
+
+  it('11. DEV-02: Hard Gate bloquea la emisión de PTW si falta el Serial del Equipo Multigas', () => {
+    const gate = wf043Definition.hardGates.find((g) => g.id === 'gate-issuance-hard-blocks');
+    const dataWithoutSerial = createDefaultPtwData();
+    dataWithoutSerial.gasTest.equipoMultigasSerial = ''; // Falta serial
+
+    const res = gate!.evaluator(dummyContext, dataWithoutSerial);
+    expect(res.passed).toBe(false);
+    expect(res.message).toContain('Serial del Equipo Multigas');
+  });
+
+  it('12. DEV-03: Hard Gate bloquea prórroga de PTW si excede 2 horas o falta la firma del Emisor', () => {
+    const gate = wf043Definition.hardGates.find((g) => g.id === 'gate-issuance-hard-blocks');
+    const dataExcessExtension = createDefaultPtwData();
+    dataExcessExtension.startTime = '08:00';
+    dataExcessExtension.gasTest.testTime = '08:00';
+    dataExcessExtension.gasTest.equipoMultigasSerial = 'MULTI-RAE-100';
+    dataExcessExtension.signers.emisor = { name: 'E1', ci: '1', certNumber: 'C1', role: 'EMISOR', organization: 'PDVSA', status: 'SIGNED' };
+    dataExcessExtension.signers.receptor = { name: 'R1', ci: '2', certNumber: 'C2', role: 'RECEPTOR', organization: 'CONTRATISTA', status: 'SIGNED' };
+    dataExcessExtension.signers.ejecutor = { name: 'Ej1', ci: '3', certNumber: 'N/A', role: 'EJECUTOR', organization: 'CONTRATISTA', status: 'SIGNED' };
+
+    dataExcessExtension.extension.requested = true;
+    dataExcessExtension.extension.extensionHours = 3; // > 2h
+    dataExcessExtension.extension.emisorSigned = false;
+
+    const res1 = gate!.evaluator(dummyContext, dataExcessExtension);
+    expect(res1.passed).toBe(false);
+    expect(res1.message).toContain('no puede exceder las dos (2) horas');
+
+    dataExcessExtension.extension.extensionHours = 2;
+    const res2 = gate!.evaluator(dummyContext, dataExcessExtension);
+    expect(res2.passed).toBe(false);
+    expect(res2.message).toContain('firma digital obligatoria del EMISOR');
   });
 });

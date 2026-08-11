@@ -210,6 +210,8 @@ export interface DeliverableHeader {
   estatus: DeliverableLifecycleStatus;
   operadorLogoVisible: boolean;
   contratistaLogoVisible: boolean;
+  showOperatorLogo?: boolean;
+  showContractorLogo?: boolean;
   operadorNombre?: string;
   contratistaNombre?: string;
   operadorLogoUrl?: string;
@@ -238,6 +240,7 @@ export interface DeliverableFooter {
   firmasDigitales: DeliverableDigitalSignature[];
   visualVersionHash: string;
   qrVerificationUrl: string;
+  timestampRFC3161?: string;
   archivedAt?: string;
 }
 
