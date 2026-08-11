@@ -172,3 +172,79 @@ export const StateTransitionRequestSchema = z.object({
   evidenceReference: z.string().optional(),
   normativeRefId: z.string().optional(),
 });
+
+/*
+ * =================================================================================
+ * FORMATO MAESTRO DE ENTREGABLES (FORMATO-MAESTRO-DELIVERABLE.MD) - SCHEMAS
+ * =================================================================================
+ */
+
+export const DeliverableLifecycleStatusSchema = z.enum([
+  'DRAFT',
+  'FOR_REVIEW',
+  'APPROVED_VIGENTE',
+  'ISSUED_ACTIVE',
+  'CLOSED_ARCHIVED',
+]);
+
+export const DeliverableDigitalSignatureSchema = z.object({
+  signerUid: z.string().min(1),
+  signerName: z.string().min(1),
+  signerRole: z.string().min(1),
+  signedAt: z.string(),
+  signatureHash: z.string().optional(),
+  motive: z.string().optional(),
+});
+
+export const DeliverableHeaderSchema = z.object({
+  proyecto: z.string().min(1, 'El proyecto es obligatorio'),
+  workPackageId: z.string().min(1, 'El ID de paquete de trabajo / contrato es obligatorio'),
+  codigoDocumento: z.string().min(1, 'El código de documento es obligatorio'),
+  titulo: z.string().min(1, 'El título del entregable es obligatorio'),
+  normaAplicable: z.string().min(1, 'La norma aplicable es obligatoria'),
+  revision: z.string().min(1, 'La revisión es obligatoria'),
+  fecha: z.string().min(1, 'La fecha es obligatoria'),
+  estatus: DeliverableLifecycleStatusSchema,
+  operadorLogoVisible: z.boolean().default(true),
+  contratistaLogoVisible: z.boolean().default(false),
+  operadorNombre: z.string().default('PDVSA GAS C.A.'),
+  contratistaNombre: z.string().default('PROINTECA C.A.'),
+  operadorLogoUrl: z.string().optional(),
+  contratistaLogoUrl: z.string().optional(),
+  tenantId: z.string().min(1, 'tenantId es obligatorio'),
+  contractorOrgId: z.string().optional(),
+});
+
+export const DeliverableControlItemSchema = z.object({
+  checkId: z.string(),
+  checkName: z.string(),
+  status: z.enum(['CONFORME', 'NO_CONFORME', 'NO_APLICA', 'PENDIENTE']),
+  normativeRef: z.string().optional(),
+  comments: z.string().optional(),
+  verifiedBy: z.string().optional(),
+  verifiedAt: z.string().optional(),
+});
+
+export const DeliverableBodySchema = z.object({
+  datosOrigen: z.record(z.string(), z.any()).default({}),
+  matrizControl: z.array(DeliverableControlItemSchema).default([]),
+  seccionesEspecificas: z.record(z.string(), z.any()).default({}),
+});
+
+export const DeliverableFooterSchema = z.object({
+  firmasDigitales: z.array(DeliverableDigitalSignatureSchema).default([]),
+  visualVersionHash: z.string().default(''),
+  qrVerificationUrl: z.string().default(''),
+  archivedAt: z.string().optional(),
+});
+
+export const MasterDeliverableSchema = z.object({
+  id: z.string().min(1),
+  workflowId: z.string().min(1),
+  header: DeliverableHeaderSchema,
+  body: DeliverableBodySchema,
+  footer: DeliverableFooterSchema,
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+

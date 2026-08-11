@@ -176,3 +176,78 @@ export interface TransitionResult {
   auditEvent?: AuditEvent;
   errorMessage?: string;
 }
+
+/*
+ * =================================================================================
+ * FORMATO MAESTRO DE ENTREGABLES (FORMATO-MAESTRO-DELIVERABLE.MD) - TYPES
+ * =================================================================================
+ */
+
+export type DeliverableLifecycleStatus =
+  | 'DRAFT'
+  | 'FOR_REVIEW'
+  | 'APPROVED_VIGENTE'
+  | 'ISSUED_ACTIVE'
+  | 'CLOSED_ARCHIVED';
+
+export interface DeliverableDigitalSignature {
+  signerUid: string;
+  signerName: string;
+  signerRole: string; // e.g. 'Elaboró', 'Revisó', 'Aprobó'
+  signedAt: string;
+  signatureHash?: string;
+  motive?: string;
+}
+
+export interface DeliverableHeader {
+  proyecto: string;
+  workPackageId: string;
+  codigoDocumento: string;
+  titulo: string;
+  normaAplicable: string;
+  revision: string;
+  fecha: string;
+  estatus: DeliverableLifecycleStatus;
+  operadorLogoVisible: boolean;
+  contratistaLogoVisible: boolean;
+  operadorNombre?: string;
+  contratistaNombre?: string;
+  operadorLogoUrl?: string;
+  contratistaLogoUrl?: string;
+  tenantId: string;
+  contractorOrgId?: string;
+}
+
+export interface DeliverableControlItem {
+  checkId: string;
+  checkName: string;
+  status: 'CONFORME' | 'NO_CONFORME' | 'NO_APLICA' | 'PENDIENTE';
+  normativeRef?: string;
+  comments?: string;
+  verifiedBy?: string;
+  verifiedAt?: string;
+}
+
+export interface DeliverableBody {
+  datosOrigen: Record<string, any>;
+  matrizControl: DeliverableControlItem[];
+  seccionesEspecificas: Record<string, any>;
+}
+
+export interface DeliverableFooter {
+  firmasDigitales: DeliverableDigitalSignature[];
+  visualVersionHash: string;
+  qrVerificationUrl: string;
+  archivedAt?: string;
+}
+
+export interface MasterDeliverable {
+  id: string;
+  workflowId: string; // WF-043, WF-044, WF-046, WF-052, WF-053, WF-074, WF-075, etc.
+  header: DeliverableHeader;
+  body: DeliverableBody;
+  footer: DeliverableFooter;
+  createdAt: string;
+  updatedAt: string;
+}
+

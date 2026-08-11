@@ -112,6 +112,25 @@ export function createApp(): express.Express {
     }
   });
 
+  app.get('/api/verify-document', async (req: Request, res: Response) => {
+    try {
+      const { verifyDocument } = await import('./functions/src/index');
+      await verifyDocument(req, res);
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || 'Error al verificar documento' });
+    }
+  });
+
+  app.post('/api/save-master-deliverable', async (req: Request, res: Response) => {
+    try {
+      const { saveMasterDeliverable } = await import('./functions/src/index');
+      await saveMasterDeliverable(req, res);
+    } catch (err: any) {
+      res.status(500).json({ error: err?.message || 'Error al guardar entregable maestro' });
+    }
+  });
+
+
   /*
    * =================================================================================
    * ENDPOINTS MIGRADOS A FIREBASE CLOUD FUNCTIONS (ADR-001)

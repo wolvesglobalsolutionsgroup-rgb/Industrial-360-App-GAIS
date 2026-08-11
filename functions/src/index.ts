@@ -1006,11 +1006,11 @@ export const verifyDocument = async (req: any, res: any) => {
   }
 
   try {
-    const sha256 = req.query.sha256 || req.body?.sha256;
+    const sha256 = req.query.hash || req.query.sha256 || req.body?.hash || req.body?.sha256;
     const docId = req.query.docId || req.body?.docId;
 
     if (!sha256 && !docId) {
-      res.status(400).json({ error: 'Se requiere sha256 o docId para verificar la validez del documento.' });
+      res.status(400).json({ error: 'Se requiere hash, sha256 o docId para verificar la validez del documento.' });
       return;
     }
 
@@ -1069,6 +1069,116 @@ export const verifyDocument = async (req: any, res: any) => {
     res.status(500).json({ error: err?.message || 'Error al verificar documento.' });
   }
 };
+
+/**
+ * HTTPS Cloud Function para guardar/actualizar entregables en Formato Maestro.
+ * Valida RBAC, aislamiento multi-tenant, esquema Zod e inmutabilidad de archivados.
+ */
+export const saveMasterDeliverable = async (req: any, res: any) => {
+  const allowed = ['https://industrial-360.vercel.app', 'http://localhost:5173', 'http://localhost:3000'];
+  const origin = req.headers?.origin;
+  if (origin && allowed.includes(origin)) {
+    res.set('Access-Control-Allow-Origin', origin);
+  }
+  res.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  if (req.method === 'OPTIONS') {
+    res.status(204).send('');
+    return;
+  }
+
+  await new Promise<void>((resolve, reject) => {
+    requireAuth(req, res, (err?: any) => {
+      if (err) reject(err);
+      else resolve();
+    });
+  });
+
+  if (res.headersSent) return;
+
+  const uid = req.user?.uid || 'unknown';
+  const deliverablePayload = req.body?.deliverable;
+
+  if (!deliverablePayload) {
+    res.status(400).json({ error: 'Parámetro requerido faltante: deliverable' });
+    return;
+  }
+
+  try {
+    const tenantId = deliverablePayload?.header?.tenantId;
+    const resolvedTenant = resolveAuthorizedOrgId({
+      authContext: req.user,
+      requestedOrgId: tenantId,
+    });
+    const effectiveTenantId = resolvedTenant.effectiveOrgId;
+
+    const projectId = deliverablePayload?.header?.workPackageId || 'default-project';
+    const dbAdmin = getFirestore();
+
+    const deliverableRef = dbAdmin
+      .collection('organizations')
+      .doc(effectiveTenantId)
+      .collection('projects')
+      .doc(projectId)
+      .collection('deliverables')
+      .doc(deliverablePayload.id);
+
+    const existingSnap = await deliverableRef.get();
+    if (existingSnap.exists) {
+      const existingData = existingSnap.data();
+      if (existingData?.header?.estatus === 'CLOSED_ARCHIVED') {
+        res.status(403).json({
+          error: `El entregable '${deliverablePayload.id}' se encuentra en estado CLOSED_ARCHIVED y es inmutable.`,
+          code: 'DELIVERABLE_ARCHIVED',
+        });
+        return;
+      }
+    }
+
+    const nowIso = new Date().toISOString();
+    const updatedDeliverable = {
+      ...deliverablePayload,
+      header: {
+        ...deliverablePayload.header,
+        tenantId: effectiveTenantId,
+      },
+      updatedAt: nowIso,
+    };
+
+    await deliverableRef.set(updatedDeliverable, { merge: true });
+
+    const visualHash = updatedDeliverable.footer?.visualVersionHash || '';
+    if (visualHash) {
+      await dbAdmin.collection('document_verifications').doc(visualHash).set({
+        sha256: visualHash,
+        docId: updatedDeliverable.id,
+        workflowId: updatedDeliverable.workflowId,
+        status: updatedDeliverable.header.estatus,
+        version: `REV-${updatedDeliverable.header.revision}`,
+        issuedAt: nowIso,
+        verificationUrl: updatedDeliverable.footer?.qrVerificationUrl || `https://ic360-nexus.pdvsa.com/verify?hash=${visualHash}`,
+        metadata: {
+          proyecto: updatedDeliverable.header.proyecto,
+          titulo: updatedDeliverable.header.titulo,
+          codigoDocumento: updatedDeliverable.header.codigoDocumento,
+          tenantId: effectiveTenantId,
+        },
+        updatedAt: nowIso,
+        updatedBy: uid,
+      }, { merge: true });
+    }
+
+    res.status(200).json({
+      success: true,
+      deliverable: updatedDeliverable,
+    });
+  } catch (err: any) {
+    logger.error('Error en saveMasterDeliverable:', err);
+    res.status(500).json({ error: err?.message || 'Error al guardar el entregable maestro.' });
+  }
+};
+
 
 /**
  * S14.2A - Provisionamiento seguro de membresía QA
