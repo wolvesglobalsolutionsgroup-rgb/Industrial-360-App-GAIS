@@ -1,31 +1,15 @@
-# WF-043: MATRIZ DE TRAZABILIDAD Y DISPONIBILIDAD DE ANEXOS B A L
+# Traceability Matrix — WF-043: Permiso de Trabajo Seguro PTW (PDVSA IR-S-04)
 
-**Documento Base:** PDVSA IR-S-04 — *Sistema de Permisos de Trabajo*, Rev. 4 (Agosto 2013).
-
----
-
-## 1. ESTADO DE DISPONIBILIDAD DE ANEXOS EN NORMA PRIMARIA
-
-| Anexo / Certificado | Propósito en IR-S-04 | Ubicación en PDF | Estado Trazabilidad | Estado Desarrollo |
-|---|---|---|:---:|:---:|
-| **Anexo A** | Permiso Principal Frío/Caliente | Págs. 33-35 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
-| **Anexo B** | Espacios Confinados | Págs. 36-38 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
-| **Anexo C** | Izamiento de Cargas | Págs. 39-42 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
-| **Anexo D** | Radiaciones Ionizantes | Págs. 43-45 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
-| **Anexo E** | Excavaciones | Págs. 46-48 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
-| **Anexo F** | Sistema Eléctrico | Págs. 49-52 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
-| **Anexo G** | Subacuáticos / Acuáticos | Págs. 53-55 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
-| **Anexo H** | Hot-Tapping | Págs. 56-58 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
-| **Anexo I** | Áreas Compartidas | Págs. 59-60 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
-| **Anexo J** | Trabajos en Altura | Págs. 61-63 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
-| **Anexo K** | Fumigación | Págs. 64-66 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
-| **Anexo L** | Soldadura | Págs. 67-69 | `AVAILABLE_IN_PRIMARY_STANDARD` | `PERMITTED` |
-
----
-
-## 3. TRAZABILIDAD VISUAL Y DE MARCA DE ENTREGABLES
-
-| Entregable Documental | Vista Previa | Logo Operador | Logo Contratista | Trazabilidad Visual |
-|---|:---:|:---:|:---:|---|
-| **Anexo A (Permiso Principal)** | `SI (Compartida)` | `VISIBLE` | `OCULTO (Default)` | `visualVersionHash` firmado |
-| **Anexos B al L (Certificados)** | `SI (Compartida)` | `VISIBLE` | `CONFIGURABLE` | `visualVersionHash` firmado |
+| Requirement Code | Description | Implementation File | Verification Gate / Test |
+|---|---|---|---|
+| REQ-043-01 | Elegibilidad APTA de Contratista | `definition.ts` | `gate-contractor-readiness` / Unit test |
+| REQ-043-02 | Aprobación de Plan SIHOA | `definition.ts` | `gate-contractor-readiness` / Unit test |
+| REQ-043-03 | ART Aprobado (PDVSA IR-S-17) | `definition.ts` | `gate-contractor-readiness` / Unit test |
+| REQ-043-04 | Procedimiento Aprobado (SI-S-20) | `definition.ts` | `gate-contractor-readiness` / Unit test |
+| REQ-043-05 | Explosividad 0.0% LEL en Caliente | `definition.ts` | `gate-issuance-hard-blocks` / Unit test |
+| REQ-043-06 | Coincidencia de Hora de Inicio y Gas | `definition.ts` | `gate-issuance-hard-blocks` / Unit test |
+| REQ-043-07 | Duración Máxima 8h / 12h | `definition.ts` | `gate-issuance-hard-blocks` / Unit test |
+| REQ-043-08 | Firma Tripartita Requerida | `definition.ts` | `gate-issuance-hard-blocks` / Unit test |
+| REQ-043-09 | Prórroga Máxima de 2 Horas | `definition.ts` | `gate-issuance-hard-blocks` / Unit test |
+| REQ-043-10 | Orden, Limpieza y Retiro de Bloqueos LOTO | `definition.ts` | `gate-closeout-verification` / Unit test |
+| REQ-043-11 | Generación de Documento ViewModel | `definition.ts` | `deliv-043-ptw-ir-s-04` factory / Unit test |

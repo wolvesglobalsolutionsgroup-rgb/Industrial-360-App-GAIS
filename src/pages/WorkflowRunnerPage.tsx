@@ -193,6 +193,62 @@ export default function WorkflowRunnerPage({ overrideWorkflowId }: WorkflowRunne
         ],
       };
     }
+    if (wfId === 'wf-044-analisis-riesgos-trabajo') {
+      return {
+        numeroArt: 'ART-2026-001',
+        tituloTrabajo: 'Mantenimiento Preventivo a Válvula de Alivio PSV-101',
+        instalacionArea: 'Planta Compresora San Joaquín - Tren A',
+        empresa: 'CONTRATISTA',
+        contratoNumero: 'CTR-2025-4491',
+        ordenSapNumero: '40001892',
+        fechaElaboracion: new Date().toISOString().split('T')[0],
+        hojaNumero: '1 de 1',
+        procedimientoRelacionado: 'PROC-SI-S-20-0012',
+        siteVerified: true,
+        siteVerificationLocation: 'Lat 9.6812, Lon -64.3411',
+        pasos: [
+          {
+            pasoNumero: 1,
+            pasoDescripcion: 'Despresurización y purga de línea de entrada a PSV-101',
+            peligrosIdentificados: [
+              { categoria: 'QUIMICO', descripcion: 'Presencia de gases tóxicos H2S y vapores inflamables' },
+              { categoria: 'MECANICO', descripcion: 'Presión residual atrapada en cavidad de válvula' },
+            ],
+            evaluacionProbabilidad: 'MEDIA',
+            evaluacionSeveridad: 'CRITICA',
+            nivelRiesgoCalculado: 'ALTO',
+            medidasPreventivas: 'Detección continua H2S/LEL, LOTO en válvulas de aislamiento, purga con N2',
+            responsableEjecucionControl: 'Ing. SIHOA / Operador de Planta',
+          },
+        ],
+        aprobadorEmisor: {
+          nombre: 'Ing. Carlos Mendoza',
+          ci: 'V-12345678',
+          cargo: 'Superintendente de Operaciones',
+          firma: 'FIRMA_DIGITAL_EMISOR',
+        },
+        aprobadorReceptor: {
+          nombre: 'Téc. Luis Silva',
+          ci: 'V-87654321',
+          cargo: 'Supervisor de Mantenimiento',
+          firma: 'FIRMA_DIGITAL_RECEPTOR',
+        },
+        aprobadorEjecutor: {
+          nombre: 'Ing. Roberto Gómez',
+          ci: 'V-11223344',
+          cargo: 'Supervisor Contratista SIHOA',
+          firma: 'FIRMA_DIGITAL_EJECUTOR',
+        },
+        workersAssignedCount: 2,
+        divulgacionTrabajadores: [
+          { nombre: 'Juan Pérez', ci: 'V-19827364', cargo: 'Mecánico I', firma: 'FIRMA_1', fecha: new Date().toISOString().split('T')[0] },
+          { nombre: 'Pedro López', ci: 'V-20192837', cargo: 'Instrumentista', firma: 'FIRMA_2', fecha: new Date().toISOString().split('T')[0] },
+        ],
+        conditionsChanged: false,
+        linkedPtwNumber: 'PTW-2026-8812',
+        currentState: 'ACTIVE_IN_FIELD',
+      };
+    }
     return {};
   };
 

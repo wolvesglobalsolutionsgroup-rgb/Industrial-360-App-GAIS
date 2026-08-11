@@ -160,10 +160,10 @@ export const wf052Definition: WorkflowDefinition<InstrumentationData> = {
         sections: [
           {
             id: 'sec-1',
-            title: '1. RESUMEN DE LAZOS E INSTRUMENTOS DE CAMPO',
+            title: '1. RESUMEN DE LAZOS E INSTRUMENTOS DE CAMPO (DATABOOK CAP. 03 / SEC 3.2)',
             content: loopsList.map(
               (l) =>
-                `Tag: ${l.tagNo} | Lazo: ${l.loopTag} | Tipo: ${l.instrumentType} | Rango: ${l.rangeMin}-${l.rangeMax} ${l.unit} | Señal: ${l.signalType} | Estado: ${l.status}`
+                `Tag: ${l.tagNo} | Lazo: ${l.loopTag} | Tipo: ${l.instrumentType} | Rango: ${l.rangeMin}-${l.rangeMax} ${l.unit} | Área IR-E-01: ${l.areaClasificada ? `${l.areaClasificada.clase} ${l.areaClasificada.division}` : 'Clase I Div 1'} | Señal: ${l.signalType} | Estado: ${l.status}`
             ),
           },
           {

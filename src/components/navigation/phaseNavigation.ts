@@ -366,12 +366,12 @@ export const PROJECT_PHASES: ProjectPhase[] = [
       },
       {
         id: 'wf-044',
-        title: 'Reporte Tabular QA/QC (wf-044)',
-        path: '/workflows/wf-044-reporte-tabular',
-        iconName: 'ClipboardList',
-        workflowId: 'wf-044-reporte-tabular',
+        title: 'Análisis de Riesgos ART (wf-044)',
+        path: '/workflows/wf-044-analisis-riesgos-trabajo',
+        iconName: 'ShieldAlert',
+        workflowId: 'wf-044-analisis-riesgos-trabajo',
         badge: 'Workflow Kernel',
-        description: 'Matriz consolidada de juntas ensayadas y dictamen NDT.',
+        description: 'Análisis de Riesgos del Trabajo (PDVSA IR-S-17), peligros Anexo B y firmas tripartitas.',
       },
       {
         id: 'wf-074',
