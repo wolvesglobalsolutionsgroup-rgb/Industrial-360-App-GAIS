@@ -80,6 +80,9 @@ export default defineConfig({
               return 'icons';
             }
           }
+          if (id.includes('src/workflows/')) {
+            return 'workflows-kernel';
+          }
         },
       },
     },
