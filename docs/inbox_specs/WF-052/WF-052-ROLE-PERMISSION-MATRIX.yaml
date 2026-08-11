@@ -1,5 +1,13 @@
-roles:
-  - id: "METROLOGO"
-    permissions: ["RECORD_CALIBRATION", "ISSUE_CERTIFICATE"]
-  - id: "AUDITOR_SIHOA"
-    permissions: ["VERIFY_CALIBRATION"]
+workflowId: wf-052-instrumentacion-lazos-pid
+rolePermissionMatrix:
+  INSTRUMENT_TECHNICIAN:
+    canCreate: true
+    canEditData: true
+    canSignAsCreator: true
+  QAQC_INSPECTOR:
+    canReview: true
+    canRequestChanges: true
+    canApprove: true
+  OPERATOR_CUSTODIAN:
+    canAcceptHandover: true
+    canSignOfficialIssue: true
