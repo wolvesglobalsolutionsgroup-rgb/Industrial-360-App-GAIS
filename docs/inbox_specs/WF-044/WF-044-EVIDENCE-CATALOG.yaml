@@ -1,0 +1,9 @@
+evidences:
+  - id: "EVID-044-01"
+    name: "ART Anexo A Firmado"
+    format: "PDF/A"
+    stage: "SIGNED_TRIPARTITE"
+  - id: "EVID-044-02"
+    name: "Registro de Divulgación a Trabajadores"
+    format: "PDF"
+    stage: "ACTIVE_IN_FIELD"

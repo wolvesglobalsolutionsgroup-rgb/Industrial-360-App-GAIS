@@ -1,0 +1,7 @@
+roles:
+  - id: "CREATOR"
+    permissions: ["CREATE_PTS", "EDIT_SECTIONS"]
+  - id: "REVIEWER"
+    permissions: ["REVIEW_PTS", "COMMENT_PTS"]
+  - id: "APPROVER"
+    permissions: ["APPROVE_PTS", "PUBLISH_PTS"]

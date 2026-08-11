@@ -1,0 +1,6 @@
+rules:
+  - id: "RULE-HARD-01"
+    name: "Duración Máxima Continua"
+    type: "HARD_BLOCK"
+    citation: "PDVSA IR-S-04 §7.1.4"
+    condition: "duracion_horas <= 8"
