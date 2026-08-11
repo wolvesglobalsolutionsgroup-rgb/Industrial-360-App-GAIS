@@ -1,9 +1,0 @@
-roles:
-  - id: "EJECUTOR_LIDER"
-    permissions: ["CREATE_ART", "ADD_STEPS", "RECORD_HAZARDS", "SIGN_EJECUTOR"]
-  - id: "RECEPTOR_SUPERVISOR"
-    permissions: ["REVIEW_ART", "SIGN_RECEPTOR"]
-  - id: "EMISOR_CUSTODIO"
-    permissions: ["APPROVE_ART", "SIGN_EMISOR"]
-  - id: "TRABAJADOR_CUADRILLA"
-    permissions: ["SIGN_DIVULGACION"]

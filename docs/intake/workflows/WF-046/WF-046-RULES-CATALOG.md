@@ -1,0 +1,17 @@
+# WF-046-RULES-CATALOG
+
+> **Nota:** Especificación convertida de YAML a Markdown para compatibilidad con Google AI Studio.
+
+## rules
+### RULE-HARD-01
+- **id:** `RULE-HARD-01`
+- **name:** `Compleitud de 15 Secciones`
+- **type:** `HARD_BLOCK`
+- **citation:** `PDVSA SI-S-20 §6`
+- **condition:** `secciones_presentes.length == 15`
+### RULE-HARD-02
+- **id:** `RULE-HARD-02`
+- **name:** `Aprobación Gerencial`
+- **type:** `HARD_BLOCK`
+- **citation:** `PDVSA SI-S-20 §6.7`
+- **condition:** `firmas_presentes == ['CREATOR', 'REVIEWER', 'APPROVER']`

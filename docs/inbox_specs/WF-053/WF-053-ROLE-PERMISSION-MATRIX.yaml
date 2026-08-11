@@ -1,5 +1,0 @@
-roles:
-  - id: "RESIDENTE"
-    permissions: ["RECORD_MEASUREMENTS", "SUBMIT_VALUATION"]
-  - id: "INSPECTOR"
-    permissions: ["VERIFY_MEASUREMENTS", "SIGN_VALUATION"]

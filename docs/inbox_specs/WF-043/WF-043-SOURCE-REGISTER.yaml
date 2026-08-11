@@ -1,9 +1,0 @@
-workflowId: "WF-043"
-workflowTitle: "Permiso de Trabajo Seguro PTW (PDVSA IR-S-04)"
-primarySource:
-  title: "Manual de Ingeniería de Riesgos: Sistema de Permisos de Trabajo"
-  code: "PDVSA IR-S-04"
-  revision: "Rev. 4"
-  date: "Agosto 2013"
-  pages: 69
-  status: "AVAILABLE_IN_PRIMARY_STANDARD"

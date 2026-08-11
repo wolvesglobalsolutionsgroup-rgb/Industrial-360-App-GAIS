@@ -1,9 +1,0 @@
-rules:
-  - id: "RULE-HARD-01"
-    name: "Retención Legal Obligatoria 5%"
-    type: "HARD_BLOCK"
-    condition: "retencion == monto_bruto * 0.05"
-  - id: "RULE-HARD-02"
-    name: "Punch List Catálogo A Cero"
-    type: "HARD_BLOCK"
-    condition: "punch_list_cat_a == 0"

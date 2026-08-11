@@ -1,3 +1,0 @@
-roles:
-  - id: "EMISOR_CUSTODIO"
-    permissions: ["CREATE_PTW", "VALIDATE_GAS", "SIGN_EMISOR", "CLOSE_PTW"]
