@@ -1,9 +1,11 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home, ShieldAlert } from 'lucide-react';
+import * as Sentry from '@sentry/react';
 
 interface Props {
   children?: ReactNode;
   fallback?: ReactNode;
+  onReset?: () => void;
 }
 
 interface State {
@@ -26,10 +28,23 @@ export class ErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error in component tree:', error, errorInfo);
     this.setState({ error, errorInfo });
+
+    // Report to Sentry only if VITE_SENTRY_DSN environment variable is explicitly configured (opt-in)
+    const sentryDsn = typeof import.meta !== 'undefined' && import.meta.env?.VITE_SENTRY_DSN;
+    if (sentryDsn) {
+      try {
+        Sentry.captureException(error, { extra: { componentStack: errorInfo.componentStack } });
+      } catch (err) {
+        console.warn('[ErrorBoundary] Failed to send error report to Sentry:', err);
+      }
+    }
   }
 
   private handleReset = () => {
     this.setState({ hasError: false, error: null, errorInfo: null });
+    if (this.props.onReset) {
+      this.props.onReset();
+    }
   };
 
   private handleReload = () => {

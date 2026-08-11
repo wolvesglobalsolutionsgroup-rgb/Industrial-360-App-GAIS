@@ -124,18 +124,24 @@
 - **Eliminación de Falsificación de IP**: Se eliminó toda lectura manual de cabecera `x-forwarded-for`, sustituyéndola exclusivamente por `req.ip` (evaluada tras `trust proxy 1`), bloqueando cualquier intento de salto de rate limit mediante cabeceras falsificadas por el cliente.
 
 ### D-SEC-13: Acción Manual Requerida en Google Cloud Console — Restricción Web de API Key (Sprint F-A)
-- **Decisión:** La clave de API de cliente Firebase (`VITE_FIREBASE_API_KEY`) debe ser restringida a nivel de infraestructura en Google Cloud Console para limitar su uso exclusivo a orígenes autorizados.
-- **Acción Manual Requerida (Google Cloud Console)**:
+- **Estado Actual**: `ACCIÓN MANUAL EN CURSO` (Configuración en Google Cloud Console ejecutada directamente por el Administrador/Propietario de la cuenta GCP).
+- **Fecha de Ejecución**: `[2026-08-11 - Registro por usuario tras restricción]`
+- **Decisión:** La clave de API de cliente Firebase (`VITE_FIREBASE_API_KEY`) se restringe a nivel de infraestructura en Google Cloud Console para limitar su uso exclusivo a orígenes autorizados.
+- **Acción Manual en Google Cloud Console**:
   1. Ir a **Google Cloud Console** > **APIs & Services** > **Credentials**.
   2. Seleccionar la Web API Key correspondiente al proyecto Firebase de producción.
   3. En **Application restrictions**, seleccionar **HTTP referrers (web sites)**.
-  4. En **Website restrictions**, agregar los siguientes patrones de URL:
+  4. En **Website restrictions**, agregar los siguientes patrones de URL de orígenes autorizados:
      - `https://industrial-360.vercel.app/*` (Dominio de Producción en Vercel)
      - `https://*.vercel.app/*` (Previews de deployments de Vercel)
      - `http://localhost:3000/*` (Desarrollo local en Cloud Run / container)
      - `http://localhost:5173/*` (Desarrollo local Vite)
   5. En **API restrictions**, seleccionar **Restrict key** e incluir únicamente los servicios requeridos: *Identity Toolkit API*, *Firebase Management API*, *Cloud Firestore API*, *Cloud Storage API*.
-  6. Guardar cambios.
+  6. Guardar cambios y confirmar cierre.
+- **Confirmación de Cierre (Placeholder para el Usuario)**:
+  - **Fecha de Aplicación en GCP Console**: `[YYYY-MM-DD - Pendiente]`
+  - **Identificador de API Key Restringida**: `[AIzaSy... - Configurada en GCP]`
+  - **Referrers Confirmados**: `[https://industrial-360.vercel.app/*, https://*.vercel.app/*]`
 
 ### D-SEC-14: Consolidación de Runtime Backend Único en Cloud Functions (Sprint F-B)
 - **Decisión:** Selección de la **Opción A (Cloud Functions como Runtime Único de Producto)** para eliminar la duplicidad arquitectónica entre el servidor Express en `server.ts` y Firebase Cloud Functions en `functions/src/index.ts`, reduciendo la superficie de ataque y garantizando una restricción de costo absoluto de **$0** hasta 10 clientes.

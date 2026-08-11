@@ -270,12 +270,14 @@ function AppContent() {
 
 export default function App() {
   return (
-    <Router>
-      <ThemeProvider>
-        <DisplayEnvironmentProvider>
-          <AppContent />
-        </DisplayEnvironmentProvider>
-      </ThemeProvider>
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <ThemeProvider>
+          <DisplayEnvironmentProvider>
+            <AppContent />
+          </DisplayEnvironmentProvider>
+        </ThemeProvider>
+      </Router>
+    </ErrorBoundary>
   );
 }
