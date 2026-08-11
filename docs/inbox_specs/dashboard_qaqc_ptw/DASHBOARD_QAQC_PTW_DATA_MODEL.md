@@ -1,0 +1,44 @@
+# Modelo de Datos JSON: Dashboard QA/QC y Permisos 360°
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "DashboardQaqcPtwDataModel",
+  "type": "object",
+  "properties": {
+    "projectId": { "type": "string" },
+    "workPackageId": { "type": "string" },
+    "summaryMetrics": {
+      "type": "object",
+      "properties": {
+        "activePermitsCount": { "type": "integer" },
+        "validCalibrationsCount": { "type": "integer" },
+        "sihoBlocksCount": { "type": "integer" }
+      }
+    },
+    "activityRows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "wbsId": { "type": "string" },
+          "equipmentTag": { "type": "string" },
+          "ptsStatus": { "type": "string", "enum": ["GREEN", "YELLOW", "RED", "GRAY"] },
+          "artStatus": { "type": "string", "enum": ["GREEN", "YELLOW", "RED", "GRAY"] },
+          "calibrationStatus": { "type": "string", "enum": ["GREEN", "YELLOW", "RED", "GRAY"] },
+          "ptwStatus": { "type": "string", "enum": ["GREEN", "YELLOW", "RED", "GRAY"] },
+          "mechanicalCompletionStatus": { "type": "string", "enum": ["GREEN", "YELLOW", "RED", "GRAY"] },
+          "criticalEvidence": {
+            "type": "object",
+            "properties": {
+              "gasTestLelPercent": { "type": "number" },
+              "lotoLockId": { "type": "string" },
+              "benchPhotoAttached": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```

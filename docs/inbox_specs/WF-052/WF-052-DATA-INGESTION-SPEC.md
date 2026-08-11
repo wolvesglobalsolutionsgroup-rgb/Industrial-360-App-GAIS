@@ -1,0 +1,85 @@
+# Especificación de Ingesta de Datos: WF-052
+
+```yaml
+workflowId: wf-052-instrumentacion-lazos-pid
+version: "1.2.0-PROPOSED"
+status: PROPOSED_SPECIFICATION
+
+inputDefinitions:
+  - fieldId: tagNo
+    label: "Tag del Instrumento"
+    type: string
+    required: true
+    validationRules: "z.string().min(2, 'El Tag del instrumento debe tener al menos 2 caracteres')"
+
+  - fieldId: loopTag
+    label: "Tag del Lazo de Control"
+    type: string
+    required: true
+    validationRules: "z.string().min(2)"
+
+  - fieldId: pidNumber
+    label: "Plano P&ID de Referencia"
+    type: string
+    required: true
+    validationRules: "z.string().min(3)"
+
+  - fieldId: instrumentType
+    label: "Tipo de Instrumento"
+    type: enum
+    enumValues: ["PT", "TT", "FT", "LT", "PSV", "CV", "PIT", "TIT", "FIT", "LIT"]
+    required: true
+
+  - fieldId: rangeMin
+    label: "Rango Mínimo"
+    type: number
+    required: true
+
+  - fieldId: rangeMax
+    label: "Rango Máximo"
+    type: number
+    required: true
+
+  - fieldId: unit
+    label: "Unidad de Medida"
+    type: enum
+    enumValues: ["PSI", "bar", "degC", "GPM", "m3/h", "mmH2O", "Percent", "mA"]
+    required: true
+
+  - fieldId: toleranceFsPercent
+    label: "Tolerancia Máxima Permisible (%FS)"
+    type: number
+    defaultValue: 0.5
+    required: true
+
+  - fieldId: areaClassification
+    label: "Clasificación Eléctrica de Área (PDVSA IR-E-01)"
+    type: object
+    properties:
+      hazardClass: { type: string, defaultValue: "Clase I" }
+      division: { type: enum, enumValues: ["División 1", "División 2", "No Clasificada"] }
+      group: { type: enum, enumValues: ["Grupo A", "Grupo B", "Grupo C", "Grupo D"] }
+      temperatureCode: { type: enum, enumValues: ["T1", "T2", "T2A", "T2B", "T2C", "T2D", "T3", "T3A", "T3B", "T3C", "T4", "T4A", "T5", "T6"] }
+      exProofProtectionType: { type: enum, enumValues: ["Ex-d Pruebas Explosión", "Ex-i Intrínsecamente Seguro", "Ex-p Presurizado"] }
+
+  - fieldId: calibrationPoints
+    label: "Puntos de Calibración (5 Puntos Ascendente / Descendente - ISA 20)"
+    type: array
+    minItems: 5
+    itemsProperties:
+      inputPercent: { type: number } # 0, 25, 50, 75, 100
+      expectedVal: { type: number }
+      measuredAscending: { type: number }
+      measuredDescending: { type: number }
+      errorPercentFs: { type: number }
+      passed: { type: boolean }
+
+  - fieldId: calibrationStandardInfo
+    label: "Patrón de Calibración Utilizado"
+    type: object
+    properties:
+      standardName: { type: string, required: true }
+      serialNumber: { type: string, required: true }
+      calibrationCertificateNo: { type: string, required: true }
+      certificateExpirationDate: { type: string, required: true }
+```
