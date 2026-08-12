@@ -1,8 +1,10 @@
+> **NOTA DE OBSOLESCENCIA**: Este documento ha sido reemplazado oficialmente por [PTW-SPLIT-VIEW-DESIGN-V1.1.md](PTW-SPLIT-VIEW-DESIGN-V1.1.md).
+
 # Especificación Detallada de Pantalla Piloto: Split View PTW (WF-043)
 **Aplicación**: IC360-NEXUS (`Industrial-360-App-GAIS`)  
 **Repositorio**: [wolvesglobalsolutionsgroup-rgb/Industrial-360-App-GAIS](https://github.com/wolvesglobalsolutionsgroup-rgb/Industrial-360-App-GAIS)  
 **Ruta de Especificación**: `docs/design/screens/PTW-SPLIT-VIEW-DESIGN-V1.md`  
-**Estado**: ESPECIFICACIÓN TÉCNICA OFICIAL Y CONSTRUIBLE (v1.0)  
+**Estado**: OBSOLETO / SUPERSEDED BY V1.1  
 **Norma de Referencia**: `PDVSA IR-S-04` (Sistema de Permisos de Trabajo - Rev. 4, Agosto 2013, Anexo A)  
 **Alineación**: Formato Maestro de Entregables Rev. 1, Slate Navy Tokens, Cero Emojis (`lucide-react`)
 
@@ -91,7 +93,7 @@ El indicador Quad-Status consolida la salud operativa del Permiso de Trabajo Seg
 
 1. **Gate 1 — PTS Aprobado (`PDVSA SI-S-20`)**: Verifica que exista un Procedimiento de Trabajo Seguro en estado `APPROVED`.
 2. **Gate 2 — ART Divulgado (`PDVSA IR-S-17`)**: Verifica que el Análisis de Riesgos del Trabajo tenga el 100% de las firmas de la cuadrilla obrera en la Sección C.
-3. **Gate 3 — Prueba de Gas Válida**: Verifica que la lectura de gas inflamable sea strictly $0.0\%\text{ LEL}$ y el Oxígeno esté entre $19.5\%$ y $23.5\%$.
+3. **Gate 3 — Prueba de Gas Válida**: Verifica que la lectura de gas inflamable sea estrictamente $0.0\%\text{ LEL}$ y el Oxígeno esté entre $19.5\%$ y $23.5\%$.
 4. **Gate 4 — Serial Multigas Presente (`equipoMultigasSerial`)**: Verifica que se haya ingresado el serial físico del detector.
 
 ### B. Matriz de Estados del Quad-Status
