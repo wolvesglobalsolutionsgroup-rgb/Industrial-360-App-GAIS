@@ -1,6 +1,7 @@
 import { offlineDb, OutboxItem, LocalDraft } from './dexieDb';
 import { determineConflictStrategy, ConflictStrategy } from './conflictPolicy';
 import { logger } from '../logger';
+import { repositorySchemasMap } from '../domain/entitySchemas';
 
 /**
  * Generates RFC4122 compliant UUID v4 for operationId idempotency
@@ -72,6 +73,24 @@ export async function queueOutboxOperation({
     orgId: effectiveOrgId,
     projectId: effectiveProjectId
   });
+
+  // Validación de esquema Zod antes de encolar en Outbox IndexedDB
+  const schema = repositorySchemasMap[collectionName];
+  if (schema && operationType !== 'delete') {
+    const isUpdate = operationType === 'update';
+    const schemaToApply = isUpdate && 'partial' in schema && typeof (schema as any).partial === 'function'
+      ? (schema as any).partial()
+      : schema;
+    const parseRes = schemaToApply.safeParse(sanitizedPayload);
+    if (!parseRes.success) {
+      const formatted = parseRes.error.issues
+        .map((i: any) => `${i.path.join('.') || 'payload'}: ${i.message}`)
+        .join('; ');
+      const err = new Error(`[ZodOutboxValidationError] Payload inválido para cola offline en '${collectionName}': ${formatted}`);
+      (err as any).zodIssues = parseRes.error.issues;
+      throw err;
+    }
+  }
 
   const item: OutboxItem = {
     operationId,

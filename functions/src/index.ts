@@ -10,6 +10,7 @@ import { authorizeServerSideRequest, resolveAuthorizedOrgId } from './middleware
 import { logger } from './logger';
 import { validatePortalLink, escapeHtmlAttr } from '../../server';
 import { reserveQuota } from './finops/quotaService';
+import { repositorySchemasMap } from '../../src/lib/domain/entitySchemas';
 
 if (!getApps().length) {
   initializeApp();
@@ -1523,6 +1524,25 @@ export const syncOutboxMutation = functions.https.onCall(
         throw new functions.https.HttpsError(
           'permission-denied',
           "El rol 'campo' no puede marcar entidades como aprobadas o cerradas."
+        );
+      }
+    }
+
+    // Validación de Esquema Zod Server-Side en la Frontera de Escritura
+    const entitySchema = repositorySchemasMap[entityType.toLowerCase()];
+    if (entitySchema && rawOpType !== 'DELETE') {
+      const isUpdate = rawOpType === 'UPDATE';
+      const schemaToApply = isUpdate && 'partial' in entitySchema && typeof (entitySchema as any).partial === 'function'
+        ? (entitySchema as any).partial()
+        : entitySchema;
+      const parseRes = schemaToApply.safeParse(payload);
+      if (!parseRes.success) {
+        const formatted = parseRes.error.issues
+          .map((i: any) => `${i.path.join('.') || 'payload'}: ${i.message}`)
+          .join('; ');
+        throw new functions.https.HttpsError(
+          'invalid-argument',
+          `Fallo de validación Zod en servidor para la entidad '${entityType}': ${formatted}`
         );
       }
     }

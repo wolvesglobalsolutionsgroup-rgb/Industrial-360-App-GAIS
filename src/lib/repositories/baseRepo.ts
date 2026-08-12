@@ -3,9 +3,11 @@ import {
   onSnapshot, query, where, collectionGroup, limit, startAfter, orderBy,
   QueryConstraint, QueryDocumentSnapshot, DocumentSnapshot, DocumentData
 } from 'firebase/firestore';
+import { z } from 'zod';
 import { db, handleFirestoreError, OperationType } from '../../firebase';
 import { BaseEntity } from './types';
 import { guardFirestoreWrite, QuotaExceededError } from '../finops/platformMetricsEngine';
+import { repositorySchemasMap } from '../domain/entitySchemas';
 
 export interface PaginationOptions {
   pageSize?: number;
@@ -22,7 +24,36 @@ export interface PaginatedResult<T> {
 }
 
 export class BaseRepository<T extends BaseEntity> {
-  constructor(public readonly collectionName: string) {}
+  constructor(
+    public readonly collectionName: string,
+    public readonly schema?: z.ZodSchema<any>
+  ) {}
+
+  /**
+   * Valida runtime los datos usando el esquema Zod del repositorio o del registro global.
+   */
+  public validateData(data: unknown, isUpdate = false): void {
+    const schemaToUse = this.schema || repositorySchemasMap[this.collectionName];
+    if (!schemaToUse) return;
+
+    const schemaToApply = isUpdate && 'partial' in schemaToUse && typeof (schemaToUse as any).partial === 'function'
+      ? (schemaToUse as any).partial()
+      : schemaToUse;
+
+    const result = schemaToApply.safeParse(data);
+    if (!result.success) {
+      const issues = result.error.issues;
+      const formatted = issues
+        .map((i: any) => `${i.path.join('.') || 'payload'}: ${i.message}`)
+        .join('; ');
+      const err = new Error(
+        `[ZodValidationError] Fallo de validación al ${isUpdate ? 'actualizar' : 'crear'} en '${this.collectionName}': ${formatted}`
+      );
+      (err as any).zodIssues = issues;
+      (err as any).name = 'ZodValidationError';
+      throw err;
+    }
+  }
 
   private getCollectionPath(orgId: string, projectId: string): string {
     return `organizations/${orgId}/projects/${projectId}/${this.collectionName}`;
@@ -132,6 +163,9 @@ export class BaseRepository<T extends BaseEntity> {
   ): Promise<T> {
     if (!orgId || !projectId) throw new Error('orgId y projectId son obligatorios.');
     
+    // Validación de esquema Zod en el punto de escritura
+    this.validateData(data, false);
+
     await this.checkQuotaBeforeWrite(orgId, 1);
 
     let targetProjectId = projectId;
@@ -162,6 +196,9 @@ export class BaseRepository<T extends BaseEntity> {
   async update(orgId: string, projectId: string, id: string, updates: Partial<T>): Promise<void> {
     if (!orgId || !projectId || !id) throw new Error('orgId, projectId e id son obligatorios.');
     
+    // Validación de esquema Zod en el punto de escritura (parcial para actualizaciones)
+    this.validateData(updates, true);
+
     let targetProjectId = projectId;
     if (targetProjectId === 'all') {
       targetProjectId = (updates as any).projectId && (updates as any).projectId !== 'all'
