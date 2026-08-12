@@ -1,0 +1,23 @@
+name: Semgrep SAST & Anti-Vibe Code Audit
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  semgrep:
+    name: Scan Codebase for Vulnerabilities and AI-Vibe Flaws
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Custom IC360 Security Rules
+        run: semgrep --config .semgrep/ic360-security-rules.yml --error --verbose
+
+      - name: Run OWASP Top 10 & Security Audits
+        run: semgrep --config p/owasp-top-10 --config p/typescript --config p/react --severity ERROR
