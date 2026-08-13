@@ -55,7 +55,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 1600,
     sourcemap: false,
     target: 'esnext',
-    minify: false,
+    minify: 'esbuild',
     modulePreload: false,
     rollupOptions: {
       output: {
@@ -93,6 +93,9 @@ export default defineConfig({
             }
             if (id.includes('lucide-react')) {
               return 'icons';
+            }
+            if (id.includes('@radix-ui') || id.includes('cmdk')) {
+              return 'vendor-ui';
             }
           }
           if (id.includes('src/workflows/')) {
