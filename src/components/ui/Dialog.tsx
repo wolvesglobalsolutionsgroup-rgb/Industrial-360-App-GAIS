@@ -1,6 +1,7 @@
-import React, { useEffect } from 'react';
+import React from 'react';
+import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { X } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { cn } from '../../lib/utils';
 
 export interface DialogProps {
   isOpen: boolean;
@@ -19,14 +20,6 @@ export const Dialog: React.FC<DialogProps> = ({
   children,
   maxWidth = 'md',
 }) => {
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isOpen) onClose();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
-
   const widthClasses = {
     sm: 'max-w-sm',
     md: 'max-w-md',
@@ -36,54 +29,40 @@ export const Dialog: React.FC<DialogProps> = ({
   };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
-          {/* Backdrop */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={onClose}
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-md"
-          />
-
-          {/* Modal content */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 10 }}
-            transition={{ duration: 0.2 }}
-            className={`relative w-full ${widthClasses[maxWidth]} my-auto bg-surface border border-line rounded-3xl shadow-2xl p-6 sm:p-8 z-10 overflow-hidden text-ink`}
-            style={{ borderRadius: 'var(--theme-radius, 1.5rem)' }}
-          >
-            {/* Header */}
-            <div className="flex items-start justify-between gap-4 pb-4 border-b border-line">
-              <div>
-                <h2 className="text-xl font-black tracking-tight text-ink">
-                  {title}
-                </h2>
-                {description && (
-                  <p className="text-xs sm:text-sm text-ink-soft mt-1 font-medium">
-                    {description}
-                  </p>
-                )}
-              </div>
-              <button
-                onClick={onClose}
-                className="p-2 rounded-2xl text-ink-faint hover:text-ink hover:bg-surface-2 transition-colors cursor-pointer shrink-0"
-              >
-                <X size={20} />
-              </button>
+    <DialogPrimitive.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
+        <DialogPrimitive.Content
+          className={cn(
+            'fixed left-[50%] top-[50%] z-50 w-full translate-x-[-50%] translate-y-[-50%] p-6 shadow-2xl duration-200',
+            'bg-[var(--bg-surface-1)] border border-[var(--border-default)] rounded-2xl text-[var(--text-primary)]',
+            'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]',
+            widthClasses[maxWidth]
+          )}
+        >
+          <div className="flex items-start justify-between pb-3 border-b border-[var(--border-subtle)] gap-4">
+            <div>
+              <DialogPrimitive.Title className="text-lg font-semibold text-[var(--text-primary)]">
+                {title}
+              </DialogPrimitive.Title>
+              {description && (
+                <DialogPrimitive.Description className="text-xs text-[var(--text-secondary)] mt-1">
+                  {description}
+                </DialogPrimitive.Description>
+              )}
             </div>
+            <DialogPrimitive.Close
+              onClick={onClose}
+              className="p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-2)] transition-colors cursor-pointer"
+            >
+              <X size={18} />
+              <span className="sr-only">Cerrar</span>
+            </DialogPrimitive.Close>
+          </div>
 
-            {/* Body */}
-            <div className="mt-6">
-              {children}
-            </div>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+          <div className="mt-4">{children}</div>
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
   );
 };

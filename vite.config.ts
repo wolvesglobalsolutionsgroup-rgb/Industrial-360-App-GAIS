@@ -11,6 +11,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      'react': path.resolve(__dirname, './node_modules/react'),
+      'react-dom': path.resolve(__dirname, './node_modules/react-dom'),
       'firebase-admin/app': path.resolve(__dirname, './node_modules/firebase-admin/lib/esm/app/index.js'),
       'firebase-admin/auth': path.resolve(__dirname, './node_modules/firebase-admin/lib/esm/auth/index.js'),
       'firebase-admin/firestore': path.resolve(__dirname, './node_modules/firebase-admin/lib/esm/firestore/index.js'),
@@ -28,6 +30,19 @@ export default defineConfig({
       'react-router-dom',
       'lucide-react',
       'motion/react',
+      'cmdk',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-scroll-area',
+      '@radix-ui/react-select',
+      '@radix-ui/react-separator',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-tooltip',
+      '@radix-ui/react-slot',
+      '@radix-ui/react-primitive',
+      '@radix-ui/react-presence',
+      '@radix-ui/react-context',
+      '@radix-ui/react-compose-refs',
     ],
   },
   server: {

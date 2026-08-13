@@ -93,7 +93,7 @@ El indicador Quad-Status consolida la salud operativa del Permiso de Trabajo Seg
 
 1. **Gate 1 — PTS Aprobado (`PDVSA SI-S-20`)**: Verifica que exista un Procedimiento de Trabajo Seguro en estado `APPROVED`.
 2. **Gate 2 — ART Divulgado (`PDVSA IR-S-17`)**: Verifica que el Análisis de Riesgos del Trabajo tenga el 100% de las firmas de la cuadrilla obrera en la Sección C.
-3. **Gate 3 — Prueba de Gas Válida**: Verifica que la lectura de gas inflamable sea estrictamente $0.0\%\text{ LEL}$ y el Oxígeno esté entre $19.5\%$ y $23.5\%$.
+3. **Gate 3 — Prueba de Gas Válida**: Verifica que la lectura de gas inflamable sea strictly $0.0\%\text{ LEL}$ y el Oxígeno esté entre $19.5\%$ y $23.5\%$.
 4. **Gate 4 — Serial Multigas Presente (`equipoMultigasSerial`)**: Verifica que se haya ingresado el serial físico del detector.
 
 ### B. Matriz de Estados del Quad-Status

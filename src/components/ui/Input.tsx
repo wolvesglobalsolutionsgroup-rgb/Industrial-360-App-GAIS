@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '../../lib/utils';
 
 export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string;
@@ -8,52 +9,49 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(({
+  className,
+  type = 'text',
   label,
   error,
   leftIcon,
   rightIcon,
-  className = '',
-  id,
+  disabled,
   ...props
 }, ref) => {
-  const inputId = id || (label ? label.toLowerCase().replace(/\s+/g, '-') : undefined);
-
   return (
-    <div className="space-y-1.5 w-full">
+    <div className="w-full space-y-1.5">
       {label && (
-        <label htmlFor={inputId} className="block text-xs font-extrabold uppercase tracking-wider text-ink-soft">
+        <label className="block text-xs font-semibold text-[var(--text-secondary)]">
           {label}
         </label>
       )}
       <div className="relative flex items-center">
         {leftIcon && (
-          <div className="absolute left-3.5 text-ink-faint pointer-events-none">
+          <div className="absolute left-3 text-[var(--text-muted)] pointer-events-none shrink-0">
             {leftIcon}
           </div>
         )}
         <input
+          type={type}
           ref={ref}
-          id={inputId}
-          className={`w-full py-2.5 bg-surface-2 border text-xs sm:text-sm text-ink font-medium placeholder-ink-faint rounded-2xl outline-none transition-all duration-150 focus:ring-2 focus:ring-brand-500 ${
-            leftIcon ? 'pl-10' : 'pl-4'
-          } ${rightIcon ? 'pr-10' : 'pr-4'} ${
-            error 
-              ? 'border-error focus:ring-error' 
-              : 'border-line focus:border-transparent'
-          } ${className}`}
-          style={{ borderRadius: 'var(--theme-radius, 1rem)' }}
+          disabled={disabled}
+          className={cn(
+            'flex h-9 w-full rounded-xl bg-[var(--bg-surface-1)] border border-[var(--border-default)] px-3 py-1.5 text-xs sm:text-sm font-medium text-[var(--text-primary)] transition-colors placeholder:text-[var(--text-muted)] focus-visible:outline-none focus-visible:border-[var(--border-active)] focus-visible:ring-1 focus-visible:ring-[var(--border-active)] disabled:cursor-not-allowed disabled:opacity-50',
+            leftIcon && 'pl-9',
+            rightIcon && 'pr-9',
+            error && 'border-[var(--status-danger-border)] text-[var(--status-danger-text)] focus-visible:ring-[var(--status-danger-text)]',
+            className
+          )}
           {...props}
         />
         {rightIcon && (
-          <div className="absolute right-3.5 text-ink-faint">
+          <div className="absolute right-3 text-[var(--text-muted)] pointer-events-none shrink-0">
             {rightIcon}
           </div>
         )}
       </div>
       {error && (
-        <p className="text-[11px] font-bold text-red-600 dark:text-red-400 mt-1">
-          {error}
-        </p>
+        <p className="text-[11px] font-medium text-[var(--status-danger-text)]">{error}</p>
       )}
     </div>
   );

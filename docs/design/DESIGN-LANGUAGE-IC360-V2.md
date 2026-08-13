@@ -4,7 +4,7 @@
 **Repositorio**: [wolvesglobalsolutionsgroup-rgb/Industrial-360-App-GAIS](https://github.com/wolvesglobalsolutionsgroup-rgb/Industrial-360-App-GAIS)  
 **Ruta de Especificación**: `docs/design/DESIGN-LANGUAGE-IC360-V2.md`  
 **Estado**: ESPECIFICACIÓN TÉCNICA OFICIAL (V2 - Cierre de Brechas)  
-**Propósito**: Consolidar el lenguaje de diseño industrial de clase mundial para la plataforma IC360-NEXUS, eliminando por completo emojis como iconografía, instaurando reglas estrictas de Motion, un catálogo exhaustivo de 14 componentes UI, adaptabilidad táctil para tabletas de campo y plena alineación con el Formato Maestro Rev. 1.
+**Propósito**: Consolidar el lenguaje de diseño industrial de clase mundial para la plataforma IC360-NEXUS, eliminando por completo emojis como iconografía, instaurando reglas strictly de Motion, un catálogo exhaustivo de 14 componentes UI, adaptabilidad táctil para tabletas de campo y plena alineación con el Formato Maestro Rev. 1.
 
 ---
 
@@ -118,7 +118,7 @@ Para dispositivos de campo con baterías limitadas o preferencias de accesibilid
 
 ### 9. Badge de Estado Semántico (`StatusBadge`)
 * **Inspiración**: [Stripe](https://stripe.com) / [Vercel](https://vercel.com)
-* **Comportamiento**: Píldora compacta de `20px` de altura con fondo de baja opacidad del 10%, borde fino de `1px` y texto en color semántico conforme (🟢 `#34D399`), advertencia (🟡 `#FBBF24`), o peligro (🔴 `#F87171`).
+* **Comportamiento**: Píldora compacta de `20px` de altura con fondo de baja opacidad del 10%, borde sutil y punto indicador de color semántico conforme (🟢 `#34D399`), advertencia (🟡 `#FBBF24`), o peligro (🔴 `#F87171`).
 
 ### 10. Bloque de Firma Digital Criptográfica (`DigitalSignatureBlock`)
 * **Inspiración**: [IAMTech iPermit](https://www.iamtech.com/america/products/permit-software) / [Procore](https://marketplace.procore.com/apps/signonsite)

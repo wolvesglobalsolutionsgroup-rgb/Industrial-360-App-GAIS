@@ -1,4 +1,5 @@
 import React from 'react';
+import { cn } from '../../lib/utils';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   hoverEffect?: boolean;
@@ -7,20 +8,20 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(({
   children,
-  className = '',
+  className,
   hoverEffect = false,
   glass = false,
-  style,
   ...props
 }, ref) => {
-  const hoverClass = hoverEffect ? 'hover:shadow-md hover:-translate-y-0.5 transition-all duration-200' : '';  // ← CAMBIO AQUÍ
-  const glassClass = glass ? 'glass' : '';
-
   return (
     <div
       ref={ref}
-      style={{ borderRadius: 'var(--radius-2xl)', ...style }}
-      className={`card overflow-hidden ${glassClass} ${hoverClass} ${className}`}
+      className={cn(
+        'bg-[var(--bg-surface-1)] border border-[var(--border-default)] rounded-xl text-[var(--text-primary)] shadow-xs transition-all duration-150',
+        glass && 'glass',
+        hoverEffect && 'hover:border-[var(--border-active)] hover:shadow-md hover:-translate-y-0.5',
+        className
+      )}
       {...props}
     >
       {children}
@@ -29,32 +30,32 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(({
 });
 Card.displayName = 'Card';
 
-export const CardHeader = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <div className={`p-5 sm:p-6 pb-2 border-b border-line ${className}`}>
+export const CardHeader = ({ children, className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={cn('p-4 sm:p-5 pb-3 border-b border-[var(--border-subtle)]', className)} {...props}>
     {children}
   </div>
 );
 
-export const CardTitle = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <h3 className={`text-base sm:text-lg font-black text-ink tracking-tight ${className}`}>
+export const CardTitle = ({ children, className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
+  <h3 className={cn('text-base sm:text-lg font-semibold text-[var(--text-primary)] tracking-tight', className)} {...props}>
     {children}
   </h3>
 );
 
-export const CardDescription = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <p className={`text-xs text-ink-soft mt-1 font-medium ${className}`}>
+export const CardDescription = ({ children, className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
+  <p className={cn('text-xs text-[var(--text-secondary)] mt-1 font-medium', className)} {...props}>
     {children}
   </p>
 );
 
-export const CardContent = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <div className={`p-5 sm:p-6 ${className}`}>
+export const CardContent = ({ children, className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={cn('p-4 sm:p-5', className)} {...props}>
     {children}
   </div>
 );
 
-export const CardFooter = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => (
-  <div className={`p-4 sm:p-5 pt-3 bg-surface-2 border-t border-line ${className}`}>
+export const CardFooter = ({ children, className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={cn('p-4 sm:p-5 pt-3 bg-[var(--bg-surface-2)] border-t border-[var(--border-subtle)] rounded-b-xl', className)} {...props}>
     {children}
   </div>
 );

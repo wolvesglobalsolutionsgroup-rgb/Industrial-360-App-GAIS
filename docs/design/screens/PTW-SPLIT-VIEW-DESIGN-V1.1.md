@@ -59,7 +59,7 @@ La pantalla piloto en modo escritorio (`≥ 1280px`) utiliza un visor dividido d
 
 ### A. Remapeo de los 5 Pasos del Wizard Real (`definition.ts`)
 
-Conforme a la arquitectura del archivo `src/workflows/wf-043-aprobacion-ptw/definition.ts`, el wizard de captura se organiza en **5 pasos estrictos**:
+Conforme a la arquitectura del archivo `src/workflows/wf-043-aprobacion-ptw/definition.ts`, el wizard de captura se organiza en **5 pasos strictly**:
 
 1. **Paso 1: Elegibilidad & Prerrequisitos**: Verificación de existencia y estado del Procedimiento de Trabajo Seguro (`PDVSA SI-S-20` en estado `APPROVED`) y del Análisis de Riesgos del Trabajo (`PDVSA IR-S-17` divulgado con firmas de cuadrilla).
 2. **Paso 2: PTW Core & Anexo A**: Llenado de los Renglones 1 al 16 del Anexo A de `PDVSA IR-S-04` (Orden SAP, instalación, tipo de trabajo en frío/caliente, ejecutor, serial multigas obligatorio y lecturas de gas multigas a las 07:30).

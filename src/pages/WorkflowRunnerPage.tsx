@@ -16,6 +16,7 @@ import {
   ArrowRight,
   Layers,
   ChevronRight,
+  ChevronDown,
   Download,
   Eye,
   X,
@@ -25,6 +26,14 @@ import {
 } from 'lucide-react';
 import { getPhaseByNumber } from '../components/navigation/phaseNavigation';
 import { createDefaultPtwData } from '../workflows/wf-043-aprobacion-ptw/types';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../components/ui/DropdownMenu';
 
 interface WorkflowRunnerPageProps {
   overrideWorkflowId?: string;
@@ -369,10 +378,11 @@ export default function WorkflowRunnerPage({ overrideWorkflowId }: WorkflowRunne
 
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
-      {/* Top Header & Selector */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-surface border border-border rounded-xl p-6 shadow-sm">
-        <div className="space-y-1">
-          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground mb-1">
+      {/* Top Header Card */}
+      <div className="bg-surface border border-border rounded-xl p-4 md:p-6 shadow-sm space-y-4">
+        {/* Navigation & Status Breadcrumbs */}
+        <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-muted-foreground pb-3 border-b border-border/60">
+          <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => navigate(phaseInfo?.modules[0]?.path || '/')}
               className="flex items-center gap-1 font-bold text-brand-500 hover:text-brand-600 transition-colors cursor-pointer"
@@ -388,25 +398,79 @@ export default function WorkflowRunnerPage({ overrideWorkflowId }: WorkflowRunne
               Estado: {currentState.toUpperCase()}
             </span>
           </div>
-          <h1 className="text-2xl font-black text-ink">{definition.title}</h1>
-          <p className="text-xs text-muted-foreground mt-1 max-w-3xl">{definition.description}</p>
+
+          {/* Radix Dropdown Selector for Dark Mode Compatibility */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex items-center gap-2 px-3 py-1.5 bg-surface-2 hover:bg-surface border border-border rounded-lg text-xs font-bold text-ink transition-colors cursor-pointer shrink-0">
+                <Layers className="w-4 h-4 text-brand-500" />
+                <span className="max-w-[200px] sm:max-w-[320px] truncate">
+                  WF-{(definition.id.split('-')[1] || '').toUpperCase()}: {definition.title}
+                </span>
+                <ChevronDown className="w-3.5 h-3.5 text-muted-foreground ml-1" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-80 max-h-80 overflow-y-auto">
+              <DropdownMenuLabel>Seleccionar Workflow</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {allWorkflows.map((wf) => {
+                const code = wf.id.split('-')[1]?.toUpperCase() || wf.id;
+                const isActive = wf.id === workflowId;
+                return (
+                  <DropdownMenuItem
+                    key={wf.id}
+                    onClick={() => navigate(`/workflows/${wf.id}/demo`)}
+                    className={`flex items-start gap-2.5 py-2 cursor-pointer ${
+                      isActive ? 'bg-brand-500/15 text-brand-500 font-bold' : ''
+                    }`}
+                  >
+                    <span className="px-1.5 py-0.5 bg-surface-2 rounded text-[10px] font-mono font-bold shrink-0 border border-border">
+                      {code}
+                    </span>
+                    <span className="text-xs leading-tight line-clamp-2">{wf.title}</span>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
-        {/* Quick Switcher */}
-        <div className="flex items-center gap-2 bg-muted/50 p-1.5 rounded-lg border border-border self-start md:self-auto">
-          {allWorkflows.map((wf) => (
-            <button
-              key={wf.id}
-              onClick={() => navigate(`/workflows/${wf.id}/demo`)}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                wf.id === workflowId
-                  ? 'bg-brand-500 text-white shadow-sm'
-                  : 'text-muted-foreground hover:text-ink hover:bg-surface'
-              }`}
-            >
-              {wf.id.split('-')[1]?.toUpperCase() || wf.id}
-            </button>
-          ))}
+        {/* Workflow Title & Description - Full Width */}
+        <div className="space-y-1.5">
+          <h1 className="text-xl sm:text-2xl font-black text-ink tracking-tight leading-snug">
+            {definition.title}
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground max-w-4xl leading-relaxed">
+            {definition.description}
+          </p>
+        </div>
+
+        {/* Quick Access Pills Row */}
+        <div className="pt-2 border-t border-border/40">
+          <div className="flex items-center gap-2 text-[11px] font-bold text-muted-foreground mb-1.5">
+            <Layers size={12} className="text-brand-500" />
+            <span>Acceso Rápido a Workflows:</span>
+          </div>
+          <div className="flex items-center gap-1.5 overflow-x-auto max-w-full pb-1 no-scrollbar">
+            {allWorkflows.map((wf) => {
+              const code = wf.id.split('-')[1]?.toUpperCase() || wf.id;
+              const isActive = wf.id === workflowId;
+              return (
+                <button
+                  key={wf.id}
+                  onClick={() => navigate(`/workflows/${wf.id}/demo`)}
+                  className={`px-2.5 py-1 rounded-md text-[11px] font-bold shrink-0 transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-brand-500 text-white shadow-sm'
+                      : 'bg-surface-2 text-muted-foreground hover:text-ink hover:bg-surface border border-border'
+                  }`}
+                  title={`${code}: ${wf.title}`}
+                >
+                  {code}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 

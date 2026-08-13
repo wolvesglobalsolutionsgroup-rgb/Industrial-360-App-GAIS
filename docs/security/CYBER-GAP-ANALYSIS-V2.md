@@ -108,7 +108,7 @@ sequenceDiagram
     App->>FS: Sincroniza Metadatos del Permiso (Cédula, GPS, Timestamp)
     App->>ST: Carga Vector SVG de Firma y Foto de Inspección
     FS-->>App: Confirma Hash SHA-256 de Registro
-    Note over FS,ST: Acceso restringido estrictamente por tenantId & Role Claims
+    Note over FS,ST: Acceso restringido strictly por tenantId & Role Claims
 ```
 
 - **Captura:** Cédula, Nombres, Fotografías de Inspección, Trazo de Firma y Coordenadas GPS en `src/components/forms/`.

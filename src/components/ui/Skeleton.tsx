@@ -1,16 +1,32 @@
 import React from 'react';
+import { cn } from '../../lib/utils';
 
-export const Skeleton = ({ className = '', style }: { className?: string; style?: React.CSSProperties }) => (
-  <div 
-    style={style}
-    className={`animate-pulse bg-slate-200/50 dark:bg-slate-800/40 rounded-xl ${className}`}
-  />
-);
+export function Skeleton({
+  className,
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      className={cn('skeleton animate-pulse rounded-lg bg-[var(--bg-surface-2)]', className)}
+      {...props}
+    />
+  );
+}
 
-export const CardSkeleton = () => (
-  <div className="p-6 bg-white/60 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800/60 rounded-3xl space-y-4">
-    <Skeleton className="h-4 w-1/3" />
-    <Skeleton className="h-8 w-2/3" />
-    <Skeleton className="h-3 w-1/2" />
-  </div>
-);
+export function PageSkeleton() {
+  return (
+    <div className="p-6 space-y-6 max-w-7xl mx-auto w-full">
+      <div className="flex justify-between items-center">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-9 w-32" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Skeleton className="h-28 w-full" />
+        <Skeleton className="h-28 w-full" />
+        <Skeleton className="h-28 w-full" />
+        <Skeleton className="h-28 w-full" />
+      </div>
+      <Skeleton className="h-80 w-full" />
+    </div>
+  );
+}

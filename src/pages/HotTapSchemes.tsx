@@ -144,25 +144,25 @@ export default function HotTapSchemes() {
   };
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-4 sm:space-y-6 pb-12 w-full min-w-0 overflow-x-hidden">
       {/* Header Banner */}
-      <div className="bg-slate-900 text-white p-6 sm:p-8 rounded-3xl shadow-lg border border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="bg-slate-900 text-white p-4 sm:p-6 md:p-8 rounded-2xl sm:rounded-3xl shadow-lg border border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 sm:gap-6">
         <div>
-          <div className="flex items-center gap-2 text-amber-400 text-xs font-mono font-bold uppercase tracking-wider mb-2">
-            <Flame size={16} /> API 2201 • ASME B31.8 / B31.3 • Intervenciones en Caliente
+          <div className="flex items-center gap-2 text-amber-400 text-[11px] sm:text-xs font-mono font-bold uppercase tracking-wider mb-1.5 sm:mb-2">
+            <Flame size={16} className="shrink-0" /> API 2201 • ASME B31.8 / B31.3 • Intervenciones en Caliente
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">
             Diseño & Esquemas Hot Tap / Stopple (PAMS)
           </h1>
-          <p className="text-slate-400 text-xs sm:text-sm mt-1 max-w-2xl font-medium">
+          <p className="text-slate-400 text-xs sm:text-sm mt-1 max-w-2xl font-medium leading-relaxed">
             Simulación técnica de perforación bajo presión, cálculo de presión segura de tara, riesgo de perforación por quemadura (burn-through) y formulario PIT.
           </p>
         </div>
-        <div className="flex gap-3 shrink-0">
+        <div className="flex gap-3 shrink-0 w-full sm:w-auto">
           <button
             onClick={handleSaveIntervention}
             disabled={saving}
-            className="flex items-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-5 py-3 rounded-2xl text-xs sm:text-sm transition-all shadow-md cursor-pointer disabled:opacity-50"
+            className="w-full sm:w-auto flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-4 sm:px-5 py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm transition-all shadow-md cursor-pointer disabled:opacity-50"
           >
             <Save size={16} />
             {saving ? 'Guardando...' : 'Guardar Intervención (PIT)'}
@@ -171,7 +171,7 @@ export default function HotTapSchemes() {
       </div>
 
       {/* Selector of Hot Tap Intervention Types */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3">
         {[
           { id: 'HOT_TAP', name: 'Hot Tap (API 2201)', desc: 'Perforación con carga de presión' },
           { id: 'STOPPLE', name: 'Bloqueo Stopple', desc: 'Aislamiento temporal de flujo' },
@@ -184,27 +184,27 @@ export default function HotTapSchemes() {
             <button
               key={type.id}
               onClick={() => setSelectedType(type.id as HotTapType)}
-              className={`p-4 rounded-3xl border text-left transition-all cursor-pointer ${
+              className={`p-3 sm:p-4 rounded-2xl sm:rounded-3xl border text-left transition-all cursor-pointer ${
                 isSel
                   ? 'bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-400 font-extrabold shadow-xs'
                   : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-black">{type.name}</span>
-                {isSel && <CheckCircle2 size={16} className="text-amber-500" />}
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-[11px] sm:text-xs font-black truncate">{type.name}</span>
+                {isSel && <CheckCircle2 size={14} className="text-amber-500 shrink-0" />}
               </div>
-              <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-medium">{type.desc}</p>
+              <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 sm:mt-1 font-medium line-clamp-2">{type.desc}</p>
             </button>
           );
         })}
       </div>
 
-      {/* Navigation Tabs */}
-      <div className="flex gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+      {/* Navigation Tabs - Horizontally Scrollable without pushing viewport */}
+      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto max-w-full pb-2 no-scrollbar border-b border-slate-200 dark:border-slate-800 shrink-0">
         <button
           onClick={() => setActiveTab('scheme')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'scheme'
               ? 'bg-slate-900 text-white dark:bg-emerald-600'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -214,7 +214,7 @@ export default function HotTapSchemes() {
         </button>
         <button
           onClick={() => setActiveTab('pitForm')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'pitForm'
               ? 'bg-slate-900 text-white dark:bg-emerald-600'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -224,7 +224,7 @@ export default function HotTapSchemes() {
         </button>
         <button
           onClick={() => setActiveTab('safetyChecklist')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'safetyChecklist'
               ? 'bg-slate-900 text-white dark:bg-emerald-600'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -234,7 +234,7 @@ export default function HotTapSchemes() {
         </button>
         <button
           onClick={() => setActiveTab('records')}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer shrink-0 whitespace-nowrap ${
             activeTab === 'records'
               ? 'bg-slate-900 text-white dark:bg-emerald-600'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -246,21 +246,21 @@ export default function HotTapSchemes() {
 
       {/* TAB 1: SVG DIAGRAM & SCHEME */}
       {activeTab === 'scheme' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 w-full min-w-0">
           {/* Main Interactive Diagram */}
-          <div className="lg:col-span-2 bg-slate-950 text-slate-100 p-6 rounded-3xl border border-slate-800 shadow-xl space-y-4 relative overflow-hidden">
-            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-              <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-400">
-                <Wrench size={16} /> ESQUEMA TÉCNICO INTERACTIVO — {selectedType}
+          <div className="lg:col-span-2 bg-slate-950 text-slate-100 p-4 sm:p-6 rounded-2xl sm:rounded-3xl border border-slate-800 shadow-xl space-y-4 relative overflow-hidden w-full min-w-0">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3 gap-2">
+              <div className="flex items-center gap-2 text-[11px] sm:text-xs font-mono font-bold text-amber-400 min-w-0 truncate">
+                <Wrench size={16} className="shrink-0" /> <span className="truncate">ESQUEMA TÉCNICO INTERACTIVO — {selectedType}</span>
               </div>
-              <span className="text-[10px] bg-amber-500/20 text-amber-300 font-mono px-2.5 py-1 rounded-full border border-amber-500/30">
+              <span className="text-[10px] bg-amber-500/20 text-amber-300 font-mono px-2.5 py-1 rounded-full border border-amber-500/30 shrink-0">
                 Norma API 2201
               </span>
             </div>
 
             {/* SVG SCHEME DRAWING */}
-            <div className="w-full h-80 bg-slate-900/90 rounded-2xl border border-slate-800 flex items-center justify-center p-4 relative">
-              <svg viewBox="0 0 800 400" className="w-full h-full">
+            <div className="w-full h-64 sm:h-80 bg-slate-900/90 rounded-2xl border border-slate-800 flex items-center justify-center p-2 sm:p-4 relative overflow-hidden">
+              <svg viewBox="0 0 800 400" className="w-full h-full max-w-full">
                 <defs>
                   <linearGradient id="pipeGrad" x1="0%" y1="0%" x2="0%" y2="100%">
                     <stop offset="0%" stopColor="#475569" />

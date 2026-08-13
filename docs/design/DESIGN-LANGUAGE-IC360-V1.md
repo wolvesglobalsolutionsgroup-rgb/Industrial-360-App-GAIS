@@ -241,7 +241,7 @@ La paleta se basa en tonos neutros de gris carbón/pizarra (`Slate Navy`), garan
 | **Contextual Drawer** | Stripe / Attio | Panel lateral deslizante desde la derecha (`380px` de ancho) para consultar historial de auditoría o adjuntar evidencias sin salir del flujo. |
 | **Command Palette (`Cmd+K`)** | Linear / Raycast | Ventana modal centrada de búsqueda omnibox para saltar entre Proyectos, WBS, Tags de Instrumentos o Permisos activos. |
 | **Wizard Progresivo** | Enablon / Site App Pro | Barra de progreso en 3 pasos (`1. Gabinete ➔ 2. Inspección & Gases ➔ 3. Firmas`) con validación Zod al cambiar de paso. |
-| **Visor A4 Co-Branded** | Oracle Aconex / Formato Maestro | Contenedor centrado de hoja Carta/A4 con controles de zoom, descarga PDF y doble logo (Operador Izq / Contratista Der). |
+| **Visor A4 WYSIWYG** | Oracle Aconex / Formato Maestro | Contenedor centrado de hoja Carta/A4 con controles de zoom, descarga PDF y regla de Co-Branding de logotipos (Operador Izq / Contratista Der). |
 | **Árbol del Databook** | Hexagon SDx / Bentley iTwin | Árbol jerárquico desplegable de Capítulos (01 al 08) con estado de compilación y descarga de paquetes auditables en ZIP/PDF. |
 | **Badge de Estado Semántico** | Stripe / Vercel | Píldora compacta (`height: 20px`) con fondo de baja opacidad, borde sutil y punto indicador de color semántico. |
 | **Firma Digital Biométrica** | IAMTech / Procore | Módulo de captura táctil con sello de tiempo criptográfico RFC 3161 y generación de Hash SHA-256 en tiempo real. |

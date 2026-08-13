@@ -1,5 +1,6 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
+import { cn } from '../../lib/utils';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'accent' | 'success';
@@ -16,36 +17,33 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
   isLoading = false,
   leftIcon,
   rightIcon,
-  className = '',
+  className,
   disabled,
   ...props
 }, ref) => {
-  const baseStyles = 'inline-flex items-center justify-center font-bold transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none';
+  const baseStyles = 'inline-flex items-center justify-center font-medium transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--border-active)]';
 
   const variantStyles = {
-    primary: 'bg-brand-500 hover:bg-brand-600 text-white shadow-sm hover:shadow-md active:scale-[0.99]',
-    secondary: 'bg-surface-2 hover:bg-elevated text-ink border border-line active:scale-[0.99]',
-    outline: 'border border-line bg-transparent hover:bg-surface-2 text-ink active:scale-[0.99]',
-    ghost: 'bg-transparent hover:bg-surface-2 text-ink-soft hover:text-ink active:scale-[0.97]',  // ← ESTA ES LA ÚNICA LÍNEA QUE CAMBIA
-    danger: 'bg-error hover:bg-red-700 text-white shadow-sm hover:shadow-md active:scale-[0.99]',
-    success: 'bg-success hover:bg-emerald-700 text-white shadow-sm hover:shadow-md active:scale-[0.99]',
-    accent: 'bg-brand-accent hover:bg-brand-accent-600 text-white font-black shadow-sm hover:shadow-md active:scale-[0.99]',
+    primary: 'bg-[var(--color-brand-500)] hover:bg-[var(--color-brand-600)] text-white shadow-xs active:scale-[0.98]',
+    secondary: 'bg-[var(--bg-surface-2)] hover:bg-[var(--bg-surface-3)] text-[var(--text-primary)] border border-[var(--border-default)] active:scale-[0.98]',
+    outline: 'border border-[var(--border-default)] bg-transparent hover:bg-[var(--bg-surface-2)] text-[var(--text-primary)] active:scale-[0.98]',
+    ghost: 'bg-transparent hover:bg-[var(--bg-surface-2)] text-[var(--text-secondary)] hover:text-[var(--text-primary)] active:scale-[0.98]',
+    danger: 'bg-[var(--status-danger-bg)] text-[var(--status-danger-text)] border border-[var(--status-danger-border)] hover:opacity-90 active:scale-[0.98]',
+    success: 'bg-[var(--status-success-bg)] text-[var(--status-success-text)] border border-[var(--status-success-border)] hover:opacity-90 active:scale-[0.98]',
+    accent: 'bg-[var(--color-brand-accent)] text-white font-semibold hover:opacity-90 active:scale-[0.98]',
   };
 
   const sizeStyles = {
-    sm: 'text-xs px-3 py-1.5 rounded-xl gap-1.5',
-    md: 'text-xs sm:text-sm px-4 py-2.5 rounded-2xl gap-2',
-    lg: 'text-sm sm:text-base px-6 py-3.5 rounded-2xl gap-2.5',
+    sm: 'text-xs px-2.5 py-1.5 rounded-lg gap-1.5 min-h-[32px]',
+    md: 'text-sm px-3.5 py-2 rounded-xl gap-2 min-h-[38px]',
+    lg: 'text-base px-5 py-2.5 rounded-xl gap-2.5 min-h-[44px]',
   };
-
-  const borderRadius = 'var(--theme-radius, 1rem)';
 
   return (
     <button
       ref={ref}
       disabled={disabled || isLoading}
-      style={{ borderRadius }}
-      className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+      className={cn(baseStyles, variantStyles[variant], sizeStyles[size], className)}
       {...props}
     >
       {isLoading ? (
@@ -54,7 +52,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(({
         <span className="shrink-0">{leftIcon}</span>
       ) : null}
 
-      <span>{children}</span>
+      {children && <span>{children}</span>}
 
       {!isLoading && rightIcon && (
         <span className="shrink-0">{rightIcon}</span>

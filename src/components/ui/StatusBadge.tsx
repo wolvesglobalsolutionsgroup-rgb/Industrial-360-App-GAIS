@@ -1,12 +1,10 @@
 import React from 'react';
-
-export type TaskStatusType = 'planificada' | 'en_campo' | 'en_revision' | 'bloqueada' | 'terminada';
-export type PriorityType = 'critica' | 'alta' | 'media' | 'baja';
+import { cn } from '../../lib/utils';
 
 export interface StatusBadgeProps {
-  status?: TaskStatusType | string;
-  priority?: PriorityType | string;
-  variant?: 'info' | 'warning' | 'error' | 'success' | 'slate' | string;
+  status?: 'success' | 'warning' | 'danger' | 'neutral' | 'active' | 'pending' | 'rejected' | 'completed' | 'in_progress' | 'draft' | string;
+  variant?: 'success' | 'warning' | 'danger' | 'neutral' | string;
+  label?: string;
   customText?: string;
   className?: string;
   size?: 'sm' | 'md';
@@ -14,63 +12,56 @@ export interface StatusBadgeProps {
 
 export const StatusBadge: React.FC<StatusBadgeProps> = ({
   status,
-  priority,
   variant,
+  label,
   customText,
-  className = '',
+  className,
   size = 'md',
 }) => {
-  const sizeClass = size === 'sm' ? 'text-[10px] px-2 py-0.5' : 'text-xs px-2.5 py-1';
+  const normStatus = ((status || variant || '') as string).toLowerCase();
 
-  if (variant) {
-    const variantMap: Record<string, string> = {
-      info: 'bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800',
-      warning: 'bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border-amber-200 dark:border-amber-800',
-      error: 'bg-red-100 dark:bg-red-950/80 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800',
-      success: 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
-      slate: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700',
-    };
+  let styleType: 'success' | 'warning' | 'danger' | 'neutral' = 'neutral';
 
-    const bgClass = variantMap[variant] || 'bg-slate-100 text-slate-700 border-slate-200';
-
-    return (
-      <span className={`inline-flex items-center font-extrabold rounded-full border ${sizeClass} ${bgClass} ${className}`}>
-        {customText || status || priority}
-      </span>
-    );
+  if (['success', 'active', 'completed', 'approved', 'pass', 'valido'].includes(normStatus)) {
+    styleType = 'success';
+  } else if (['warning', 'pending', 'in_progress', 'review', 'pendiente'].includes(normStatus)) {
+    styleType = 'warning';
+  } else if (['danger', 'rejected', 'failed', 'error', 'expired', 'rechazado'].includes(normStatus)) {
+    styleType = 'danger';
+  } else {
+    styleType = 'neutral';
   }
 
-  if (priority) {
-    const priorityMap: Record<string, { label: string; bg: string }> = {
-      critica: { label: '🔴 CRÍTICA', bg: 'bg-red-100 dark:bg-red-950/80 text-red-800 dark:text-red-300 border-red-300 dark:border-red-800' },
-      alta: { label: '🟠 ALTA', bg: 'bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800' },
-      media: { label: '🟡 MEDIA', bg: 'bg-blue-100 dark:bg-blue-950/80 text-blue-800 dark:text-blue-300 border-blue-300 dark:border-blue-800' },
-      baja: { label: '🟢 BAJA', bg: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700' },
-    };
-
-    const config = priorityMap[priority.toLowerCase()] || { label: priority.toUpperCase(), bg: 'bg-slate-100 text-slate-700 border-slate-200' };
-
-    return (
-      <span className={`inline-flex items-center font-extrabold font-mono rounded-full border ${sizeClass} ${config.bg} ${className}`}>
-        {customText || config.label}
-      </span>
-    );
-  }
-
-  const statusMap: Record<string, { label: string; bg: string }> = {
-    planificada: { label: '📋 Planificada', bg: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700' },
-    en_campo: { label: '🚜 En Campo', bg: 'bg-indigo-100 dark:bg-indigo-950/80 text-indigo-800 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800' },
-    en_revision: { label: '🔍 En Revisión', bg: 'bg-purple-100 dark:bg-purple-950/80 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800' },
-    bloqueada: { label: '🛑 Bloqueada', bg: 'bg-red-100 dark:bg-red-950/80 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800 animate-pulse' },
-    terminada: { label: '✅ Terminada', bg: 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' },
+  const styles = {
+    success: 'bg-[var(--status-success-bg)] text-[var(--status-success-text)] border-[var(--status-success-border)]',
+    warning: 'bg-[var(--status-warning-bg)] text-[var(--status-warning-text)] border-[var(--status-warning-border)]',
+    danger: 'bg-[var(--status-danger-bg)] text-[var(--status-danger-text)] border-[var(--status-danger-border)]',
+    neutral: 'bg-[var(--status-neutral-bg)] text-[var(--status-neutral-text)] border-[var(--status-neutral-border)]',
   };
 
-  const key = (status || 'planificada').toLowerCase().replace(/\s+/g, '_');
-  const config = statusMap[key] || { label: status || 'Desconocido', bg: 'bg-slate-100 text-slate-700 border-slate-200' };
+  const displayLabel = customText || label || status || variant || '';
 
   return (
-    <span className={`inline-flex items-center font-extrabold rounded-full border ${sizeClass} ${config.bg} ${className}`}>
-      {customText || config.label}
+    <span
+      className={cn(
+        'inline-flex items-center gap-1.5 font-semibold rounded-full border border-solid select-none tracking-tight whitespace-nowrap',
+        size === 'sm' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-xs',
+        styles[styleType],
+        className
+      )}
+    >
+      <span
+        className={cn(
+          'w-1.5 h-1.5 rounded-full shrink-0',
+          styleType === 'success' && 'bg-[var(--status-success-text)]',
+          styleType === 'warning' && 'bg-[var(--status-warning-text)]',
+          styleType === 'danger' && 'bg-[var(--status-danger-text)]',
+          styleType === 'neutral' && 'bg-[var(--status-neutral-text)]'
+        )}
+      />
+      <span>{displayLabel}</span>
     </span>
   );
 };
+
+export const Badge = StatusBadge;
