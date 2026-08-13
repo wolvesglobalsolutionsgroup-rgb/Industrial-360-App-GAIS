@@ -12,7 +12,7 @@ rules:
   - id: ic360-no-unscrubbed-sentry-pii
     patterns:
       - pattern: Sentry.captureException($E)
-      - pattern-not: Sentry.captureException($E, { beforeSend: $F })
+      - pattern-not: 'Sentry.captureException($E, { beforeSend: $F })'
     message: "[IC360-SEC-002] Direct Sentry capture without PII scrubbing wrapper."
     languages: [typescript, javascript]
     severity: WARNING
