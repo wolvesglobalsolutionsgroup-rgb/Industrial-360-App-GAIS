@@ -73,7 +73,8 @@ export async function buildPptxPresentation(vm: DocumentViewModel): Promise<Pptx
         w: box.w,
         h: box.h,
       });
-    } catch {
+    } catch (err) {
+      console.warn('[pptxExporter] image embed failed, skipping image', err);
       // Ignore invalid image data gracefully
     }
   }
@@ -89,7 +90,8 @@ export async function buildPptxPresentation(vm: DocumentViewModel): Promise<Pptx
         w: box.w,
         h: box.h,
       });
-    } catch {
+    } catch (err) {
+      console.warn('[pptxExporter] image embed failed, skipping image', err);
       // Ignore invalid image data gracefully
     }
   }
@@ -308,7 +310,8 @@ export async function buildPptxPresentation(vm: DocumentViewModel): Promise<Pptx
             w: box.w,
             h: box.h,
           });
-        } catch {
+        } catch (err) {
+          console.warn('[pptxExporter] image embed failed, skipping image', err);
           // Ignore invalid image buffer/url gracefully
         }
       }

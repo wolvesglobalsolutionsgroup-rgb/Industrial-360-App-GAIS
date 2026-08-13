@@ -86,6 +86,7 @@ function scanFile(filePath) {
     });
   } catch (err) {
     // Ignorar archivos no leíbles
+    console.warn('[auditNoHardcodedTenant] file read/scan failed', err);
   }
 }
 

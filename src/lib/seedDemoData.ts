@@ -192,8 +192,9 @@ export async function seedDemoData(force = false): Promise<{ success: boolean; m
         if (!snapOrgProjects.empty) {
           return { success: true, message: 'La base de datos ya contiene proyectos de PROINTECA C.A.' };
         }
-      } catch {
+      } catch (err) {
         // Continue if checking fails
+        console.warn('[seedDemoData] existing-data check failed, continuing', err);
       }
     }
 

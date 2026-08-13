@@ -157,7 +157,7 @@ export default function PlatformOwnerConsole() {
   const [featureFlags, setFeatureFlags] = useState<FeatureFlagsState>(() => {
     const saved = localStorage.getItem('ic360_global_flags');
     if (saved) {
-      try { return JSON.parse(saved); } catch { /* ignore */ }
+      try { return JSON.parse(saved); } catch (err) { console.debug('[PlatformOwnerConsole] stored settings parse failed', err); }
     }
     return {
       enable_ai_brain_proxy: true,

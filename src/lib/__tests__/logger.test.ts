@@ -31,7 +31,7 @@ describe('Sanitizable Logger Engine', () => {
     const secrets = {
       idToken: 'secret_id_token_xyz_123',
       rawToken: 'raw_token_value_abc',
-      apiKey: 'AIzaSy_SecretKey_999999999999999'
+      apiKey: 'TEST_FAKE_API_KEY_NOT_REAL'
     };
     const sanitizedSecrets = sanitizeData(secrets);
 

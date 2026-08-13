@@ -155,8 +155,9 @@ export function defaultHmacSigner(data: string, secret: string): string {
     if (cryptoModule && typeof cryptoModule.createHmac === 'function') {
       return cryptoModule.createHmac('sha256', secret).update(data).digest('hex');
     }
-  } catch {
+  } catch (err) {
     // Fallback if require is not available in pure browser runtime
+    console.debug('[workerQrEngine] node crypto unavailable, browser fallback', err);
   }
 
   // Pure JS HMAC-SHA256 surrogate for browser runtime if node crypto is polyfilled away
@@ -192,8 +193,9 @@ export function generateOpaqueCredentialId(): string {
     if (cryptoModule && typeof cryptoModule.randomBytes === 'function') {
       randomHex = cryptoModule.randomBytes(16).toString('hex');
     }
-  } catch {
+  } catch (err) {
     // Browser environment crypto.getRandomValues
+    console.debug('[workerQrEngine] node randomBytes unavailable, browser fallback', err);
   }
 
   if (!randomHex && typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {

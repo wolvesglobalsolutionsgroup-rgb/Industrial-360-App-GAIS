@@ -556,6 +556,7 @@ export default function SyncCenter() {
                         setMergedFields(JSON.parse(e.target.value));
                       } catch (err) {
                         // permit parsing error during live edit
+                        console.debug('[SyncCenter] live JSON parse error while typing', err);
                       }
                     }}
                     className="w-full p-2 bg-slate-950 text-emerald-400 font-mono text-xs rounded-lg border border-border focus:outline-none"

@@ -49,7 +49,9 @@ export async function ensureUserClaimsAndRefreshToken(user: any) {
     logger.warn('Sincronización de Custom Claims (ensureOwnClaims):', err?.message || err);
     try {
       await user.getIdTokenResult(true);
-    } catch {}
+    } catch (err) {
+      console.debug('[firebase] token refresh failed, using cached session', err);
+    }
   }
 }
 
@@ -65,7 +67,7 @@ let localDemoUser: any = null;
 
 function setLocalUser(user: any) {
   localDemoUser = user;
-  try { localStorage.setItem('ic360_user', JSON.stringify(user)); } catch {}
+  try { localStorage.setItem('ic360_user', JSON.stringify(user)); } catch (err) { console.debug('[firebase] localStorage persist failed', err); }
   window.dispatchEvent(new CustomEvent('ic360_auth_change'));
 }
 

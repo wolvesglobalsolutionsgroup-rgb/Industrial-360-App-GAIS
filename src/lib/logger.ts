@@ -158,6 +158,7 @@ export function initSentry(): void {
     }
   } catch (_e) {
     // Ignore env error
+    console.debug('[logger] env read fallback, using defaults', _e);
   }
 
   const dsn = typeof rawDsn === 'string' ? rawDsn.trim() : '';
