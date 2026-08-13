@@ -20,4 +20,4 @@ jobs:
         run: semgrep --config .semgrep/ic360-security-rules.yml --error --verbose
 
       - name: Run OWASP Top 10 & Security Audits
-        run: semgrep --config p/owasp-top-10 --config p/typescript --config p/react --severity ERROR
+        run: semgrep --config p/owasp-top-ten --config p/typescript --config p/react --severity ERROR
