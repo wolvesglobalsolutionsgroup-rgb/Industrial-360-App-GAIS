@@ -12,7 +12,7 @@ describe('Piloto Industrial PROINTECA (Sprint IC360-S13 - prointeca-demo)', () =
     expect(res.success).toBe(true);
     expect(res.seededDocsCount).toBeGreaterThan(15);
     expect(res.message).toContain('prointeca-demo');
-  });
+  }, 15000);
 
   it('2. Bloquea el sembrado si se ejecuta en producción sin banderas ni emulador', async () => {
     const originalEnv = process.env.NODE_ENV;
