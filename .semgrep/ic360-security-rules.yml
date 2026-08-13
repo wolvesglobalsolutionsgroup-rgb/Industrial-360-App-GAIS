@@ -2,24 +2,24 @@ rules:
   - id: ic360-no-hardcoded-secrets
     patterns:
       - pattern-either:
-          - pattern: 'const $X = "AIzaSy$Y"'
-          - pattern: 'apiKey: "$X"'
-          - pattern: 'secret: "$X"'
+          - pattern: const $X = "AIzaSy$Y"
+          - pattern: apiKey: "$X"
+          - pattern: secret: "$X"
     message: "[IC360-SEC-001] Hardcoded secret or API key detected. Use environment variables."
     languages: [typescript, javascript]
     severity: ERROR
 
   - id: ic360-no-unscrubbed-sentry-pii
     patterns:
-      - pattern: 'Sentry.captureException($E)'
-      - pattern-not: 'Sentry.captureException($E, { beforeSend: $F })'
+      - pattern: Sentry.captureException($E)
+      - pattern-not: Sentry.captureException($E, { beforeSend: $F })
     message: "[IC360-SEC-002] Direct Sentry capture without PII scrubbing wrapper."
     languages: [typescript, javascript]
     severity: WARNING
 
   - id: ic360-strict-tenant-isolation
     patterns:
-      - pattern: 'firestore.collection($C).doc($D)'
+      - pattern: firestore.collection($C).doc($D)
       - pattern-not-inside: |
           if ($USER.tenantId === $TENANT) { ... }
     message: "[IC360-SEC-003] Multi-tenant collection access without tenant verification."
@@ -37,4 +37,3 @@ rules:
     message: "[IC360-SEC-004] Anti-vibe flaw: silent exception swallowing detected."
     languages: [typescript, javascript]
     severity: ERROR
-
