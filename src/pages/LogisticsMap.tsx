@@ -24,7 +24,7 @@ import SourceBadge from '../components/states/SourceBadge';
 import LastUpdated from '../components/states/LastUpdated';
 
 export default function LogisticsMap() {
-  const { currentProject, currentOrganization } = useProject();
+  const { currentProject, currentOrganization, projects } = useProject();
 
   // Active view tab
   const [activeTab, setActiveTab] = useState<'map' | 'drawer' | 'network' | 'assistant'>('map');
@@ -152,14 +152,19 @@ export default function LogisticsMap() {
         // Automatically save live route
         const autoName = `Recorrido GPS - ${new Date().toLocaleTimeString('es-VE', { hour: '2-digit', minute: '2-digit' })}`;
         const targetOrgId = currentOrganization?.id || '';
-        const targetProjId = currentProject?.id || '';
-        routesRepo.create(targetOrgId, targetProjId, {
-          name: autoName,
-          distanceKm: Number(liveDistance.toFixed(3)),
-          path: livePath,
-          startTime: livePath[0]?.timestamp || Date.now(),
-          endTime: Date.now(),
-        }).catch(err => console.error("Error saving live route:", err));
+        const targetProjId = (currentProject && currentProject.id !== 'all')
+          ? currentProject.id
+          : (projects.find(p => p.id && p.id !== 'all')?.id || '');
+
+        if (targetOrgId && targetProjId && targetProjId !== 'all') {
+          routesRepo.create(targetOrgId, targetProjId, {
+            name: autoName,
+            distanceKm: Number(liveDistance.toFixed(3)),
+            path: livePath,
+            startTime: livePath[0]?.timestamp || Date.now(),
+            endTime: Date.now(),
+          }).catch(err => console.error("Error saving live route:", err));
+        }
       }
     } else {
       // Start tracking

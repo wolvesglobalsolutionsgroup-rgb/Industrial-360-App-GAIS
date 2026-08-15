@@ -17,8 +17,8 @@ export class FleetEquipmentRepository extends BaseRepository<FleetEquipmentItem>
     equipmentId: string,
     entry: Omit<HorometerLogEntry, 'id' | 'orgId' | 'projectId' | 'createdAt' | 'updatedAt'>
   ): Promise<HorometerLogEntry> {
-    if (!orgId || !projectId || !equipmentId) {
-      throw new Error('orgId, projectId y equipmentId son obligatorios.');
+    if (!orgId || !projectId || !equipmentId || projectId === 'all') {
+      throw new Error('orgId, projectId y equipmentId son obligatorios (projectId "all" no es válido para subcolecciones de equipos).');
     }
     const path = `organizations/${orgId}/projects/${projectId}/fleet_equipment/${equipmentId}/horometer_logs`;
     const now = new Date().toISOString();
@@ -65,8 +65,8 @@ export class FleetEquipmentRepository extends BaseRepository<FleetEquipmentItem>
     equipmentId: string,
     entry: Omit<FuelLogEntry, 'id' | 'orgId' | 'projectId' | 'createdAt' | 'updatedAt'>
   ): Promise<FuelLogEntry> {
-    if (!orgId || !projectId || !equipmentId) {
-      throw new Error('orgId, projectId y equipmentId son obligatorios.');
+    if (!orgId || !projectId || !equipmentId || projectId === 'all') {
+      throw new Error('orgId, projectId y equipmentId son obligatorios (projectId "all" no es válido para subcolecciones de equipos).');
     }
     const path = `organizations/${orgId}/projects/${projectId}/fleet_equipment/${equipmentId}/fuel_logs`;
     const now = new Date().toISOString();

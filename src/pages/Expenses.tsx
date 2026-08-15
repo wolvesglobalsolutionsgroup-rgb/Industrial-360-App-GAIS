@@ -56,9 +56,11 @@ export const EXPENSE_CATEGORIES = [
 ];
 
 export default function Expenses() {
-  const { currentProject, currentOrganization } = useProject();
+  const { currentProject, currentOrganization, projects } = useProject();
   const orgId = currentOrganization?.id || '';
-  const targetProjectId = currentProject && currentProject.id !== 'all' ? currentProject.id : 'proj-01';
+  const targetProjectId = (currentProject && currentProject.id !== 'all')
+    ? currentProject.id
+    : (projects.find(p => p.id && p.id !== 'all')?.id || '');
 
   const [expenses, setExpenses] = useState<ExpenseItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -169,6 +171,10 @@ export default function Expenses() {
   // Save Expense (Create / Edit)
   const handleSaveExpense = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!targetProjectId || targetProjectId === 'all') {
+      alert('Debe seleccionar un proyecto específico antes de registrar o modificar gastos.');
+      return;
+    }
     const user = getAuthUser();
     setIsSubmitting(true);
 
@@ -206,6 +212,10 @@ export default function Expenses() {
 
   // Delete Expense
   const handleDeleteExpense = async (id: string, vendor: string) => {
+    if (!targetProjectId || targetProjectId === 'all') {
+      alert('Debe seleccionar un proyecto específico antes de eliminar gastos.');
+      return;
+    }
     if (window.confirm(`¿Estás seguro de eliminar el registro de gasto de "${vendor}"?`)) {
       try {
         await expensesRepo.delete(orgId, targetProjectId, id);

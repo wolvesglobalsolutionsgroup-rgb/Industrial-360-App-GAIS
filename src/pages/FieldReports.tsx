@@ -49,7 +49,7 @@ export interface FieldReportItem {
 }
 
 export default function FieldReports() {
-  const { currentProject, currentOrganization } = useProject();
+  const { currentProject, currentOrganization, projects } = useProject();
   const [activeTab, setActiveTab] = useState<'create' | 'history'>('create');
   
   // History reports list
@@ -288,15 +288,25 @@ Responde de forma ejecutiva, concisa y profesional.`;
 
     try {
       const targetOrgId = currentOrganization?.id || '';
+      const targetProjId = (currentProject && currentProject.id !== 'all')
+        ? currentProject.id
+        : (projects.find(p => p.id && p.id !== 'all')?.id || '');
+
+      if (!targetProjId || targetProjId === 'all') {
+        alert('Debe seleccionar un proyecto específico antes de guardar el reporte de campo.');
+        setIsSubmitting(false);
+        return;
+      }
+
       if (!navigator.onLine) {
-        await queueOfflineOperation('field_reports', 'create', reportData);
+        await queueOfflineOperation('field_reports', 'create', { ...reportData, projectId: targetProjId });
         alert("Guardado Offline: El reporte se sincronizará automáticamente al conectarse a la red.");
       } else {
         try {
-          await fieldReportsRepo.create(targetOrgId, currentProject?.id || '', reportData);
+          await fieldReportsRepo.create(targetOrgId, targetProjId, reportData);
         } catch (err) {
           console.warn("Fallo envio online, guardando en cola offline:", err);
-          await queueOfflineOperation('field_reports', 'create', reportData);
+          await queueOfflineOperation('field_reports', 'create', { ...reportData, projectId: targetProjId });
         }
       }
 

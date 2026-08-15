@@ -407,7 +407,8 @@ export default function ProcurementInventory() {
     if (projId && projId !== 'all') return projId;
     if (currentProject?.id && currentProject.id !== 'all') return currentProject.id;
     const realP = projects.find(p => p.id !== 'all');
-    return realP ? realP.id : 'PROJ-CARDON-AMUAY';
+    if (realP?.id) return realP.id;
+    throw new Error('No se encontró un proyecto activo para asociar la operación de procura/inventario.');
   };
 
   // Handle RFQ Creation

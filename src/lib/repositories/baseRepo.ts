@@ -132,14 +132,39 @@ export class BaseRepository<T extends BaseEntity> {
 
   async getById(orgId: string, projectId: string, id: string): Promise<T | null> {
     if (!orgId || !projectId || !id) throw new Error('orgId, projectId e id son obligatorios.');
-    const targetProjectId = projectId === 'all' ? 'PROJ-CARDON-AMUAY' : projectId;
+    if (projectId === 'all') {
+      throw new Error(`projectId "all" no es resoluble en getById: se requiere un projectId real para la entidad '${id}'`);
+    }
     try {
-      const snap = await getDoc(doc(db, this.getCollectionPath(orgId, targetProjectId), id));
+      const snap = await getDoc(doc(db, this.getCollectionPath(orgId, projectId), id));
       if (!snap.exists()) return null;
       return { id: snap.id, ...snap.data() } as T;
     } catch (err) {
       handleFirestoreError(err, OperationType.GET, `${this.collectionName}/${id}`);
       return null;
+    }
+  }
+
+  /**
+   * Realiza una consulta deliberada multi-proyecto usando CollectionGroup filtrada por orgId.
+   */
+  async getAllAcrossProjects(orgId: string, maxLimit = 50): Promise<T[]> {
+    if (!orgId) throw new Error('orgId es obligatorio para consultas cross-project.');
+    const safeLimit = Math.min(Math.max(maxLimit, 1), 50);
+    try {
+      const snap = await getDocs(
+        query(collectionGroup(db, this.collectionName), where('orgId', '==', orgId), limit(safeLimit))
+      );
+      const map = new Map<string, T>();
+      snap.docs.forEach(d => {
+        if (!map.has(d.id)) {
+          map.set(d.id, { id: d.id, ...d.data() } as T);
+        }
+      });
+      return Array.from(map.values());
+    } catch (err) {
+      handleFirestoreError(err, OperationType.GET, this.collectionName);
+      return [];
     }
   }
 
@@ -162,30 +187,26 @@ export class BaseRepository<T extends BaseEntity> {
     data: Omit<T, 'id' | 'orgId' | 'projectId' | 'createdAt' | 'updatedAt'> & Partial<BaseEntity>
   ): Promise<T> {
     if (!orgId || !projectId) throw new Error('orgId y projectId son obligatorios.');
+    if (projectId === 'all') {
+      throw new Error(`projectId "all" no es resoluble en create: se requiere un projectId real para crear en '${this.collectionName}'`);
+    }
     
     // Validación de esquema Zod en el punto de escritura
     this.validateData(data, false);
 
     await this.checkQuotaBeforeWrite(orgId, 1);
-
-    let targetProjectId = projectId;
-    if (targetProjectId === 'all') {
-      targetProjectId = (data as any).projectId && (data as any).projectId !== 'all'
-        ? (data as any).projectId
-        : 'PROJ-CARDON-AMUAY';
-    }
     
     const now = new Date().toISOString();
     const payload = {
       ...data,
       orgId,
-      projectId: targetProjectId,
+      projectId,
       createdAt: data.createdAt || now,
       updatedAt: now,
     };
 
     try {
-      const ref = await addDoc(collection(db, this.getCollectionPath(orgId, targetProjectId)), payload);
+      const ref = await addDoc(collection(db, this.getCollectionPath(orgId, projectId)), payload);
       return { id: ref.id, ...payload } as T;
     } catch (err) {
       handleFirestoreError(err, OperationType.CREATE, this.collectionName);
@@ -195,23 +216,19 @@ export class BaseRepository<T extends BaseEntity> {
 
   async update(orgId: string, projectId: string, id: string, updates: Partial<T>): Promise<void> {
     if (!orgId || !projectId || !id) throw new Error('orgId, projectId e id son obligatorios.');
+    if (projectId === 'all') {
+      throw new Error(`projectId "all" no es resoluble en update: se requiere un projectId real para actualizar '${id}' en '${this.collectionName}'`);
+    }
     
     // Validación de esquema Zod en el punto de escritura (parcial para actualizaciones)
     this.validateData(updates, true);
 
-    let targetProjectId = projectId;
-    if (targetProjectId === 'all') {
-      targetProjectId = (updates as any).projectId && (updates as any).projectId !== 'all'
-        ? (updates as any).projectId
-        : 'PROJ-CARDON-AMUAY';
-    }
-
     try {
-      const docRef = doc(db, this.getCollectionPath(orgId, targetProjectId), id);
+      const docRef = doc(db, this.getCollectionPath(orgId, projectId), id);
       await updateDoc(docRef, {
         ...updates,
         orgId,
-        projectId: targetProjectId,
+        projectId,
         updatedAt: new Date().toISOString(),
       });
     } catch (err) {
@@ -222,9 +239,11 @@ export class BaseRepository<T extends BaseEntity> {
 
   async delete(orgId: string, projectId: string, id: string): Promise<void> {
     if (!orgId || !projectId || !id) throw new Error('orgId, projectId e id son obligatorios.');
-    const targetProjectId = projectId === 'all' ? 'PROJ-CARDON-AMUAY' : projectId;
+    if (projectId === 'all') {
+      throw new Error(`projectId "all" no es resoluble en delete: se requiere un projectId real para eliminar '${id}' en '${this.collectionName}'`);
+    }
     try {
-      await deleteDoc(doc(db, this.getCollectionPath(orgId, targetProjectId), id));
+      await deleteDoc(doc(db, this.getCollectionPath(orgId, projectId), id));
     } catch (err) {
       handleFirestoreError(err, OperationType.DELETE, `${this.collectionName}/${id}`);
       throw err;

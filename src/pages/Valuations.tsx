@@ -194,7 +194,10 @@ export default function Valuations() {
   const handleCreateValuation = async (e: React.FormEvent) => {
     e.preventDefault();
     const authUser = getAuthUser();
-    if (!currentProject || !authUser) return;
+    if (!currentProject || currentProject.id === 'all' || !authUser) {
+      alert('Debe seleccionar un proyecto específico antes de emitir una valuación.');
+      return;
+    }
 
     setIsSubmitting(true);
     try {
