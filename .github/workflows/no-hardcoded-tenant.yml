@@ -4,6 +4,12 @@ permissions:
   contents: read
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'src/**/*.ts'
+      - 'src/**/*.tsx'
   pull_request:
     paths:
       - 'src/**/*.ts'
