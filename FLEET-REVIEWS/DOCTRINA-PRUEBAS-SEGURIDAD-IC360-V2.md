@@ -1,5 +1,5 @@
 # 🛡️ DOCTRINA-PRUEBAS-SEGURIDAD-IC360-V2 — Doctrina de Máximo Rigor: Pruebas, Cobertura y Seguridad Ofensiva
-**Fecha:** 14-AGO-2026 · **Emite:** CTO/Orquestador · **Estatus:** VINCULANTE tras aprobación Founder
+**Fecha:** 14-AGO-2026 · **Versión:** V2.1 (parche 14-ago: niveles 7 y 10 explícitos en gates CI — hallazgo Claude B.1.1) · **Emite:** CTO/Orquestador · **Estatus:** VINCULANTE tras aprobación Founder
 **Extiende y reemplaza:** DOCTRINA-PRUEBAS-EXCELENCIA V1 (8 niveles) → esta doctrina la amplía a 12 niveles + programa de seguridad ofensiva.
 **Principio rector (GR-15 ampliado):** NINGUNA auditoría debe sorprendernos. El score del proyecto se computa desde evidencia en cualquier momento. Un 90/100 que esconde una lluvia de problemas es un fraude contra nosotros mismos — prohibido por la Constitución Art. IV.
 **Restricción:** todo el arsenal corre a $0 USD (herramientas open-source + capas gratuitas).
@@ -48,20 +48,23 @@
 
 ## PARTE 4 — ORDEN DE GATES EN CI (secuencia canónica)
 
-```text
- 1. tsc --noEmit (raíz + functions)              → bloquea
- 2. vitest run (unit + contratos + integración)  → bloquea (≥512, piso 507 documentado)
- 3. fast-check smoke (schemas + calculadoras)    → bloquea [NUEVO]
- 4. firestore rules tests (si rules cambió)      → bloquea
- 5. semgrep custom + trampas (prueba de fuego)   → bloquea
- 6. gitleaks                                     → bloquea
- 7. npm audit (altas/críticas) + license gate    → bloquea
- 8. bundle budget                                → bloquea
- 9. playwright E2E (flujo dorado + 17 workflows) → bloquea (desde F-E2E)
-10. golden PDF hash                              → bloquea (desde F-PDF)
-11. ZAP baseline (nocturno, contra preview)      → reporta → bloquea tras calibración
-12. Stryker (semanal, domain/ + lib/)            → reporta
-```
+`	ext
+ 1. tsc --noEmit (raíz + functions)               → bloquea
+ 2. vitest run (unit + contratos + integración)   → bloquea (≥512, piso 507 documentado)
+ 3. fast-check smoke (schemas + calculadoras)     → bloquea [Nivel 3]
+ 4. offline/caos: idempotencia, schemaVersion, backoff → bloquea [Nivel 7]
+ 5. firestore rules tests (si rules cambió)       → bloquea [Nivel 4]
+ 6. semgrep custom + trampas (prueba de fuego)    → bloquea [S1/S2]
+ 7. gitleaks                                      → bloquea [S3]
+ 8. npm audit + license gate (zero AGPL/GPL)      → bloquea [S4]
+ 9. bundle budget                                 → bloquea [Dim 1]
+10. playwright E2E (flujo dorado + 17 workflows)  → bloquea (desde F-E2E) [Nivel 6]
+11. golden PDF hash                               → bloquea (desde F-PDF) [Nivel 8]
+12. accesibilidad (axe) en páginas migradas       → bloquea (desde S20) [Nivel 10]
+13. ZAP baseline (nocturno, preview)              → reporta → bloquea tras calibración [S5]
+14. Strix pentest (semanal, preview)              → reporta → bloquea tras calibración [S11]
+15. Stryker (semanal, domain/ + lib/)             → reporta [Nivel 12]
+`
 
 ## PARTE 5 — PLAN DE CIERRE DE BRECHAS (prioridad × $0)
 
